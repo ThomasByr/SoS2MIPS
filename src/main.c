@@ -13,6 +13,7 @@ int main(int argc, char *argv[]) {
 
   parse_args(argc, argv, args);
   check_args(args);
+  print_args(args);
 
   cmd_args_free(args);
 
