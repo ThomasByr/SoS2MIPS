@@ -33,3 +33,10 @@ void parse_args(int argc, char *argv[], cmd_args args);
  * @param args struct containing the arguments
  */
 void check_args(const cmd_args args);
+
+/**
+ * @brief Print command line arguments content
+ * 
+ * @param args - command line arguments structure
+*/
+void print_args(const cmd_args args);
