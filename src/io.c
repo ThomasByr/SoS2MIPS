@@ -125,17 +125,17 @@ void parse_args(int argc, char *argv[], cmd_args args) {
 
     case 'h':
       display_help(NULL);
-      panic("unreachable");
+      unreachable();
       break;
 
     case 'v':
       display_version();
-      panic("unreachable");
+      unreachable();
       break;
 
     case 'l':
       display_license();
-      panic("unreachable");
+      unreachable();
       break;
 
     case 'i':
@@ -155,19 +155,19 @@ void parse_args(int argc, char *argv[], cmd_args args) {
       break;
 
     case 'O':
-      args->opt_lvl = atoi(optarg);
+      args->opt_lvl = strtoi(optarg);
       break;
 
     default:
       bad_opt = argv[optind - 1];
       display_help("unrecognized option '%s'", bad_opt);
-      panic("unreachable");
+      unreachable();
       break;
     }
   }
   if (optind < argc) {
     display_help("unrecognized argument '%s'", argv[optind]);
-    panic("unreachable");
+    unreachable();
   }
   optind = 0;
 }

@@ -94,6 +94,19 @@ extern int errno;
   } while (0)
 
 /**
+ * @brief Causes the calling thread to panic (i.e. abort) if
+ * the code falls through this point.
+ * @return noreturn
+ */
+#define unreachable()                                                   \
+  do {                                                                  \
+    fprintf(stderr, FG_RED " panic: thread %zu on %s:%d\n     -> " RST, \
+            pthread_self(), __FILE__, __LINE__);                        \
+    fprintf(stderr, "unreachable code\n");                              \
+    abort();                                                            \
+  } while (0)
+
+/**
  * @brief Displays an alert message.
  *
  * @param fmt format string w/o trailing newline
@@ -125,3 +138,48 @@ typedef void(print_callback_t)(void *);
 #else
 #define ASSERT(x) assert(x)
 #endif
+
+/**
+ * @brief Performs a string to int conversion
+ *
+ * @param nptr string to convert
+ * @return int - the converted value
+ */
+int strtoi(const char *restrict nptr);
+
+/**
+ * @brief Safe call to snprintf
+ *
+ * @param str  string to write to
+ * @param size size of the string
+ * @param fmt  formated message to print
+ */
+void snprintf_s(char *restrict str, size_t size, const char *restrict fmt, ...);
+
+/**
+ * @brief Safe call to memcpy
+ * 
+ * @param dst0   destination to copy to
+ * @param src0   source to copy from
+ * @param length number of bytes to copy
+*/
+void *memcpy_s(void *restrict dst0, const void *restrict src0, size_t length);
+
+/**
+ * @brief Copies the string pointed to by src, including the terminating null
+ * byte ('\0')
+ *
+ * @param dest destination string
+ * @param src  source string
+ * @param n    number of characters to copy
+ * @return size_t - the number of characters copied, not including the
+ * terminating null byte
+ */
+size_t strlcpy(char *restrict dst, const char *restrict src, size_t siz);
+
+/**
+ * @brief Suppress leading and trailing whitespaces
+ *
+ * @param str string to trim
+ */
+void trim(char *str);

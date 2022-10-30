@@ -249,8 +249,8 @@ dict_t dict_copy(dict_t dict) {
   }
 
   size_t n = new_dict->capacity * sizeof(size_t);
-  void *key = memcpy(new_dict->keys, dict->keys, n);
-  void *value = memcpy(new_dict->values, dict->values, n);
+  void *key = memcpy_s(new_dict->keys, dict->keys, n);
+  void *value = memcpy_s(new_dict->values, dict->values, n);
   ASSERT(key);
   ASSERT(value);
   ASSERT(key == new_dict->keys);
