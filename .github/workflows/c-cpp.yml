@@ -1,0 +1,22 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Valgrind
+        run: |
+          sudo apt install valgrind > /dev/null
+          echo "Valgrind installed!"
+
+      - name: make check
+        run: cd tests && make check_quiet
