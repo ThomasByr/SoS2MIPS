@@ -109,7 +109,7 @@ If you're looking for something - here's a breakdown of our codebase
 │
 ├── changelog.md                   # the full history, or so was I told...
 │
-├── LINCENSE                       # GPL-3.0 License
+├── LICENSE                        # GPL-3.0 License
 │
 ├── makefile                       # makefile for gcc [-std=gnu17]
 │
