@@ -18,7 +18,7 @@ foo_t *foo_new(int id) {
   foo->id = (char *)malloc(sizeof(char) * 100);
   foo->a = 0;
   foo->b = 0;
-  snprintf(foo->id, sizeof(char) * 100, "%d", id);
+  snprintf_s(foo->id, sizeof(char) * 100, "%d", id);
 
   return foo;
 }
