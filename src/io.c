@@ -10,14 +10,13 @@
 #include "lib.h"
 
 typedef struct _io {
-  char filename[BUFSIZ];
-  char output[BUFSIZ];
+  char *filename;
+  char *output;
 
   bool stdisplay;
   bool verbose;
 
-  unsigned opt_lvl_set;
-  bool opt_lvl;
+  int opt_lvl;
 } _io;
 
 static noreturn void display_help(const char *restrict fmt, ...) {
@@ -25,7 +24,16 @@ static noreturn void display_help(const char *restrict fmt, ...) {
   const char *restrict help =
       "SoS2MIPS - A Subscript of Shell to MIPS32 Assembly Compiler\n"
       "version " __VERSION__ " by " __AUTHORS__ "\n"
-      "usage: sos2mips [options] -i file\n";
+      "usage: sos2mips [options] -i <filename>\n"
+      "options:\n"
+      "  -h, --help\t\tDisplay this help message and exit\n"
+      "  -v, --version\t\tDisplay the version of this program and exit\n"
+      "  -l, --license\t\tDisplay the license of this program and exit\n"
+      "  -i, --input\t\tSpecify the input file\n"
+      "  -o, --output\t\tSpecify the output file\n"
+      "  .., --tos\t\tDisplay the Symbol Table on runtime\n"
+      "  .., --verbose\t\tDisplay verbose information on runtime\n"
+      "  -O, --optimize\tSet the optimization level\n";
 
   if (fmt != NULL) {
     va_list args;
@@ -78,14 +86,13 @@ static noreturn void display_license(void) {
 
 cmd_args cmd_args_init(void) {
   struct _io *args = (struct _io *)malloc(sizeof(struct _io));
-  memset(args->filename, '\0', BUFSIZ);
-  memset(args->output, '\0', BUFSIZ);
+  args->filename = NULL;
+  args->output = NULL;
 
   args->stdisplay = false;
   args->verbose = false;
 
-  args->opt_lvl_set = 0;
-  args->opt_lvl = false;
+  args->opt_lvl = 0;
 
   return args;
 }
@@ -95,8 +102,6 @@ void cmd_args_free(cmd_args args) { free(args); }
 void parse_args(int argc, char *argv[], cmd_args args) {
 #define TOS_OPT 1000
 #define VERB_OPT 2000
-#define O0_OPT 3000
-#define O1_OPT 3001
 
   static const struct option long_options[] = {
       {"help", no_argument, NULL, 'h'},
@@ -106,16 +111,16 @@ void parse_args(int argc, char *argv[], cmd_args args) {
       {"out", required_argument, NULL, 'o'},
       {"tos", no_argument, NULL, TOS_OPT},
       {"verbose", no_argument, NULL, VERB_OPT},
-      {"O0", no_argument, NULL, O0_OPT},
-      {"O1", no_argument, NULL, O1_OPT},
+      {"optimize", required_argument, NULL, 'O'},
       {NULL, 0, NULL, 0},
   };
-  static const char short_options[] = "hvli:o:";
+  static const char short_options[] = "i:o:O:hvl";
 
   int opt;
   char *bad_opt;
   while ((opt = getopt_long(argc, argv, short_options, long_options, NULL)) !=
          -1) {
+
     switch (opt) {
 
     case 'h':
@@ -134,11 +139,11 @@ void parse_args(int argc, char *argv[], cmd_args args) {
       break;
 
     case 'i':
-      strncpy(args->filename, optarg, BUFSIZ);
+      args->filename = optarg;
       break;
 
     case 'o':
-      strncpy(args->output, optarg, BUFSIZ);
+      args->output = optarg;
       break;
 
     case TOS_OPT:
@@ -149,9 +154,8 @@ void parse_args(int argc, char *argv[], cmd_args args) {
       args->verbose = true;
       break;
 
-    case O0_OPT | O1_OPT:
-      args->opt_lvl_set ++;
-      args->opt_lvl = (opt == O1_OPT);
+    case 'O':
+      args->opt_lvl = atoi(optarg);
       break;
 
     default:
@@ -160,20 +164,27 @@ void parse_args(int argc, char *argv[], cmd_args args) {
       panic("unreachable");
       break;
     }
-
-    if (optind < argc) {
-      display_help("unrecognized argument '%s'", argv[optind]);
-      panic("unreachable");
-    }
+  }
+  if (optind < argc) {
+    display_help("unrecognized argument '%s'", argv[optind]);
+    panic("unreachable");
   }
   optind = 0;
 }
 
 void check_args(const cmd_args args) {
-  if (args->filename[0] == '\0') {
+  if (args->filename == NULL) {
     display_help("no input file specified");
   }
-  if (args->opt_lvl_set > 1) {
-    display_help("optimization level can only be specified once");
+  if (args->opt_lvl < 0 || args->opt_lvl > 1) {
+    display_help("invalid optimization level");
   }
+}
+
+void print_args(const cmd_args args) {
+  debug("filename: %s", args->filename);
+  debug("output: %s", args->output);
+  debug("stdisplay: %s", args->stdisplay ? "true" : "false");
+  debug("verbose: %s", args->verbose ? "true" : "false");
+  debug("opt_lvl: %d", args->opt_lvl);
 }
