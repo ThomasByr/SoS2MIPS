@@ -5,20 +5,20 @@
   "C_Cpp.clang_format_style": "{IndentWidth: 2, TabWidth: 2, ColumnLimit: 80, AlignEscapedNewlines: Left, AllowShortIfStatementsOnASingleLine: true}",
   "files.associations": {
     "*.s": "mips",
-    "Doxyfile": "plaintext",
     "*.lex": "lex",
     "*.l": "lex",
     "*.y": "yacc",
-    "random": "cpp",
-    "stat.h": "c",
-    "unistd.h": "c"
   },
   "cSpell.words": [
     "dtype",
+    "elif",
     "esac",
     "hset",
+    "imgs",
     "lerp",
     "qsort",
+    "qtspim",
+    "spim",
     "TCHK",
     "yyparse"
   ]
