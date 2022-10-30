@@ -36,17 +36,16 @@ The produced executable binary is to be found inside of the `bin` folder.
 
 The program takes command line arguments from (`..` indicating no short option, `<>` that an argument is required and `*` mutual incompatibility) :
 
-| command          | hint                                     | required ? | default |
-| ---------------- | ---------------------------------------- | ---------- | ------- |
-| `-h, --help`     | display this help and **exit**           | ❔         |         |
-| `-v, --version`  | display version and **exit**             | ❔         |         |
-| `-l, --license`  | display license and **exit**             | ❔         |         |
-| `-i, --in` `<>`  | path to input file                       | ✔️         |         |
-| `-o, --out` `<>` | path to output file                      | ❌         | `'\0'`  |
-| `.., --tos`      | display the Symbol Table on running time | ❌         |         |
-| `.., --verbose`  | be very noisy                            | ❌         |         |
-| `.., --O0` `*`   | set optimization level to 0 (default)    | ❌         |         |
-| `.., --O1` `*`   | set optimization level to 1              | ❌         |         |
+| command               | hint                                     | required ? | default |
+| --------------------- | ---------------------------------------- | ---------- | ------- |
+| `-h, --help`          | display this help and **exit**           | ❔         |         |
+| `-v, --version`       | display version and **exit**             | ❔         |         |
+| `-l, --license`       | display license and **exit**             | ❔         |         |
+| `-i, --in` `<>`       | path to input file                       | ✔️         |         |
+| `-o, --out` `<>`      | path to output file                      | ❌         | `NULL`  |
+| `.., --tos`           | display the Symbol Table on running time | ❌         |         |
+| `.., --verbose`       | be very noisy                            | ❌         |         |
+| `-O, --optimize` `<>` | set optimization level (from `0` or `1`) | ❌         | `0`     |
 
 <!--
 
@@ -108,28 +107,28 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 **todo** (first implementation version)
 
 - [ ] add lex/yacc to makefiles
-  (throw `.h` to [inc](inc/) folder and `.c` to [src](src/) folder ; then add files to wildcart)
+      (throw `.h` to [inc](inc/) folder and `.c` to [src](src/) folder ; then add files to wildcard)
 - [ ] make sure qtspim is properly working
-  (dump in some [example files](vm/qtspim/helloworld.s))
+      (dump in some [example files](vm/qtspim/helloworld.s))
 - [ ] create grammar
-  (that's a big fish, please send help)
+      (that's a big fish, please send help)
 - [ ] standard console i/o
-  (`echo` and  `read`)
+      (`echo` and `read`)
 - [ ] primitive types
-  (`int`, `float`, `char` -> dynamic types)
+      (`int`, `float`, `char` -> dynamic types)
 - [ ] variable declaration
-  (support scope : all variables are global by default [?](https://www.gnu.org/software/emacs/manual/html_node/elisp/Local-Variables.html), unless `local` is used)
+      (support scope : all variables are global by default [?](https://www.gnu.org/software/emacs/manual/html_node/elisp/Local-Variables.html), unless `local` is used)
 - [ ] function declaration
-  (no keywords, no arguments : `funname() { ... }`)
+      (no keywords, no arguments : `funname() { ... }`)
 - [ ] first order keywords
-  (`if` `then` `for` `do` `done` `in` `while` `until` `case` `esac` `echo` `read` `return` `exit` `local` `elif` `else` `fi` `declare` `test` `expr`)
+      (`if` `then` `for` `do` `done` `in` `while` `until` `case` `esac` `echo` `read` `return` `exit` `local` `elif` `else` `fi` `declare` `test` `expr`)
 - [ ] comments
-  (with `#` from `'#'` until `'\n'`)
+      (with `#` from `'#'` until `'\n'`)
 - [ ] optimization level 1.0
-  (evaluate constant expression at compile time)
+      (evaluate constant expression at compile time)
 - [ ] optimization level 1.1
-  (do not evaluate anything related to unused objects)
+      (do not evaluate anything related to unused objects)
 - [ ] optimization level 1.2
-  (group first order lazy instructions : eval + test -> test)
+      (group first order lazy instructions : eval + test -> test)
 - [ ] support multiple files
-  (multi-core compiling)
+      (multi-core compiling)
