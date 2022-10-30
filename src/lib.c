@@ -81,7 +81,7 @@ void *memcpy_s(void *restrict dst0, const void *restrict src0, size_t length) {
   if (length == 0 || dst == src) return dst;
   size_t t;
 
-  /** macros : : loop-t-times; and loop-t-times, t>0 */
+  /** macros : loop-t-times ; and loop-t-times, t>0 */
   // clang-format off
 #define	TLOOP(s) if (t) TLOOP1(s) 
 #define	TLOOP1(s) do { s; } while (--t)
@@ -89,10 +89,10 @@ void *memcpy_s(void *restrict dst0, const void *restrict src0, size_t length) {
 
   if ((unsigned long)dst < (unsigned long)src) {
     // copy forward
-    t = (uintptr_t)src; /* only need low bits */
+    t = (uintptr_t)src; // only need low bits
     if ((t | (uintptr_t)dst) & wmask) {
-      // try to align operands.  This cannot be done
-      // unless the low bits match.
+      // try to align operands
+      // this cannot be done unless the low bits match
       if ((t ^ (uintptr_t)dst) & wmask || length < wsize)
         t = length;
       else
@@ -100,15 +100,16 @@ void *memcpy_s(void *restrict dst0, const void *restrict src0, size_t length) {
       length -= t;
       TLOOP1(*dst++ = *src++);
     }
-    // copy whole words, then mop up any trailing bytes.
+    // copy whole words, then mop up any trailing bytes
     t = length / wsize;
     TLOOP(*(word *)dst = *(word *)src; src += wsize; dst += wsize);
     t = length & wmask;
     TLOOP(*dst++ = *src++);
   } else {
-    // copy backwards.  Otherwise essentially the same.
+    // copy backwards
+    // otherwise essentially the same
     // alignment works as before, except that it takes
-    // (t&wmask) bytes to align, not wsize-(t&wmask).
+    // (t&wmask) bytes to align, not wsize-(t&wmask)
     src += length;
     dst += length;
     t = (uintptr_t)src;
