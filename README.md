@@ -1,4 +1,4 @@
-# <img src="assets/imgs/icon.png" alt="icon" width="3%"/> SoS2MIPS - A Subscript of Shell to MIPS32 Assembly Compiler
+# <img src="assets/imgs/icon.png" alt="icon" width="4%"/> SoS2MIPS - A Subscript of Shell to MIPS32 Assembly Compiler
 
 [![Linux](https://svgshare.com/i/Zhy.svg)](https://docs.microsoft.com/en-us/windows/wsl/tutorials/gui-apps)
 [![GitHub license](https://img.shields.io/github/license/ThomasByr/SoS2MIPS)](https://github.com/ThomasByr/SoS2MIPS/blob/master/LICENSE)
