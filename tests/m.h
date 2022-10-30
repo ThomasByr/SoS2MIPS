@@ -88,19 +88,20 @@ extern unsigned long _no_asserts;
     f();              \
   } while (0);
 #else
-#define exe_no_out(f)                        \
-  do {                                       \
-    int _stdout = dup(1);                    \
-    int _stderr = dup(2);                    \
-    int _null = open("/dev/null", O_WRONLY); \
-    dup2(_null, 1);                          \
-    dup2(_null, 2);                          \
-    f();                                     \
-    fflush(stdout);                          \
-    fflush(stderr);                          \
-    dup2(_stdout, 1);                        \
-    dup2(_stderr, 2);                        \
-    close(_null);                            \
+#define exe_no_out(f)                         \
+  do {                                        \
+    int _stdout, _stderr, _null;              \
+    CHK(_stdout = dup(1));                    \
+    CHK(_stderr = dup(2));                    \
+    CHK(_null = open("/dev/null", O_WRONLY)); \
+    CHK(dup2(_null, 1));                      \
+    CHK(dup2(_null, 2));                      \
+    f();                                      \
+    fflush(stdout);                           \
+    fflush(stderr);                           \
+    CHK(dup2(_stdout, 1));                    \
+    CHK(dup2(_stderr, 2));                    \
+    CHK(close(_null));                        \
   } while (0);
 #endif
 
