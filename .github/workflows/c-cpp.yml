@@ -8,6 +8,7 @@ on:
 
 jobs:
   build:
+    name: Continuous Integration
     runs-on: ubuntu-latest
 
     steps:
