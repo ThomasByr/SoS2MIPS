@@ -6,6 +6,9 @@
 [![GitHub latest commit](https://badgen.net/github/last-commit/ThomasByr/SoS2MIPS)](https://gitHub.com/ThomasByr/SoS2MIPS/commit/)
 [![Maintenance](https://img.shields.io/badge/maintained%3F-yes-green.svg)](https://GitHub.com/ThomasByr/SoS2MIPS/graphs/commit-activity)
 
+[![C/C++ CI](https://github.com/ThomasByr/SoS2MIPS/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/ThomasByr/SoS2MIPS/actions/workflows/c-cpp.yml)
+[![CodeQL](https://github.com/ThomasByr/SoS2MIPS/actions/workflows/codeql.yml/badge.svg)](https://github.com/ThomasByr/SoS2MIPS/actions/workflows/codeql.yml)
+
 [![GitHub version](https://badge.fury.io/gh/ThomasByr%2FSoS2MIPS.svg)](https://github.com/ThomasByr/SoS2MIPS)
 [![Author](https://img.shields.io/badge/author-@ThomasByr-blue)](https://github.com/ThomasByr)
 [![Author](https://img.shields.io/badge/author-@ThomasD-blue)](https://github.com/LosKeeper)
@@ -15,9 +18,10 @@
 1. [✏️ Setup](#️-setup)
 2. [💁 More infos and Usage](#-more-infos-and-usage)
 3. [🧪 Testing](#-testing)
-4. [⚖️ License](#️-license)
-5. [🔄 Changelog](#-changelog)
-6. [🐛 Bugs & TODO](#-bugs--todo)
+4. [🧑‍🏫 Contributing](#-contributing)
+5. [⚖️ License](#️-license)
+6. [🔄 Changelog](#-changelog)
+7. [🐛 Bugs & TODO](#-bugs--todo)
 
 ## ✏️ Setup
 
@@ -47,6 +51,12 @@ The program takes command line arguments from (`..` indicating no short option, 
 | `.., --verbose`       | be very noisy                            | ❌         |         |
 | `-O, --optimize` `<>` | set optimization level (from `0` or `1`) | ❌         | `0`     |
 
+A legal launching instruction could be :
+
+```bash
+./bin/sos -i examples/hello_world.sos -01
+```
+
 <!--
 
 **What's with the optimization level ?**
@@ -73,6 +83,25 @@ Still, make sure you have `valgrind` up and ready and then run :
 ```bash
 cd tests && make check_quiet
 ```
+
+## 🧑‍🏫 Contributing
+
+If you ever want to contribute, please begin by reading our [Contributing Guidelines](.github/CONTRIBUTING.md).
+
+> The standard procedure is :
+>
+> ```txt
+> fork -> git branch -> push -> pull request
+> ```
+>
+> Note that we won't accept any PR
+>
+> - that does not follow our Contributing Guidelines
+> - that is not sufficiently commented or isn't well formated
+> - without any proper test suite
+> - with a failing or incomplete test suite
+
+Happy coding ! 🙂
 
 ## ⚖️ License
 
