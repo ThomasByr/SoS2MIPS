@@ -1,0 +1,25 @@
+{
+  "C_Cpp.autocompleteAddParentheses": true,
+  "C_Cpp.clang_format_fallbackStyle": "Microsoft",
+  "C_Cpp.clang_format_sortIncludes": true,
+  "C_Cpp.clang_format_style": "{IndentWidth: 2, TabWidth: 2, ColumnLimit: 80, AlignEscapedNewlines: Left, AllowShortIfStatementsOnASingleLine: true}",
+  "files.associations": {
+    "*.s": "mips",
+    "Doxyfile": "plaintext",
+    "*.lex": "lex",
+    "*.l": "lex",
+    "*.y": "yacc",
+    "random": "cpp",
+    "stat.h": "c",
+    "unistd.h": "c"
+  },
+  "cSpell.words": [
+    "dtype",
+    "esac",
+    "hset",
+    "lerp",
+    "qsort",
+    "TCHK",
+    "yyparse"
+  ]
+}
