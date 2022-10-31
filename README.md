@@ -49,11 +49,11 @@ The program takes command line arguments from (`..` indicating no short option, 
 
 | command              | hint                                     | required ? | default |
 | -------------------- | ---------------------------------------- | ---------- | ------- |
-| `-h, --help`         | display this help and **exit**           | ❔         |         |
+| `-h, --help`         | display help and **exit**                | ❔         |         |
 | `-v, --version`      | display version and **exit**             | ❔         |         |
 | `-l, --license`      | display license and **exit**             | ❔         |         |
 | `-i, --in` `<>`      | path to input file                       | ✔️         |         |
-| `-o, --out` `<>`     | path to output file                      | ❌         | `NULL`  |
+| `-o, --out` `<>`     | path to output file                      | ❌         | `a.s`   |
 | `.., --tos`          | display the Symbol Table on running time | ❌         |         |
 | `.., --verbose`      | be very noisy                            | ❌         |         |
 | `-O, --opt_lvl` `<>` | set optimization level (from `0` or `1`) | ❌         | `0`     |
@@ -101,7 +101,7 @@ If you ever want to contribute, please begin by reading our [Contributing Guidel
 > fork -> git branch -> push -> pull request
 > ```
 >
-> Note that we won't accept any PR
+> Note that we won't accept any PR :
 >
 > - that does not follow our Contributing Guidelines
 > - that is not sufficiently commented or isn't well formated
@@ -140,7 +140,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 **known bugs** (final correction patch version) [see Issues](https://github.com/ThomasByr/SoS2MIPS/issues)
 
-- `qtspim -file ./vm/qtspim/helloworld.s` is failing to parse the assembly file
+- ~~`qtspim -file ./vm/qtspim/helloworld.s` is failing to parse the assembly file~~
+  (not a bug, please just do not use `-bare`)
 
 **todo** (first implementation version)
 
