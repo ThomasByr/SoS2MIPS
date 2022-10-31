@@ -19,7 +19,6 @@ typedef enum {
  * @var function Pointer to the function that will perform the task.
  * @var argument Argument to be passed to the function.
  */
-
 typedef struct {
   void (*function)(void *);
   void *argument;
@@ -77,25 +76,25 @@ threadpool_t threadpool_create(int thread_count, int queue_size, int flags) {
     goto err;
   }
 
-  /* Initialize */
+  // initialize
   pool->thread_count = 0;
   pool->queue_size = queue_size;
   pool->head = pool->tail = pool->count = 0;
   pool->shutdown = pool->started = 0;
 
-  /* Allocate thread and task queue */
+  // allocate thread and task queue
   pool->threads = (pthread_t *)malloc(sizeof(pthread_t) * thread_count);
   pool->queue =
       (threadpool_task_t *)malloc(sizeof(threadpool_task_t) * queue_size);
 
-  /* Initialize mutex and conditional variable first */
+  // initialize mutex and conditional variable first
   if ((pthread_mutex_init(&(pool->lock), NULL) != 0) ||
       (pthread_cond_init(&(pool->notify), NULL) != 0) ||
       (pool->threads == NULL) || (pool->queue == NULL)) {
     goto err;
   }
 
-  /* Start worker threads */
+  // start worker threads
   for (i = 0; i < thread_count; i++) {
     if (pthread_create(&(pool->threads[i]), NULL, threadpool_thread,
                        (void *)pool) != 0) {
@@ -132,25 +131,25 @@ int threadpool_add(threadpool_t pool, void (*function)(void *), void *argument,
   next = (pool->tail + 1) % pool->queue_size;
 
   do {
-    /* Are we full ? */
+    // are we full ?
     if (pool->count == pool->queue_size) {
       err = threadpool_queue_full;
       break;
     }
 
-    /* Are we shutting down ? */
+    // are we shutting down ?
     if (pool->shutdown) {
       err = threadpool_shutdown;
       break;
     }
 
-    /* Add task to queue */
+    // add task to queue
     pool->queue[pool->tail].function = function;
     pool->queue[pool->tail].argument = argument;
     pool->tail = next;
     pool->count += 1;
 
-    /* pthread_cond_broadcast */
+    // pthread_cond_broadcast
     if (pthread_cond_signal(&(pool->notify)) != 0) {
       err = threadpool_lock_failure;
       break;
@@ -176,7 +175,7 @@ int threadpool_destroy(threadpool_t pool, int flags) {
   }
 
   do {
-    /* Already shutting down */
+    // already shutting down
     if (pool->shutdown) {
       err = threadpool_shutdown;
       break;
@@ -185,14 +184,14 @@ int threadpool_destroy(threadpool_t pool, int flags) {
     pool->shutdown =
         (flags & threadpool_graceful) ? graceful_shutdown : immediate_shutdown;
 
-    /* Wake up all worker threads */
+    // wake up all worker threads
     if ((pthread_cond_broadcast(&(pool->notify)) != 0) ||
         (pthread_mutex_unlock(&(pool->lock)) != 0)) {
       err = threadpool_lock_failure;
       break;
     }
 
-    /* Join all worker thread */
+    // join all worker thread
     for (i = 0; i < pool->thread_count; i++) {
       if (pthread_join(pool->threads[i], NULL) != 0) {
         err = threadpool_thread_failure;
@@ -200,7 +199,7 @@ int threadpool_destroy(threadpool_t pool, int flags) {
     }
   } while (0);
 
-  /* Only if everything went well do we deallocate the pool */
+  // only if everything went well do we deallocate the pool
   if (!err) {
     threadpool_free(pool);
   }
@@ -212,14 +211,14 @@ int threadpool_free(threadpool_t pool) {
     return -1;
   }
 
-  /* Did we manage to allocate ? */
+  // did we manage to allocate ?
   if (pool->threads) {
     free(pool->threads);
     free(pool->queue);
 
-    /* Because we allocate pool->threads after initializing the
-       mutex and condition variable, we're sure they're
-       initialized. Let's lock the mutex just in case. */
+    // because we allocate pool->threads after initializing the
+    // mutex and condition variable, we're sure they're initialized
+    // let's lock the mutex just in case
     pthread_mutex_lock(&(pool->lock));
     pthread_mutex_destroy(&(pool->lock));
     pthread_cond_destroy(&(pool->notify));
@@ -233,11 +232,11 @@ static void *threadpool_thread(void *threadpool) {
   threadpool_task_t task;
 
   for (;;) {
-    /* Lock must be taken to wait on conditional variable */
+    // lock must be taken to wait on conditional variable
     pthread_mutex_lock(&(pool->lock));
 
-    /* Wait on condition variable, check for spurious wakeups.
-       When returning from pthread_cond_wait(), we own the lock. */
+    // wait on condition variable, check for spurious wakeups
+    // when returning from pthread_cond_wait(), we own the lock
     while ((pool->count == 0) && (!pool->shutdown)) {
       pthread_cond_wait(&(pool->notify), &(pool->lock));
     }
@@ -247,16 +246,16 @@ static void *threadpool_thread(void *threadpool) {
       break;
     }
 
-    /* Grab our task */
+    // grab our task
     task.function = pool->queue[pool->head].function;
     task.argument = pool->queue[pool->head].argument;
     pool->head = (pool->head + 1) % pool->queue_size;
     pool->count -= 1;
 
-    /* Unlock */
+    // unlock
     pthread_mutex_unlock(&(pool->lock));
 
-    /* Get to work */
+    // get to work
     (*(task.function))(task.argument);
   }
 
