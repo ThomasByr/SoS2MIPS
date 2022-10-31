@@ -21,6 +21,8 @@
     "spim",
     "TCHK",
     "TLOOP",
+    "yyin",
+    "yyout",
     "yyparse"
   ]
 }
