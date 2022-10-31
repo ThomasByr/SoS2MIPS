@@ -1,22 +1,26 @@
 #pragma once
 
 #include <stdarg.h>
+#include <stdbool.h>
 
-typedef struct _io *cmd_args;
+struct cmd_args {
+  char *filename;
+  char *output;
+
+  bool dispose_on_exit;
+
+  bool stdisplay;
+  bool verbose;
+
+  int opt_lvl;
+};
 
 /**
  * @brief Initialize the command line arguments structure.
- * 
- * @return cmd_args - command line arguments structure
+ *
+ * @param args command line arguments structure
  */
-cmd_args cmd_args_init(void);
-
-/**
- * @brief Free the command line arguments underlying structure.
- * 
- * @param args - command line arguments structure
-*/
-void cmd_args_free(cmd_args args);
+void cmd_args_init(struct cmd_args *args);
 
 /**
  * @brief Read from the command line arguments and store them in a struct
@@ -25,18 +29,18 @@ void cmd_args_free(cmd_args args);
  * @param argv array of arguments
  * @param args struct to store the arguments
  */
-void parse_args(int argc, char *argv[], cmd_args args);
+void parse_args(int argc, char *argv[], struct cmd_args *args);
 
 /**
  * @brief Check if the arguments are valid
  *
  * @param args struct containing the arguments
  */
-void check_args(const cmd_args args);
+void check_args(const struct cmd_args * args);
 
 /**
  * @brief Print command line arguments content
- * 
+ *
  * @param args - command line arguments structure
-*/
-void print_args(const cmd_args args);
+ */
+void print_args(const struct cmd_args *args);
