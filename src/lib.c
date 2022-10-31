@@ -69,7 +69,7 @@ void snprintf_s(char *restrict str, size_t size, const char *restrict fmt,
   if ((size_t)n >= size) panic("format string too long");
 }
 
-typedef int word; /* "word" used for optimal copy speed */
+typedef int word; // "word" used for optimal copy speed
 
 #define wsize sizeof(word)
 #define wmask (wsize - 1)
