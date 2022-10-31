@@ -82,6 +82,7 @@ If you're looking for something - here's a breakdown of our codebase
 │   └── ...
 │
 ├── inc/                           # include directory
+│   ├── app.h                      # main function that parses the input file and launches qtspim
 │   ├── dict.h                     # efficient key-value pair storage with hash map
 │   ├── io.h                       # input and output handling for command line arguments
 │   ├── lib.h                      # very generic utility functions
@@ -92,6 +93,7 @@ If you're looking for something - here's a breakdown of our codebase
 │   └── details.py                 # to make the <details> section because I'm lazy
 │
 ├── src/                           # source directory
+│   ├── app.c
 │   ├── dict.c
 │   ├── io.c
 │   ├── lib.c
