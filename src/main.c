@@ -1,23 +1,32 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "app.h"
 #include "io.h"
 
 #include "lib.h"
 
-extern int yydebug;
-extern int yyparse(void);
+/* global variables for lex/yacc */
+
+int opt_lvl;
+bool verbose;
 
 int main(int argc, char *argv[]) {
-  cmd_args args = cmd_args_init();
+  struct cmd_args args;
+  cmd_args_init(&args);
 
-  parse_args(argc, argv, args);
-  check_args(args);
-  print_args(args);
+  parse_args(argc, argv, &args);
+  check_args(&args);
+  print_args(&args);
 
-  cmd_args_free(args);
+  /* set global variables for lex/yacc */
 
-  // yydebug = 0;
-  // int r = yyparse();
-  return EXIT_SUCCESS;
+  opt_lvl = args.opt_lvl;
+  verbose = args.verbose;
+
+  /* run the application */
+
+  int status = run_app(&args);
+  return status;
 }
