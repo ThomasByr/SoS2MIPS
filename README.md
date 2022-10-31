@@ -13,7 +13,7 @@
 [![Author](https://img.shields.io/badge/author-@ThomasByr-blue)](https://github.com/ThomasByr)
 [![Author](https://img.shields.io/badge/author-@ThomasD-blue)](https://github.com/LosKeeper)
 [![Author](https://img.shields.io/badge/author-@EthanH-blue)](https://github.com/EthanAndreas)
-[![Author](https://img.shields.io/badge/author-@MathieuM-blue)](https://github.com/?)
+[![Author](https://img.shields.io/badge/author-@MathieuM-blue)](https://github.com/MMARTIN77178)
 
 1. [✏️ Setup](#️-setup)
 2. [💁 More infos and Usage](#-more-infos-and-usage)
@@ -28,7 +28,14 @@
 > **Note**
 > This project is part of a M1 study done at the University of Strasbourg, France.
 
-Compile a release version of the program with :
+To install qtspim, please ensure you have the right minimal dependencies installed :
+
+```bash
+cd vm && sudo dpkg -i qtspim.deb
+sudo apt-get install libgl1 libxkbcommon-x11-0
+```
+
+Then compile a release version of the program with :
 
 ```bash
 make release
@@ -40,16 +47,16 @@ The produced executable binary is to be found inside of the `bin` folder.
 
 The program takes command line arguments from (`..` indicating no short option, `<>` that an argument is required and `*` mutual incompatibility) :
 
-| command               | hint                                     | required ? | default |
-| --------------------- | ---------------------------------------- | ---------- | ------- |
-| `-h, --help`          | display this help and **exit**           | ❔         |         |
-| `-v, --version`       | display version and **exit**             | ❔         |         |
-| `-l, --license`       | display license and **exit**             | ❔         |         |
-| `-i, --in` `<>`       | path to input file                       | ✔️         |         |
-| `-o, --out` `<>`      | path to output file                      | ❌         | `NULL`  |
-| `.., --tos`           | display the Symbol Table on running time | ❌         |         |
-| `.., --verbose`       | be very noisy                            | ❌         |         |
-| `-O, --optimize` `<>` | set optimization level (from `0` or `1`) | ❌         | `0`     |
+| command              | hint                                     | required ? | default |
+| -------------------- | ---------------------------------------- | ---------- | ------- |
+| `-h, --help`         | display this help and **exit**           | ❔         |         |
+| `-v, --version`      | display version and **exit**             | ❔         |         |
+| `-l, --license`      | display license and **exit**             | ❔         |         |
+| `-i, --in` `<>`      | path to input file                       | ✔️         |         |
+| `-o, --out` `<>`     | path to output file                      | ❌         | `NULL`  |
+| `.., --tos`          | display the Symbol Table on running time | ❌         |         |
+| `.., --verbose`      | be very noisy                            | ❌         |         |
+| `-O, --opt_lvl` `<>` | set optimization level (from `0` or `1`) | ❌         | `0`     |
 
 A legal launching instruction could be :
 
@@ -131,7 +138,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 ## 🐛 Bugs & TODO
 
-**known bugs** (final correction patch version)
+**known bugs** (final correction patch version) [see Issues](https://github.com/ThomasByr/SoS2MIPS/issues)
+
+- `qtspim -file ./vm/qtspim/helloworld.s` is failing to parse the assembly file
 
 **todo** (first implementation version)
 
