@@ -9,16 +9,6 @@
 
 #include "lib.h"
 
-typedef struct _io {
-  char *filename;
-  char *output;
-
-  bool stdisplay;
-  bool verbose;
-
-  int opt_lvl;
-} _io;
-
 static noreturn void display_help(const char *restrict fmt, ...) {
   const int status = fmt == NULL ? EXIT_SUCCESS : EXIT_FAILURE;
   const char *restrict help =
@@ -33,7 +23,7 @@ static noreturn void display_help(const char *restrict fmt, ...) {
       "  -o, --output\t\tSpecify the output file\n"
       "  .., --tos\t\tDisplay the Symbol Table on runtime\n"
       "  .., --verbose\t\tDisplay verbose information on runtime\n"
-      "  -O, --optimize\tSet the optimization level\n";
+      "  -O, --opt_lvl\t\tSet the optimization level\n";
 
   if (fmt != NULL) {
     va_list args;
@@ -84,22 +74,22 @@ static noreturn void display_license(void) {
   exit(EXIT_SUCCESS);
 }
 
-cmd_args cmd_args_init(void) {
-  struct _io *args = (struct _io *)malloc(sizeof(struct _io));
+void cmd_args_init(struct cmd_args* args) {
+  // struct _io *args = (struct _io *)malloc(sizeof(struct _io));
   args->filename = NULL;
-  args->output = NULL;
+  args->output = "a.s";
+
+  args->dispose_on_exit = true;
 
   args->stdisplay = false;
   args->verbose = false;
 
   args->opt_lvl = 0;
 
-  return args;
+  // return args;
 }
 
-void cmd_args_free(cmd_args args) { free(args); }
-
-void parse_args(int argc, char *argv[], cmd_args args) {
+void parse_args(int argc, char *argv[], struct cmd_args *args) {
 #define TOS_OPT 1000
 #define VERB_OPT 2000
 
@@ -111,7 +101,7 @@ void parse_args(int argc, char *argv[], cmd_args args) {
       {"out", required_argument, NULL, 'o'},
       {"tos", no_argument, NULL, TOS_OPT},
       {"verbose", no_argument, NULL, VERB_OPT},
-      {"optimize", required_argument, NULL, 'O'},
+      {"opt_lvl", required_argument, NULL, 'O'},
       {NULL, 0, NULL, 0},
   };
   static const char short_options[] = "i:o:O:hvl";
@@ -140,6 +130,7 @@ void parse_args(int argc, char *argv[], cmd_args args) {
 
     case 'i':
       args->filename = optarg;
+      args->dispose_on_exit = false;
       break;
 
     case 'o':
@@ -172,7 +163,7 @@ void parse_args(int argc, char *argv[], cmd_args args) {
   optind = 0;
 }
 
-void check_args(const cmd_args args) {
+void check_args(const struct cmd_args *args) {
   if (args->filename == NULL) {
     display_help("no input file specified");
   }
@@ -181,9 +172,10 @@ void check_args(const cmd_args args) {
   }
 }
 
-void print_args(const cmd_args args) {
+void print_args(const struct cmd_args *args) {
   debug("filename: %s", args->filename);
   debug("output: %s", args->output);
+  debug("dispose_on_exit: %s", args->dispose_on_exit ? "true" : "false");
   debug("stdisplay: %s", args->stdisplay ? "true" : "false");
   debug("verbose: %s", args->verbose ? "true" : "false");
   debug("opt_lvl: %d", args->opt_lvl);
