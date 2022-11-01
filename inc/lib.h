@@ -30,19 +30,20 @@
 extern int errno;
 
 /**
- * @brief Check if the given operation succeeded (i.e. did not return -1)
+ * @brief Check if the given operation succeeded
+ * (i.e. did not return -1)
  *
  * @param op operation to check
  * @param ... additional format string and arguments to display if the
  * operation failed
  * @return does not return if the operation failed
  */
-#define CHK(op, ...)                                                      \
+#define CHK(op)                                                           \
   do {                                                                    \
     if ((op) == -1) {                                                     \
       fprintf(stderr, FG_RED "   CHK: thread %zu on %s:%d\n     -> " RST, \
               pthread_self(), __FILE__, __LINE__);                        \
-      fprintf(stderr, #op, ##__VA_ARGS__);                                \
+      fprintf(stderr, #op);                                               \
       fprintf(stderr, "\n");                                              \
       if (errno) {                                                        \
         perror("     ->");                                                \
@@ -53,19 +54,20 @@ extern int errno;
   } while (0)
 
 /**
- * @brief Check if the given pthread operation succeeded (i.e. did return > 0)
+ * @brief Check if the given pthread operation succeeded
+ * (i.e. did not return > 0)
  *
  * @param op operation to check
  * @param ... additional format string and arguments to display if the
  * operation failed
  * @return does not return if the operation failed
  */
-#define TCHK(op, ...)                                                     \
+#define TCHK(op)                                                          \
   do {                                                                    \
     if ((errno = (op)) > 0) {                                             \
       fprintf(stderr, FG_RED "  TCHK: thread %zu on %s:%d\n     -> " RST, \
               pthread_self(), __FILE__, __LINE__);                        \
-      fprintf(stderr, #op, ##__VA_ARGS__);                                \
+      fprintf(stderr, #op);                                               \
       fprintf(stderr, "\n");                                              \
       perror("     ->");                                                  \
       fprintf(stderr, "\n");                                              \
@@ -158,11 +160,11 @@ void snprintf_s(char *restrict str, size_t size, const char *restrict fmt, ...);
 
 /**
  * @brief Safe call to memcpy
- * 
+ *
  * @param dst0   destination to copy to
  * @param src0   source to copy from
  * @param length number of bytes to copy
-*/
+ */
 void *memcpy_s(void *restrict dst0, const void *restrict src0, size_t length);
 
 /**
