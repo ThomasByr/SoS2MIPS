@@ -83,12 +83,12 @@ extern unsigned long _no_asserts;
   } while (0);
 
 #ifndef QUIET
-#define exe_no_out(f) \
-  do {                \
-    f();              \
+#define exe(f) \
+  do {         \
+    f();       \
   } while (0);
 #else
-#define exe_no_out(f)                         \
+#define exe(f)                                \
   do {                                        \
     int _stdout, _stderr, _null;              \
     CHK(_stdout = dup(1));                    \
@@ -105,15 +105,20 @@ extern unsigned long _no_asserts;
   } while (0);
 #endif
 
-#define test_case(name)                                                       \
-  do {                                                                        \
-    _no_asserts = 0;                                                          \
-    fprintf(stderr, FG_BLU " running " RST "%-20s:: %-20s", __FILE__, #name); \
-    fflush(stderr);                                                           \
-    exe_no_out(name);                                                         \
-    if (_no_asserts > 0) {                                                    \
-      fprintf(stderr, FG_GRN "ok (%lu)\n" RST, _no_asserts);                  \
-    } else {                                                                  \
-      fprintf(stderr, FG_YEL "fake (0)\n" RST);                               \
-    }                                                                         \
+/**
+ * @brief Macro used to define a test case on runtime
+ *
+ * @param fun function to run
+ */
+#define test_case(fun)                                                       \
+  do {                                                                       \
+    _no_asserts = 0;                                                         \
+    fprintf(stderr, FG_BLU " running " RST "%-20s:: %-20s", __FILE__, #fun); \
+    fflush(stderr);                                                          \
+    exe(fun);                                                                \
+    if (_no_asserts > 0) {                                                   \
+      fprintf(stderr, FG_GRN "ok (%lu)\n" RST, _no_asserts);                 \
+    } else {                                                                 \
+      fprintf(stderr, FG_YEL "fake (0)\n" RST);                              \
+    }                                                                        \
   } while (0);
