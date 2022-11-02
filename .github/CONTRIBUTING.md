@@ -86,6 +86,7 @@ If you're looking for something - here's a breakdown of our codebase
 │   ├── dict.h                     # efficient key-value pair storage with hash map
 │   ├── io.h                       # input and output handling for command line arguments
 │   ├── lib.h                      # very generic utility functions
+│   ├── protocol.h                 # utility functions and enums for MIPS32
 │   └── threadpool.h               # a threadpool in c, because why not
 │
 ├── scripts/
@@ -97,6 +98,7 @@ If you're looking for something - here's a breakdown of our codebase
 │   ├── dict.c
 │   ├── io.c
 │   ├── lib.c
+│   ├── protocol.c
 │   ├── main.c
 │   └── threadpool.c
 │
