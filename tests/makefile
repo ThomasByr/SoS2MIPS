@@ -3,6 +3,7 @@ CC = gcc
 CFLAGS = -Og -pipe -std=gnu17 -pedantic -fprofile-arcs -ftest-coverage -Wall -Wextra -Werror -DDEBUG -g -ggdb
 LDLIBS = -pthread
 
+LEXYACC_PATH = ../gen
 INCLUDE_PATH = ../inc
 LIB_PATH     = ../lib
 
@@ -21,6 +22,11 @@ LIBS        := $(wildcard $(LIB_PATH)/*.h) $(wildcard $(LIB_PATH)/*.hpp)
 OBJECTS0    := $(SOURCES:$(SRCDIR)/%.$(FILEXT)=$(OBJDIR)/%.o)
 OBJECTS      = $(filter-out $(OBJDIR)/main.o,$(OBJECTS0))
 
+LEXSRC      := $(wildcard $(LEXYACC_PATH)/*.l)
+YACCSRC     := $(wildcard $(LEXYACC_PATH)/*.y)
+LEXC				:= $(LEXSRC:$(LEXYACC_PATH)/%.l=$(SRCDIR)/%.c)
+YACCC				:= $(YACCSRC:$(LEXYACC_PATH)/%.y=$(SRCDIR)/%.c)
+
 
 all : $(PATH_TO_EXE)
 
@@ -35,12 +41,18 @@ check: clean tests
 check_quiet: CFLAGS += -DQUIET
 check_quiet: check
 
+$(LEXC):
+	flex -o $@ $(LEXSRC)
+
+$(YACCC):
+	bison -d -o $@ $(YACCSRC)
+
 $(PATH_TO_EXE): $(OBJECTS) $(OBJDIR)/$(TARGET).o
 	$(CC) -o $@ $^ $(CFLAGS) $(LDLIBS)
 	@echo "\033[92mLinking complete!\033[0m"
 	@echo "\033[93mRunning in debug mode!\033[0m"
 
-$(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.$(FILEXT) $(INCLUDES)
+$(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.$(FILEXT) $(INCLUDES) $(LEXC) $(YACCC)
 	mkdir -p $(OBJDIR)
 	$(CC) -o $@ -c $< $(CFLAGS) -isystem$(INCLUDE_PATH) -isystem$(LIB_PATH)
 
@@ -53,3 +65,5 @@ clean:
 	rm -f $(OBJDIR)/*
 	rm -f *.gcno
 	rm -f $(PATH_TO_EXE)
+	rm -f $(LEXC)
+	rm -f $(YACCC) $(YACCC:.c=.h)
