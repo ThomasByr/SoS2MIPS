@@ -20,6 +20,11 @@ INCLUDES    := $(wildcard $(INCLUDE_PATH)/*.h)
 LIBS        := $(wildcard $(LIB_PATH)/*.h|*.hpp)
 OBJECTS     := $(SOURCES:$(SRCDIR)/%.$(FILEXT)=$(OBJDIR)/%.o)
 
+LEXSRC      := $(wildcard $(LEXYACC_PATH)/*.l)
+YACCSRC     := $(wildcard $(LEXYACC_PATH)/*.y)
+LEXC				:= $(LEXSRC:$(LEXYACC_PATH)/%.l=$(SRCDIR)/%.c)
+YACCC				:= $(YACCSRC:$(LEXYACC_PATH)/%.y=$(SRCDIR)/%.c)
+
 PATH_TO_EXE  = $(BINDIR)/$(TARGET)
 LAUNCH_CMD   = $(PATH_TO_EXE) -i ./examples/hello_world.sos
 
@@ -55,7 +60,13 @@ $(PATH_TO_EXE): $(OBJECTS)
 	$(CC) -o $@ $^ $(CFLAGS) $(LDLIBS)
 	@echo "\033[92mLinking complete!\033[0m"
 
-$(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.$(FILEXT) $(INCLUDES)
+$(LEXC):
+	flex -o $@ $(LEXSRC)
+
+$(YACCC):
+	bison -d -o $@ $(YACCSRC)
+
+$(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.$(FILEXT) $(INCLUDES) $(LEXC) $(YACCC)
 	mkdir -p $(OBJDIR)
 	$(CC) -o $@ -c $< $(CFLAGS) -isystem$(INCLUDE_PATH) -isystem$(LIB_PATH)
 
@@ -66,3 +77,5 @@ clean:
 	rm -f $(OBJDIR)/*.gcda
 	rm -f $(OBJDIR)/*.gcno
 	rm -f $(PATH_TO_EXE)
+	rm -f $(LEXC)
+	rm -f $(YACCC) $(YACCC:.c=.h)
