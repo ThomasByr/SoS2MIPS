@@ -10,3 +10,16 @@
 - ah yes... threadpools in C, but why you may ask ? you know what ? I do not know either
 - reworked my old [dict.h](inc/dict.h) hash table
 - did some testing (so long valgrind)
+
+**v0.1.1** qtspim
+
+- ditched java for c++ for speed concerns
+- please do not use `-bare`
+
+**v0.2.1** dumping lex and yacc
+
+- it kind of works ! yo do I finally understand how to make makefiles ?
+- support arbitrary number of lex/yacc files
+- renamed `sos.l` and `sos.y` to `lexer.l` and `parser.y`
+- the makefile creates files in [src](src/) dir, please do not push them
+- changed the makefile for tests also
