@@ -134,6 +134,19 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 - reworked my old [dict.h](inc/dict.h) hash table
 - did some testing (so long valgrind)
 
+**v0.1.1** qtspim
+
+- ditched java for c++ for speed concerns
+- please do not use `-bare`
+
+**v0.2.1** dumping lex and yacc
+
+- it kind of works ! yo do I finally understand how to make makefiles ?
+- support arbitrary number of lex/yacc files
+- renamed `sos.l` and `sos.y` to `lexer.l` and `parser.y`
+- the makefile creates files in [src](src/) dir, please do not push them
+- changed the makefile for tests also
+
 </details>
 
 ## 🐛 Bugs & TODO
@@ -145,10 +158,10 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 **todo** (first implementation version)
 
-- [ ] add lex/yacc to makefiles
-      (throw `.h` to [inc](inc/) folder and `.c` to [src](src/) folder ; then add files to wildcard)
-- [ ] make sure qtspim is properly working
-      (dump in some [example files](vm/qtspim/helloworld.s))
+- [x] add lex/yacc to makefiles
+      (throw `.h` to [inc](inc/) folder and `.c` to [src](src/) folder ; then add files to wildcard) [v0.2.1]
+- [x] make sure qtspim is properly working
+      (dump in some [example files](vm/qtspim/helloworld.s)) [v0.1.1]
 - [ ] create grammar
       (that's a big fish, please send help)
 - [ ] standard console i/o
