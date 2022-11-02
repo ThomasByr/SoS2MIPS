@@ -1,6 +1,6 @@
 %{
 
-  #include "sos.tab.h"
+  #include "parser.h"
   #include "lib.h"
 %}
 

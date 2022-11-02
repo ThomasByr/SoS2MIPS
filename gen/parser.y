@@ -6,7 +6,13 @@
   extern void yyerror(const char *s);
 %}
 
+%token instructions
+
 %%
+
+program
+: instructions
+;
 
 %%
 
