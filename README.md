@@ -164,6 +164,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
       (dump in some [example files](vm/qtspim/helloworld.s)) [v0.1.1]
 - [ ] create grammar
       (that's a big fish, please send help)
+- [ ] improve error messages on `yylex` and `yyparse`
+      (point the current line and make a suggestion)
 - [ ] standard console i/o
       (`echo` and `read`)
 - [ ] primitive types
