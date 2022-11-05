@@ -5,7 +5,7 @@
 #include <pthread.h>
 #include <stdlib.h>
 
-#define __VERSION__ "1.0.1"
+#define __VERSION__ "1.1.2"
 #define __AUTHORS__ "ThomasByr & ThomasD & EthanH & MathieuM"
 
 #define RST "\x1b[m\x1b[0m"
