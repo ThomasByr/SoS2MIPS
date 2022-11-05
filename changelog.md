@@ -23,3 +23,11 @@
 - renamed `sos.l` and `sos.y` to `lexer.l` and `parser.y`
 - the makefile creates files in [src](src/) dir, please do not push them
 - changed the makefile for tests also
+
+## V1 First Release Version
+
+**v1.1** boy do i hate makefiles
+
+- properly linked lex/yacc objects file this time
+- `dispose_on_exit` was being changed on `-i` instead of `-o`
+- removed `-Werror` compile flag until `static int input(void)` is either used or no longer static
