@@ -20,10 +20,10 @@ void launch_qtspim(void *filename) {
   int status;
   switch (fork()) {
   case -1:
-    panic("fork failed");
+    panic("fork on qtspim failed");
   case 0:
     execlp("qtspim", "qtspim", "-file", (char *)filename, NULL);
-    panic("execlp failed");
+    panic("execlp on qtspim failed");
   }
   CHK(wait(&status));
   if (WIFEXITED(status)) {
@@ -46,9 +46,8 @@ int run_app(const struct cmd_args *args) {
   threadpool_t pool = threadpool_create(THREAD, QUEUE, 0);
   if (pool == NULL) panic("failed to create threadpool");
 
-  /*
   extern FILE *yyin, *yyout;
-  extern int yyparse(void), yydebug;
+  extern int yyparse(void);
 
   // open input and output files
   yyin = fopen(args->filename, "r");
@@ -57,23 +56,20 @@ int run_app(const struct cmd_args *args) {
   if (yyout == NULL) panic("failed to open output file");
 
   // launch yyparse
-  yydebug = 0;
   if (yyparse() != 0) {
     status = EXIT_FAILURE;
   }
-  */
 
   threadpool_add(pool, launch_qtspim, args->output, 0); // launch qtspim
   threadpool_destroy(pool, 1);                          // wait
 
-  /*
   if (args->dispose_on_exit) {
+    printf("removing %s\n", args->output);
     discard_file(args->output);
   }
 
   CHK(fclose(yyin));
   CHK(fclose(yyout));
-  */
 
   return status;
 }
