@@ -130,11 +130,11 @@ void parse_args(int argc, char *argv[], struct cmd_args *args) {
 
     case 'i':
       args->filename = optarg;
-      args->dispose_on_exit = false;
       break;
 
     case 'o':
       args->output = optarg;
+      args->dispose_on_exit = false;
       break;
 
     case TOS_OPT:
