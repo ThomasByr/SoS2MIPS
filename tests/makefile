@@ -1,6 +1,6 @@
 CC = gcc
 
-CFLAGS = -Og -pipe -std=gnu17 -pedantic -fprofile-arcs -ftest-coverage -Wall -Wextra -Werror -DDEBUG -g -ggdb
+CFLAGS = -Og -pipe -std=gnu17 -Wpedantic -fprofile-arcs -ftest-coverage -Wall -Wextra -DDEBUG -g -ggdb
 LDLIBS = -pthread
 
 LEXYACC_PATH = ../gen
@@ -20,15 +20,19 @@ SOURCES     := $(wildcard $(SRCDIR)/*.$(FILEXT))
 INCLUDES    := $(wildcard $(INCLUDE_PATH)/*.h)
 LIBS        := $(wildcard $(LIB_PATH)/*.h) $(wildcard $(LIB_PATH)/*.hpp)
 OBJECTS0    := $(SOURCES:$(SRCDIR)/%.$(FILEXT)=$(OBJDIR)/%.o)
-OBJECTS      = $(filter-out $(OBJDIR)/main.o,$(OBJECTS0))
+OBJECTS1    := $(filter-out $(OBJDIR)/main.o,$(OBJECTS0))
 
 LEXSRC      := $(wildcard $(LEXYACC_PATH)/*.l)
 YACCSRC     := $(wildcard $(LEXYACC_PATH)/*.y)
 LEXC				:= $(LEXSRC:$(LEXYACC_PATH)/%.l=$(SRCDIR)/%.c)
 YACCC				:= $(YACCSRC:$(LEXYACC_PATH)/%.y=$(SRCDIR)/%.c)
+LEXOBJ			:= $(LEXSRC:$(LEXYACC_PATH)/%.l=$(OBJDIR)/%.o)
+YACCOBJ			:= $(YACCSRC:$(LEXYACC_PATH)/%.y=$(OBJDIR)/%.o)
+
+OBJECTS      = $(filter-out $(LEXOBJ) $(YACCOBJ), $(OBJECTS1))
 
 
-all : $(PATH_TO_EXE)
+all: check
 
 cov: clean tests
 	valgrind --leak-check=full -q ./$(PATH_TO_EXE)
@@ -37,6 +41,7 @@ cov: clean tests
 
 check: clean tests
 	valgrind --leak-check=full --show-leak-kinds=all --vgdb=full -s ./$(PATH_TO_EXE)
+	make clean > /dev/null 2>&1
 
 check_quiet: CFLAGS += -DQUIET
 check_quiet: check
@@ -47,12 +52,20 @@ $(LEXC):
 $(YACCC):
 	bison -d -o $@ $(YACCSRC)
 
-$(PATH_TO_EXE): $(OBJECTS) $(OBJDIR)/$(TARGET).o
+$(PATH_TO_EXE): $(OBJECTS) $(OBJDIR)/$(TARGET).o $(YACCOBJ) $(LEXOBJ)
 	$(CC) -o $@ $^ $(CFLAGS) $(LDLIBS)
 	@echo "\033[92mLinking complete!\033[0m"
 	@echo "\033[93mRunning in debug mode!\033[0m"
 
-$(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.$(FILEXT) $(INCLUDES) $(LEXC) $(YACCC)
+$(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.$(FILEXT) $(INCLUDES) $(YACCC) $(LEXC)
+	mkdir -p $(OBJDIR)
+	$(CC) -o $@ -c $< $(CFLAGS) -isystem$(INCLUDE_PATH) -isystem$(LIB_PATH)
+
+$(LEXOBJ): $(OBJDIR)/%.o : $(SRCDIR)/%.$(FILEXT) $(INCLUDES) $(LEXC)
+	mkdir -p $(OBJDIR)
+	$(CC) -o $@ -c $< $(CFLAGS) -isystem$(INCLUDE_PATH) -isystem$(LIB_PATH)
+
+$(YACCOBJ): $(OBJDIR)/%.o : $(SRCDIR)/%.$(FILEXT) $(INCLUDES) $(YACCC)
 	mkdir -p $(OBJDIR)
 	$(CC) -o $@ -c $< $(CFLAGS) -isystem$(INCLUDE_PATH) -isystem$(LIB_PATH)
 
