@@ -125,27 +125,13 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 ## 🔄 Changelog
 
 <details>
-  <summary>  Beta first minor release (click here to expand) </summary>
+  <summary>  V1 First Release Version (click here to expand) </summary>
 
-**v0.1.0** first release
+**v1.1** boy do i hate makefiles
 
-- helper functions for C app
-- ah yes... threadpools in C, but why you may ask ? you know what ? I do not know either
-- reworked my old [dict.h](inc/dict.h) hash table
-- did some testing (so long valgrind)
-
-**v0.1.1** qtspim
-
-- ditched java for c++ for speed concerns
-- please do not use `-bare`
-
-**v0.2.1** dumping lex and yacc
-
-- it kind of works ! yo do I finally understand how to make makefiles ?
-- support arbitrary number of lex/yacc files
-- renamed `sos.l` and `sos.y` to `lexer.l` and `parser.y`
-- the makefile creates files in [src](src/) dir, please do not push them
-- changed the makefile for tests also
+- properly linked lex/yacc objects file this time
+- `dispose_on_exit` was being changed on `-i` instead of `-o`
+- removed `-Werror` compile flag until `static int input(void)` is either used or no longer static
 
 </details>
 
