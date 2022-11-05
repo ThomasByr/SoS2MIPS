@@ -1,6 +1,6 @@
 CC = gcc
 
-CFLAGS = -pipe -std=gnu17 -pedantic -Wall -Wextra -Werror
+CFLAGS = -pipe -std=gnu17 -Wpedantic -Wall -Wextra # -Werror
 LDLIBS = -pthread
 
 LEXYACC_PATH = ./gen
@@ -18,12 +18,16 @@ BINDIR       = bin
 SOURCES     := $(wildcard $(SRCDIR)/*.$(FILEXT))
 INCLUDES    := $(wildcard $(INCLUDE_PATH)/*.h)
 LIBS        := $(wildcard $(LIB_PATH)/*.h|*.hpp)
-OBJECTS     := $(SOURCES:$(SRCDIR)/%.$(FILEXT)=$(OBJDIR)/%.o)
+OBJECTS0     := $(SOURCES:$(SRCDIR)/%.$(FILEXT)=$(OBJDIR)/%.o)
 
 LEXSRC      := $(wildcard $(LEXYACC_PATH)/*.l)
 YACCSRC     := $(wildcard $(LEXYACC_PATH)/*.y)
 LEXC				:= $(LEXSRC:$(LEXYACC_PATH)/%.l=$(SRCDIR)/%.c)
 YACCC				:= $(YACCSRC:$(LEXYACC_PATH)/%.y=$(SRCDIR)/%.c)
+LEXOBJ			:= $(LEXSRC:$(LEXYACC_PATH)/%.l=$(OBJDIR)/%.o)
+YACCOBJ			:= $(YACCSRC:$(LEXYACC_PATH)/%.y=$(OBJDIR)/%.o)
+
+OBJECTS      = $(filter-out $(LEXOBJ) $(YACCOBJ), $(OBJECTS0))
 
 PATH_TO_EXE  = $(BINDIR)/$(TARGET)
 LAUNCH_CMD   = $(PATH_TO_EXE) -i ./examples/hello_world.sos
@@ -55,10 +59,6 @@ run-release: release
 run-debug: debug
 	valgrind --leak-check=full --show-leak-kinds=all --vgdb=full -s ./$(LAUNCH_CMD)
 
-$(PATH_TO_EXE): $(OBJECTS)
-	mkdir -p $(BINDIR)
-	$(CC) -o $@ $^ $(CFLAGS) $(LDLIBS)
-	@echo "\033[92mLinking complete!\033[0m"
 
 $(LEXC):
 	flex -o $@ $(LEXSRC)
@@ -66,7 +66,20 @@ $(LEXC):
 $(YACCC):
 	bison -d -o $@ $(YACCSRC)
 
-$(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.$(FILEXT) $(INCLUDES) $(LEXC) $(YACCC)
+$(PATH_TO_EXE): $(OBJECTS) $(YACCOBJ) $(LEXOBJ)
+	mkdir -p $(BINDIR)
+	$(CC) -o $@ $^ $(CFLAGS) $(LDLIBS)
+	@echo "\033[92mLinking complete!\033[0m"
+
+$(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.$(FILEXT) $(INCLUDES) $(YACCC) $(LEXC)
+	mkdir -p $(OBJDIR)
+	$(CC) -o $@ -c $< $(CFLAGS) -isystem$(INCLUDE_PATH) -isystem$(LIB_PATH)
+
+$(LEXOBJ): $(OBJDIR)/%.o : $(SRCDIR)/%.$(FILEXT) $(INCLUDES) $(LEXC)
+	mkdir -p $(OBJDIR)
+	$(CC) -o $@ -c $< $(CFLAGS) -isystem$(INCLUDE_PATH) -isystem$(LIB_PATH)
+
+$(YACCOBJ): $(OBJDIR)/%.o : $(SRCDIR)/%.$(FILEXT) $(INCLUDES) $(YACCC)
 	mkdir -p $(OBJDIR)
 	$(CC) -o $@ -c $< $(CFLAGS) -isystem$(INCLUDE_PATH) -isystem$(LIB_PATH)
 
