@@ -20,7 +20,7 @@ SOURCES     := $(wildcard $(SRCDIR)/*.$(FILEXT))
 INCLUDES    := $(wildcard $(INCLUDE_PATH)/*.h)
 LIBS        := $(wildcard $(LIB_PATH)/*.h) $(wildcard $(LIB_PATH)/*.hpp)
 OBJECTS0    := $(SOURCES:$(SRCDIR)/%.$(FILEXT)=$(OBJDIR)/%.o)
-OBJECTS1    := $(filter-out $(OBJDIR)/main.o,$(OBJECTS0))
+OBJECTS1    := $(filter-out $(OBJDIR)/main.o, $(OBJECTS0))
 
 LEXSRC      := $(wildcard $(LEXYACC_PATH)/*.l)
 YACCSRC     := $(wildcard $(LEXYACC_PATH)/*.y)
