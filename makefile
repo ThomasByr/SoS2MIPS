@@ -18,7 +18,7 @@ BINDIR       = bin
 SOURCES     := $(wildcard $(SRCDIR)/*.$(FILEXT))
 INCLUDES    := $(wildcard $(INCLUDE_PATH)/*.h)
 LIBS        := $(wildcard $(LIB_PATH)/*.h|*.hpp)
-OBJECTS0     := $(SOURCES:$(SRCDIR)/%.$(FILEXT)=$(OBJDIR)/%.o)
+OBJECTS0    := $(SOURCES:$(SRCDIR)/%.$(FILEXT)=$(OBJDIR)/%.o)
 
 LEXSRC      := $(wildcard $(LEXYACC_PATH)/*.l)
 YACCSRC     := $(wildcard $(LEXYACC_PATH)/*.y)
