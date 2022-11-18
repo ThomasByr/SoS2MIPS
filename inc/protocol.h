@@ -2,13 +2,13 @@
 
 enum sys_call {
   print_int = 1,    // $a0 = integer
-  print_float = 2,  // $f12 = float
-  print_double = 3, // $f12 = double
+  print_float = 2,  // $f12 = float ($a0...$a3)
+  print_double = 3, // $f12 = double ($a0...$a3)
   print_string = 4, // $a0 = string address
 
   read_int = 5,    // -> $v0 = integer
-  read_float = 6,  // -> $f0 = float
-  read_double = 7, // -> $f0 = double
+  read_float = 6,  // -> $f0 = float ($v0)
+  read_double = 7, // -> $f0 = double ($v0)
   read_string = 8, // $a0 = string address, $a1 = max length
 
   sbrk = 9, // $a0 = address -> $v0 = address
