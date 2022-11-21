@@ -12,6 +12,8 @@
 #include "lib.h"
 
 void _display(const char *restrict fmt, va_list *ap) {
+  // because stderr is unbuffered by default
+  // https://man7.org/linux/man-pages/man3/setbuf.3.html#DESCRIPTION
   vfprintf(stderr, fmt, *ap);
   fprintf(stderr, "\n");
 }

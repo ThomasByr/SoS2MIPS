@@ -12,8 +12,9 @@
 #include "lib.h"
 
 void discard_file(void *filename) {
-  char *f = (char *)filename;
-  CHK(remove(f));
+  char *file = (char *)filename;
+  info("removing %s", file);
+  CHK(unlink(file));
 }
 
 void launch_qtspim(void *filename) {
@@ -38,8 +39,13 @@ void launch_qtspim(void *filename) {
 }
 
 int run_app(const struct cmd_args *args) {
-#define THREAD 32
-#define QUEUE 256
+  // one thread because we should be able to kill qtspim without exiting our app
+  // but not the other way around (qtspim should not be able to kill our app)
+  // two queued jobs max because we don't want to launch qtspim after the file
+  // is removed
+  // might work with only one queued job max, but this is safer
+#define THREAD 1
+#define QUEUE 2
 
   int status = EXIT_SUCCESS;
 
@@ -60,12 +66,51 @@ int run_app(const struct cmd_args *args) {
     status = EXIT_FAILURE;
   }
 
-  threadpool_add(pool, launch_qtspim, args->output, 0); // launch qtspim
-  threadpool_destroy(pool, 1);                          // wait
+  // launch qtspim
+  switch (threadpool_add(pool, launch_qtspim, args->output, 0)) {
+  case 0:
+    break;
+  case threadpool_invalid:
+    panic("invalid threadpool (threadpool seems to be NULL)");
+  case threadpool_lock_failure:
+    panic("lock failure on threadpool");
+  case threadpool_queue_full:
+    panic("queue is full");
+  case threadpool_shutdown:
+    panic("threadpool is shutting down");
+  default:
+    panic("unknown error on threadpool");
+  }
 
   if (args->dispose_on_exit) {
-    printf("removing %s\n", args->output);
-    discard_file(args->output);
+    switch (threadpool_add(pool, discard_file, args->output, 0)) {
+    case 0:
+      break;
+    case threadpool_invalid:
+      panic("invalid threadpool (threadpool seems to be NULL)");
+    case threadpool_lock_failure:
+      panic("lock failure on threadpool");
+    case threadpool_queue_full:
+      panic("queue is full");
+    case threadpool_shutdown:
+      panic("threadpool is shutting down");
+    default:
+      panic("unknown error on threadpool");
+    }
+  }
+
+  // wait for tasks to finish (blocking)
+  switch (threadpool_destroy(pool, 1)) {
+  case 0:
+    break;
+  case threadpool_invalid:
+    panic("invalid threadpool (threadpool seems to be NULL)");
+  case threadpool_lock_failure:
+    panic("lock failure on threadpool");
+  case threadpool_shutdown:
+    panic("threadpool is shutting down");
+  default:
+    panic("unknown error on threadpool");
   }
 
   CHK(fclose(yyin));
