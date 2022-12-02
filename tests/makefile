@@ -1,6 +1,6 @@
 CC = gcc
 
-CFLAGS = -Og -pipe -std=gnu17 -Wpedantic -fprofile-arcs -ftest-coverage -Wall -Wextra -DDEBUG -g -ggdb
+CFLAGS = -Og -pipe -std=gnu17 -Wpedantic -fprofile-arcs -ftest-coverage -Wall -Wextra -Werror -DDEBUG -g -ggdb
 LDLIBS = -pthread
 
 LEXYACC_PATH = ../gen
@@ -50,7 +50,7 @@ $(LEXC):
 	flex -o $@ $(LEXSRC)
 
 $(YACCC):
-	bison -d -o $@ $(YACCSRC)
+	bison -v -do $@ $(YACCSRC)
 
 $(PATH_TO_EXE): $(OBJECTS) $(OBJDIR)/$(TARGET).o $(YACCOBJ) $(LEXOBJ)
 	$(CC) -o $@ $^ $(CFLAGS) $(LDLIBS)
@@ -79,4 +79,4 @@ clean:
 	rm -f *.gcno
 	rm -f $(PATH_TO_EXE)
 	rm -f $(LEXC)
-	rm -f $(YACCC) $(YACCC:.c=.h)
+	rm -f $(YACCC) $(YACCC:.c=.h) $(YACCC:.c=.output)

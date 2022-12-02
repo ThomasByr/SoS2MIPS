@@ -4,6 +4,7 @@
   #include "lib.h"
 %}
 
+%option noinput
 %option nounput
 %option noyywrap
 

@@ -1,6 +1,7 @@
 CC = gcc
 
-CFLAGS = -pipe -std=gnu17 -Wpedantic -Wall -Wextra # -Werror
+CFLAGS = -pipe -std=gnu17 -Wpedantic -Wall -Wextra -Werror
+YFLAGS = 
 LDLIBS = -pthread
 
 LEXYACC_PATH = ./gen
@@ -35,6 +36,7 @@ LAUNCH_CMD   = $(PATH_TO_EXE) -i ./examples/hello_world.sos
 all : debug
 
 debug: CFLAGS += -Og -DDEBUG -g -ggdb
+debug: YFLAGS += -v
 debug: $(PATH_TO_EXE)
 	@echo "\033[93mRunning in debug mode!\033[0m"
 
@@ -64,7 +66,7 @@ $(LEXC):
 	flex -o $@ $(LEXSRC)
 
 $(YACCC):
-	bison -d -o $@ $(YACCSRC)
+	bison $(YFLAGS) -do $@ $(YACCSRC)
 
 $(PATH_TO_EXE): $(OBJECTS) $(YACCOBJ) $(LEXOBJ)
 	mkdir -p $(BINDIR)
@@ -91,4 +93,4 @@ clean:
 	rm -f $(OBJDIR)/*.gcno
 	rm -f $(PATH_TO_EXE)
 	rm -f $(LEXC)
-	rm -f $(YACCC) $(YACCC:.c=.h)
+	rm -f $(YACCC) $(YACCC:.c=.h) $(YACCC:.c=.output)
