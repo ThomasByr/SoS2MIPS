@@ -132,6 +132,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 - properly linked lex/yacc objects file this time
 - `dispose_on_exit` was being changed on `-i` instead of `-o`
 - removed `-Werror` compile flag until `static int input(void)` is either used or no longer static
+- added `-Werror` back (with `%option noinput` in `./gen/lexer.l`)
 
 </details>
 
