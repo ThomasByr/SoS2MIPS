@@ -13,14 +13,23 @@
 %token FOR DO IN DONE
 %token WHILE UNTIL
 %token CASE ESAC
-%token ECHO
+%token EKKO
 %token READ 
 %token RETURN
 %token EXIT
 %token word string
 %token test
-%token or and
-%token eq neq gt ge lt le
+
+%left or
+%left and
+
+%left eq
+%left neq
+%left gt
+%left ge
+%left lt
+%left le
+
 %token null nnull
 %token expr
 %token local
@@ -46,7 +55,7 @@ instruction
 | WHILE testing DO instructions DONE
 | UNTIL testing DO instructions DONE
 | CASE op IN cases ESAC
-| ECHO ops
+| EKKO ops
 | READ  ID 
 | READ  ID '[' op_int ']'
 | dfun
