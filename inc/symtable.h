@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dict.h"
+#include "vec.h"
 
 /**
  * variable and return type
@@ -76,3 +77,51 @@ struct symtable *symtable_new();
  * @brief destroy and free a symtable
  */
 void symtable_free(struct symtable *table);
+
+/**
+ * @brief Insert an entry into the innermost scope of symbol table. First
+   make sure it's not already in that scope. Return a pointer to the
+   entry.
+ * @param table the symbol table
+ * @param name the name of the entry
+ * @return struct symnode* - pointer to the entry
+ */
+struct symnode *symtable_insert(struct symtable *table, char *name);
+
+/**
+ * @brief Lookup an entry in a symbol table. If found return a pointer to it
+   and fill in level. Otherwise, return NULL and level is
+   undefined.
+ * @param table the symbol table
+ * @param name the name of the entry
+ * @param level the level of the entry
+ * @return struct symnode*
+ */
+struct symnode *symtable_lookup(struct symtable *table, char *name, int *level);
+
+/**
+ * @brief Enter a new scope
+ * @param table the symbol table
+ */
+void symtable_enter_scope(struct symtable *table);
+
+/**
+ * @brief Leave the innermost scope
+ * @param table the symbol table
+ */
+void symtable_leave_scope(struct symtable *table);
+
+/**
+ * @brief Display the symbol table to a human readable format
+ * @param table the symbol table
+ */
+void symtable_display(struct symtable *table);
+
+/**
+ * @brief Construct a new vec object of symnodes pointing to every symnode in
+ * the symboltable.
+ *
+ * @param table the symbol table
+ * @return vec_t - vector of symnodes
+ */
+vec_t symtable_vec(struct symtable *table);
