@@ -34,8 +34,6 @@ extern int errno;
  * (i.e. did not return -1)
  *
  * @param op operation to check
- * @param ... additional format string and arguments to display if the
- * operation failed
  * @return does not return if the operation failed
  */
 #define CHK(op)                                                           \
@@ -58,8 +56,6 @@ extern int errno;
  * (i.e. did not return > 0)
  *
  * @param op operation to check
- * @param ... additional format string and arguments to display if the
- * operation failed
  * @return does not return if the operation failed
  */
 #define TCHK(op)                                                          \
