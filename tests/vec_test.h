@@ -71,7 +71,7 @@ void vec_test_3(void) {
   vec_t v = vec_from((void *)1, (void *)2, (void *)3, (void *)4, NULL);
 
   assert_eq(vec_size(v), 4);
-  assert_geq(vec_capacity(v), 4);
+  assert_eq(vec_capacity(v), 4);
 
   assert_eq(vec_get(v, 0), (void *)1);
   assert_eq(vec_get(v, 1), (void *)2);
