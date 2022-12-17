@@ -20,7 +20,7 @@ vec_t _vec_new_args(vec_args_t args) {
 
 vec_t _vec_new(size_t size) {
   vec_t vec = malloc(sizeof(struct vec_s));
-  vec->data = malloc(sizeof(void *) * size);
+  vec->data = calloc(size, sizeof(void *) * size);
   vec->size = 0;
   vec->capacity = size;
   vec->lock = malloc(sizeof(pthread_mutex_t));
@@ -29,7 +29,6 @@ vec_t _vec_new(size_t size) {
 }
 
 vec_t vec_from(void *data, ...) {
-  // check the number of arguments
   int n = 0;
   va_list args;
   va_start(args, data);
@@ -37,17 +36,16 @@ vec_t vec_from(void *data, ...) {
     n++;
   }
 
-  // create the vector
-  vec_t vec = vec_new(n + 1);
-
-  // add the arguments
+  vec_t vec = _vec_new(n + 1);
   vec->data[0] = data;
+  vec->size = n + 1;
+
+  va_start(args, data);
   for (int i = 1; i < n + 1; i++) {
     vec->data[i] = va_arg(args, void *);
   }
-  vec->size = n + 1;
 
-  return vec;
+  return vec;  
 }
 
 void vec_free(vec_t vec) {
