@@ -140,6 +140,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 - `quad`, `symtable` and `vec` header files
 - `vec` should now be thread safe (still need unit tests for that)
 - updated doc
+- implemented `symtable` (not based on `dict` - might change that later)
 
 </details>
 
