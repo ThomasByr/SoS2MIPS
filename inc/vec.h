@@ -34,6 +34,11 @@ vec_t _vec_new(size_t size);
 
 vec_t _vec_new_args(vec_args_t args);
 
+/**
+ * @brief new vector
+   set size to number of elements to preallocate
+ * 
+ */
 #define vec_new(...) _vec_new_args((vec_args_t){__VA_ARGS__})
 
 /**
