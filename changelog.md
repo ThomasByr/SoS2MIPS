@@ -40,3 +40,5 @@
 - `vec` should now be thread safe (still need unit tests for that)
 - updated doc
 - implemented `symtable` (not based on `dict` - might change that later)
+- `quad` is a struct with a `type` and a `value`
+- do I go along the AST route? send help
