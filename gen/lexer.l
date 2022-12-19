@@ -11,6 +11,8 @@
 
 %%
 
+"#".* ;
+
 ";" return ';';
 "=" return '=';
 "[" return '[';
@@ -72,10 +74,6 @@
 
 "-n" return nnull;
 "-z" return null;
-
-%{
-  /* TODO: FUCKING FIX THIS */
-%}
 
 "expr" return expr;
 
