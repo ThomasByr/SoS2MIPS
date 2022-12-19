@@ -55,6 +55,12 @@ struct symnode {
   struct symnode *next; // next node in list
 };
 
+/**
+ * @brief Does the identifier in this node equal name?
+ *
+ */
+int name_is_equal(struct symnode *node, char *name);
+
 struct symhashtable {
   int size;                         // size of hash table
   struct symnode **table;           // hash table
@@ -96,7 +102,8 @@ struct symnode *symtable_insert(struct symtable *symtab, char *name);
  * @param level the level of the entry
  * @return struct symnode*
  */
-struct symnode *symtable_lookup(struct symtable *symtab, char *name, int *level);
+struct symnode *symtable_lookup(struct symtable *symtab, char *name,
+                                int *level);
 
 /**
  * @brief Enter a new scope
