@@ -7,9 +7,14 @@
 #include <unistd.h>
 
 #include "app.h"
+#include "quad.h"
+#include "symtable.h"
 #include "threadpool.h"
+#include "vec.h"
 
 #include "lib.h"
+
+struct symnode *main_func_symnode;
 
 void discard_file(void *filename) {
   char *file = (char *)filename;
