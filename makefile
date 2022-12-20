@@ -4,10 +4,10 @@ CFLAGS = -pipe -std=gnu17 -Wpedantic -Wall -Wextra -Werror
 YFLAGS = 
 LDLIBS = -pthread
 
-LEXYACC_PATH = ./gen
-INCLUDE_PATH = ./inc
-LIB_PATH     = ./lib
-VM_PATH      = ./vm
+LEXYACC_PATH = gen
+INCLUDE_PATH = inc
+LIB_PATH     = lib
+VM_PATH      = vm
 
 TARGET       = sos
 FILEXT       = c
