@@ -186,7 +186,7 @@ int fill_id_types(struct pnode *node) {
   // some variables used in the switch statement
 
   enum vartype var_type;
-  enum pnodetype ret_node_type;
+  enum pnodetype ret_node_type, var_node_type;
 
   struct pnode *id_astnode;
 
@@ -324,6 +324,116 @@ int fill_id_types(struct pnode *node) {
 
     return 0;
   }
+
+  case VAR_DECL: {
+
+    var_node_type = node->left_child->node_type;
+    if (var_node_type == INT_TYPE) {
+      var_type = inttype;
+    } else if (var_node_type == DBL_TYPE) {
+      var_type = doubletype;
+    } else {
+      return 1; // error
+    }
+
+    // make the symnodes and set the types for all of the declared variables
+    for (child = node->left_child->right_sibling; child != NULL;
+         child = child->right_sibling) {
+      if (child->node_type == ID) {
+        // already have the ID node, so just make the symnode
+        id_astnode = child;
+#ifdef DEBUG
+        printf("\t--> id: %s\n", id_astnode->value.sym_node->name);
+#endif
+
+        // look up the name in the ID name table
+        // and make sure it doesn't already exist in this scope
+        basename = id_astnode->value.symnode->name;
+
+        prev_scoped_id_symnode =
+            symtable_lookup(scoped_id_table, basename, &scoped_id_table_level);
+        if (prev_scoped_id_symnode != NULL &&
+            scoped_id_table_level == scoped_id_table->inner_scope->level) {
+          mark_error(node->lineno,
+                     "An ID of the same name already exists in this scope");
+          return 1;
+        }
+
+        scoped_id_symnode = symtable_insert(scoped_id_table, basename);
+        flat_id_symnode =
+            symtable_insert(flat_id_table, scoped_id_symnode->mangled_name);
+
+        flat_id_symnode->node_type = val_node;
+        flat_id_symnode->var_type = var_type;
+        id_astnode->value.symnode = flat_id_symnode;
+
+        // set the memory address of this variable and increment the number of
+        // variables in the current function or global variables
+        // todo: fix this shit to work with global-by-default
+        if (curr_func_symnode_anp != NULL) {
+          flat_id_symnode->mem_addr_type = off_fp;
+          curr_func_symnode_anp->num_vars++;
+          // the first variable is at -8(fp)
+          flat_id_symnode->var_addr = -8 * curr_func_symnode_anp->num_vars;
+        } else {
+          flat_id_symnode->mem_addr_type = global;
+          num_global_vars++;
+          // the first global variable is at -8 off the global variable pointer
+          flat_id_symnode->var_addr = -8 * num_global_vars;
+        }
+      } else if (child->node_type == ARRAY_SUB || child->node_type == OP_ASSIGN) {
+          id_astnode = child->left_child;
+
+          #ifdef DEBUG
+            printf("\t--> id: %s\n", id_astnode->value.sym_node->name);
+          #endif
+
+          // Look up the name in the ID name table and make sure it doesn't already exist in this scope
+          basename = id_astnode->value.symnode->name;
+          prev_scoped_id_symnode = symtable_lookup(scoped_id_table, basename, &scoped_id_table_level);
+          if (prev_scoped_id_symnode != NULL && scoped_id_table_level == scoped_id_table->inner_scope->level) {
+            mark_error(node->lineno, "An ID of the same name already exists in this scope");
+            return 1;
+          }
+
+          // Add the param ID to the scoped ID table, then add it with the mangled name to the flat ID table
+          scoped_id_symnode = symtable_insert(scoped_id_table, basename);
+          flat_id_symnode = symtable_insert(flat_id_table, scoped_id_symnode->mangled_name);
+
+          // Set the node and var_type of the sym_node, and point to the symnode from the id astnode
+          if (child->node_type == ARRAY_SUB) {
+            flat_id_symnode->node_type = array_node;
+          } else {
+            flat_id_symnode->node_type = val_node;
+          }
+          flat_id_symnode->var_type = var_type;
+          id_astnode->value.symnode = flat_id_symnode;
+
+          // Record size if the subscript is an int literal
+          if (id_astnode->right_sibling->node_type == INT_LITERAL) {
+            flat_id_symnode->array_size = id_astnode->right_sibling->value.int_val;
+          }
+
+          // Recurse on the subscript expression
+          if (fill_id_types(id_astnode->right_sibling) != 0) {
+            return 1;
+          }
+
+          // Set the memory address of this variable and increment the number of variables in the current function or global variables
+          if (curr_func_symnode_anp != NULL) {
+            flat_id_symnode->mem_addr_type = off_fp;
+            curr_func_symnode_anp->num_vars++;
+            flat_id_symnode->var_addr = -8 * curr_func_symnode_anp->num_vars; // the first variable is at -8(fp)
+          } else {
+            flat_id_symnode->mem_addr_type = global;
+            num_global_vars++;
+            flat_id_symnode->var_addr = -8 * num_global_vars; // the first global variable is at -8 off the global variable pointer
+          }
+        }
+      }
+    return 0;
+    }
+
 
   default: // this is to make -Wall happy
     return 0;
