@@ -1211,7 +1211,6 @@ int standard_binary_op_typecheck_widening(struct pnode *node) {
 }
 
 int standard_binary_op_typecheck_int(struct pnode *node) {
-
   if (node->left_child == NULL || node->left_child->right_sibling == NULL) {
     mark_error(node->lineno, "Binary operator is missing an operand");
     return 1;
