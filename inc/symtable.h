@@ -7,13 +7,10 @@
  * used for type checking
  */
 enum vartype {
-  VT_UNKNOWN,
-  VT_INT,
-  VT_FLOAT,
-  VT_STRING,
-  VT_BOOL,
-  VT_VOID,
-  VT_ARRAY,
+  no_type,
+  inttype,
+  doubletype,
+  voidtype,
 };
 
 /**
@@ -21,29 +18,29 @@ enum vartype {
  * not applicable in the string constant table
  */
 enum nodetype {
-  NT_FUNC,
-  NT_VAL,
-  NT_ARRAY,
+  func_node,
+  val_node,
+  array_node,
 };
 
 /**
  * the type of the memory address
  */
 enum memaddrtype {
-  MAT_LOCAL,
-  MAT_GLOBAL,
+  off_fp,
+  global,
 };
 
 struct symnode {
   char *name; // name in this scope
 
-  enum vartype type;      // the type of a variable or return type of a function
-                          // (irrelevant for the string table)
-  int var_addr;           // assembly index for functions
-                          // irrelevant for string constants
-  enum nodetype nodetype; // the thing that the identifier identifies
-                          // (irrelevant for the string table)
-  enum memaddrtype memaddrtype;
+  enum vartype var_type; // the type of a variable or return type of a function
+                         // (irrelevant for the string table)
+  int var_addr;          // assembly index for functions
+                         // irrelevant for string constants
+  enum nodetype node_type; // the thing that the identifier identifies
+                           // (irrelevant for the string table)
+  enum memaddrtype mem_addr_type;
   int array_size; // only relevant for nodes of type array_node
 
   char *mangled_name; // irrelevant for the string table
@@ -52,9 +49,9 @@ struct symnode {
   int num_temps;  // number of temporary variables for a function
   int num_params; // number of formal parameters
 
-  struct symnode *next; // next node in list
+  struct symnode *next;                 // next node in list
+  struct symnode **param_symnode_array; // array of pointers to param symnodes
 };
-
 
 /**
  * @brief Does the identifier in this node equal name?

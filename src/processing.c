@@ -4,6 +4,8 @@
 
 #include "processing.h"
 
+#include "lib.h"
+
 extern const char var_type_string[][8];
 extern const char node_type_string[][11];
 extern const char mem_addr_type_string[][7];
@@ -90,9 +92,9 @@ void pnode_display(struct pnode *node) {
   case ID:
     printf(
         "%s (%p), node type: %s, var type: %s, address: %d (%s), num vars: %d",
-        sym_node->name, (void *)sym_node, node_type_string[sym_node->nodetype],
-        var_type_string[sym_node->type], sym_node->var_addr,
-        mem_addr_type_string[sym_node->memaddrtype], sym_node->num_vars);
+        sym_node->name, (void *)sym_node, node_type_string[sym_node->node_type],
+        var_type_string[sym_node->var_type], sym_node->var_addr,
+        mem_addr_type_string[sym_node->mem_addr_type], sym_node->num_vars);
     break;
   case INT_LITERAL:
     printf("%d", node->value.int_val);
@@ -133,8 +135,8 @@ int is_array_node(struct pnode *node);
 
 /* variables */
 
-extern struct symtable* scoped_id_table;
-extern struct symtable* flat_id_table;
+extern struct symtable *scoped_id_table;
+extern struct symtable *flat_id_table;
 int scoped_id_table_level;
 
 extern int error_count;
@@ -144,10 +146,186 @@ int entered_func_scope = 0;
 
 // the symnode of the function currently being processed;
 // NULL when outside of a function
-struct symnode* curr_func_symnode_anp;
+struct symnode *curr_func_symnode_anp;
 
 // the number of global variables
 int num_global_vars = 0;
 
 // The symnode of the main function (declared in symtab.c)
-extern struct symnode* main_func_symnode;
+extern struct symnode *main_func_symnode;
+
+/* definitions */
+
+void mark_error(int line, const char *restrict msg) {
+  alert("Error found at line %d: %s", line, msg);
+  error_count++;
+
+  debug("##### scoped_id_table #####");
+#ifdef DEBUG
+  symtable_display(scoped_id_table);
+#endif
+}
+
+// Recursively call fill_id_types on children and
+// return 1 if any of the recursive calls return nonzero;
+// otherwise return 0
+int childrend_fill_id_types(struct pnode *node) {
+  struct pnode *child;
+  for (child = node->left_child; child != NULL; child = child->right_sibling) {
+    if (fill_id_types(child) != 0) return 1;
+  }
+  return 0;
+}
+
+int fill_id_types(struct pnode *node) {
+#ifdef DEBUG
+  pnode_display(node);
+  printf("\n");
+#endif
+
+  // some variables used in the switch statement
+
+  enum vartype var_type;
+  enum pnodetype ret_node_type;
+
+  struct pnode *id_astnode;
+
+  char *basename;
+  struct symnode *prev_scoped_id_symnode, *scoped_id_symnode, *flat_id_symnode;
+
+  struct pnode *child;
+
+  int num_params;
+
+  // set types if we have a declaration (function or variable) or a
+  // parameter
+  switch (node->node_type) {
+  case FUNC_DECL: {
+    // find return type
+    ret_node_type = node->left_child->node_type;
+    if (ret_node_type == INT_TYPE) {
+      var_type = inttype;
+    } else if (ret_node_type == DBL_TYPE) {
+      var_type = doubletype;
+    } else if (ret_node_type == VOID_TYPE) {
+      var_type = voidtype;
+    } else {
+      return 1; // error
+    }
+    id_astnode = node->left_child->right_sibling;
+
+    // look up the name in the ID name table
+    // and make sure it doesn't already exist in this scope
+    basename = id_astnode->value.symnode->name;
+    prev_scoped_id_symnode =
+        symtable_lookup(scoped_id_table, basename, &scoped_id_table_level);
+    if (prev_scoped_id_symnode != NULL &&
+        scoped_id_table_level == scoped_id_table->inner_scope->level) {
+      mark_error(node->lineno,
+                 "An ID of the same name already exists in this scope");
+      return 1;
+    }
+
+    scoped_id_symnode = symtable_insert(scoped_id_table, basename);
+    flat_id_symnode =
+        symtable_insert(flat_id_table, scoped_id_symnode->mangled_name);
+    flat_id_symnode->node_type = func_node;
+    flat_id_symnode->var_type = var_type;
+    id_astnode->value.symnode = flat_id_symnode;
+
+    if (strcmp(basename, "main") == 0) {
+      // We have an error if the declared return type is not void
+      if (flat_id_symnode->var_type != voidtype) {
+        mark_error(node->lineno,
+                   "The main function must have a void return type");
+      }
+      main_func_symnode = flat_id_symnode;
+    }
+
+    // enter into the function's scope
+    symtable_enter_scope(scoped_id_table);
+    curr_func_symnode_anp = flat_id_symnode;
+    flat_id_symnode->num_vars = 0;
+
+    // count the number of parameters
+    // start at -1 because the function body will be counted
+    num_params = -1;
+    for (child = id_astnode->right_sibling; child != NULL;
+         child = child->right_sibling) {
+      num_params++;
+    }
+    flat_id_symnode->param_symnode_array =
+        calloc(num_params, sizeof(struct symnode *));
+    // will count up when recursing on formal params,
+    // which use it for array indexing
+    flat_id_symnode->num_params = 0;
+
+    // recurse on the formal parameters and body
+    entered_func_scope = 1;
+    for (child = id_astnode->right_sibling; child != NULL;
+         child = child->right_sibling) {
+      if (fill_id_types(child) != 0) return 1;
+    }
+
+    // exit the function's scope
+    symtable_leave_scope(scoped_id_table);
+    curr_func_symnode_anp = NULL;
+
+#ifdef DEBUG
+    pnode_display(node->left_child->right_sibling);
+    printf("\n");
+#endif
+
+    return 0;
+  }
+
+  case FORMAL_PARAM: {
+    ret_node_type = node->left_child->node_type;
+    if (ret_node_type == INT_TYPE) {
+      var_type = inttype;
+    } else if (ret_node_type == DBL_TYPE) {
+      var_type = doubletype;
+    } else {
+      return 1; // error
+    }
+
+    id_astnode = node->left_child->right_sibling;
+
+    basename = id_astnode->value.symnode->name;
+    prev_scoped_id_symnode =
+        symtable_lookup(scoped_id_table, basename, &scoped_id_table_level);
+    if (prev_scoped_id_symnode != NULL &&
+        scoped_id_table_level == scoped_id_table->inner_scope->level) {
+      mark_error(node->lineno, "A formal parameter of the same name already "
+                               "exists in this function declaration");
+      return 1;
+    }
+
+    scoped_id_symnode = symtable_insert(scoped_id_table, basename);
+    flat_id_symnode =
+        symtable_insert(flat_id_table, scoped_id_symnode->mangled_name);
+
+    flat_id_symnode->node_type = val_node;
+    flat_id_symnode->var_type = var_type;
+    id_astnode->value.symnode = flat_id_symnode;
+
+    curr_func_symnode_anp
+        ->param_symnode_array[curr_func_symnode_anp->num_params] =
+        flat_id_symnode;
+    flat_id_symnode->mem_addr_type = off_fp;
+    flat_id_symnode->var_addr = (1 + curr_func_symnode_anp->num_params) * 8;
+    curr_func_symnode_anp->num_params++;
+
+#ifdef DEBUG
+    printf("\t");
+    pnode_display(node->left_child->right_sibling);
+    printf("\n");
+#endif
+
+    return 0;
+  }
+
+  default: // this is to make -Wall happy
+    return 0;
+  }
+}

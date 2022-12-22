@@ -197,9 +197,9 @@ void symtable_leave_scope(struct symtable *symtab) {
 void symnode_display(struct symnode *node) {
   if (node) {
     info("Node: %s, type: %s, vartype: %s, addr: %d, addr type: %s, ptr: %p",
-         node->name, node_type_string[node->nodetype],
-         var_type_string[node->type], node->var_addr,
-         mem_addr_type_string[node->memaddrtype], node);
+         node->name, node_type_string[node->node_type],
+         var_type_string[node->var_type], node->var_addr,
+         mem_addr_type_string[node->mem_addr_type], node);
   } else {
     info("Node is NULL");
   }
