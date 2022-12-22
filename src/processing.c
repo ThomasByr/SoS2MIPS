@@ -169,7 +169,7 @@ void mark_error(int line, const char *restrict msg) {
 // Recursively call fill_id_types on children and
 // return 1 if any of the recursive calls return nonzero;
 // otherwise return 0
-int childrend_fill_id_types(struct pnode *node) {
+int children_fill_id_types(struct pnode *node) {
   struct pnode *child;
   for (child = node->left_child; child != NULL; child = child->right_sibling) {
     if (fill_id_types(child) != 0) return 1;
@@ -196,6 +196,8 @@ int fill_id_types(struct pnode *node) {
   struct pnode *child;
 
   int num_params;
+
+  int saved_entered_func_scope;
 
   // set types if we have a declaration (function or variable) or a
   // parameter
@@ -539,6 +541,100 @@ int fill_id_types(struct pnode *node) {
 
     return 0;
   }
+
+  case ARRAY_SUB:
+    return children_fill_id_types(node);
+  case OP_ASSIGN:
+    return children_fill_id_types(node);
+  case OP_ADD:
+    return children_fill_id_types(node);
+  case OP_SUB:
+    return children_fill_id_types(node);
+  case OP_MULT:
+    return children_fill_id_types(node);
+  case OP_DIV:
+    return children_fill_id_types(node);
+  case OP_MOD:
+    return children_fill_id_types(node);
+  case OP_LT:
+    return children_fill_id_types(node);
+  case OP_LEQ:
+    return children_fill_id_types(node);
+  case OP_GT:
+    return children_fill_id_types(node);
+  case OP_GEQ:
+    return children_fill_id_types(node);
+  case OP_EQ:
+    return children_fill_id_types(node);
+  case OP_NEQ:
+    return children_fill_id_types(node);
+  case OP_AND:
+    return children_fill_id_types(node);
+  case OP_OR:
+    return children_fill_id_types(node);
+  case OP_BANG:
+    return children_fill_id_types(node);
+  case OP_NEG:
+    return children_fill_id_types(node);
+  case OP_INC:
+    return children_fill_id_types(node);
+  case OP_DEC:
+    return children_fill_id_types(node);
+
+  case SEQ: {
+    // enter a new scope for the SEQ (unless a function scope has just been
+    // entered)
+    saved_entered_func_scope = entered_func_scope;
+    entered_func_scope = 0;
+    if (saved_entered_func_scope == 0) {
+      symtable_enter_scope(scoped_id_table);
+    }
+
+    // recurse on children
+    for (child = node->left_child; child != NULL;
+         child = child->right_sibling) {
+      if (fill_id_types(child) != 0) {
+        return 1;
+      }
+    }
+
+    // exit the SEQ's scope (but only if it entered one at the beginning)
+    if (saved_entered_func_scope == 0) {
+      symtable_leave_scope(scoped_id_table);
+    }
+
+    return 0;
+  }
+  case IF_STMT:
+    return children_fill_id_types(node);
+  case WHILE_LOOP:
+    return children_fill_id_types(node);
+  case DO_WHILE_LOOP:
+    return children_fill_id_types(node);
+  case FOR_STMT:
+    return children_fill_id_types(node);
+  case RETURN_STMT:
+    return children_fill_id_types(node);
+  case READ_STMT:
+    return children_fill_id_types(node);
+  case PRINT_STMT:
+    return children_fill_id_types(node);
+  case FUNC_CALL:
+    return children_fill_id_types(node);
+  case STRING_LITERAL:
+    return 0;
+  case INT_LITERAL:
+    return 0;
+  case DOUBLE_LITERAL:
+    return 0;
+  case EMPTY_EXPR:
+    return 0;
+  case INT_TYPE:
+    return 0;
+  case DBL_TYPE:
+    return 0;
+  case VOID_TYPE:
+    return 0;
 
   default: // this is to make -Wall happy
     return 0;
