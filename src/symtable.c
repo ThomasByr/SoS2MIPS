@@ -23,6 +23,8 @@ const char mem_addr_type_string[][7] = {
 
 /* symnode */
 
+struct symnode *main_func_symnode;
+
 static struct symnode *symnode_new(char *name, int num_nodes) {
   struct symnode *node = malloc(sizeof(struct symnode));
   node->name = strdup(name);

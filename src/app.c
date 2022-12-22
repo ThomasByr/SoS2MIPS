@@ -14,7 +14,18 @@
 
 #include "lib.h"
 
-struct symnode *main_func_symnode;
+// Used to look up unmangled IDs with scoping
+struct symtable *scoped_id_table;
+// Used to store IDs with mangled names
+struct symtable *flat_id_table;
+// Used throughout to save memory with string constants
+struct symtable *stringconst_table;
+// Used by the parser to save memory with ID names
+struct symtable *id_name_table;
+
+int error_count = 0;
+
+extern struct symnode *main_func_symnode;
 
 void discard_file(void *filename) {
   char *file = (char *)filename;

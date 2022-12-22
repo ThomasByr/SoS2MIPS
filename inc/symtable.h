@@ -55,6 +55,7 @@ struct symnode {
   struct symnode *next; // next node in list
 };
 
+
 /**
  * @brief Does the identifier in this node equal name?
  *

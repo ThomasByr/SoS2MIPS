@@ -118,3 +118,36 @@ struct pnode *rightmost_sibling(struct pnode *node) {
 }
 
 /* some more prototypes */
+
+// Standard code for checking the types of the operands of a binary operation
+// and setting the type of the operation
+int standard_binary_op_typecheck_widening(struct pnode *node);
+
+// Standard code for checking the types of the operands
+// of a binary operation that is of type int
+// and setting the type of the operation (<, <=, >, >=, == , !=)
+int standard_binary_op_typecheck_int(struct pnode *node);
+
+// Returns true if the given AST node is an ID and is an array node
+int is_array_node(struct pnode *node);
+
+/* variables */
+
+extern struct symtable* scoped_id_table;
+extern struct symtable* flat_id_table;
+int scoped_id_table_level;
+
+extern int error_count;
+
+// nonzero when a scope has already been entered into for a function
+int entered_func_scope = 0;
+
+// the symnode of the function currently being processed;
+// NULL when outside of a function
+struct symnode* curr_func_symnode_anp;
+
+// the number of global variables
+int num_global_vars = 0;
+
+// The symnode of the main function (declared in symtab.c)
+extern struct symnode* main_func_symnode;
