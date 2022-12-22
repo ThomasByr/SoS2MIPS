@@ -1,5 +1,6 @@
 #include <stdbool.h>
 
+#include "processing.h"
 #include "protocol.h"
 
 extern int opt_lvl;
