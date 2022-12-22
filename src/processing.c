@@ -254,6 +254,10 @@ int fill_id_types(struct pnode *node) {
          child = child->right_sibling) {
       num_params++;
     }
+    if (num_params < 0) {
+      mark_error(node->lineno, "A function must have a body");
+      return 1;
+    }
     flat_id_symnode->param_symnode_array =
         calloc(num_params, sizeof(struct symnode *));
     // will count up when recursing on formal params,
@@ -343,7 +347,7 @@ int fill_id_types(struct pnode *node) {
         // already have the ID node, so just make the symnode
         id_astnode = child;
 #ifdef DEBUG
-        printf("\t--> id: %s\n", id_astnode->value.sym_node->name);
+        printf("\t--> id: %s\n", id_astnode->value.symnode->name);
 #endif
 
         // look up the name in the ID name table
@@ -385,7 +389,7 @@ int fill_id_types(struct pnode *node) {
           id_astnode = child->left_child;
 
           #ifdef DEBUG
-            printf("\t--> id: %s\n", id_astnode->value.sym_node->name);
+            printf("\t--> id: %s\n", id_astnode->value.symnode->name);
           #endif
 
           // Look up the name in the ID name table and make sure it doesn't already exist in this scope
