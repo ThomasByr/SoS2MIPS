@@ -6,17 +6,17 @@
 
 #define NOHASHSLOT -1
 
-static const char var_type_string[][8] = {
+const char var_type_string[][8] = {
     "unknown", "int", "float", "string", "bool", "void", "array",
 };
 
-static const char node_type_string[][11] = {
+const char node_type_string[][11] = {
     "func_node",
     "val_node",
     "array_node",
 };
 
-static const char mem_addr_type_string[][7] = {
+const char mem_addr_type_string[][7] = {
     "local",
     "global",
 };

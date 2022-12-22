@@ -90,7 +90,7 @@ void pnode_display(struct pnode *node) {
   case ID:
     printf(
         "%s (%p), node type: %s, var type: %s, address: %d (%s), num vars: %d",
-        sym_node->name, sym_node, node_type_string[sym_node->nodetype],
+        sym_node->name, (void *)sym_node, node_type_string[sym_node->nodetype],
         var_type_string[sym_node->type], sym_node->var_addr,
         mem_addr_type_string[sym_node->memaddrtype], sym_node->num_vars);
     break;
@@ -101,7 +101,7 @@ void pnode_display(struct pnode *node) {
     printf("%f", node->value.dbl_val);
     break;
   case STRING_LITERAL:
-    printf("%s (%p)", node->value.symnode->name, node->value.symnode);
+    printf("%s (%p)", node->value.symnode->name, (void *)node->value.symnode);
     break;
   default:
     break;
