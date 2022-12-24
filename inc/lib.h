@@ -44,7 +44,7 @@ extern int errno;
       fprintf(stderr, #op);                                               \
       fprintf(stderr, "\n");                                              \
       if (errno) {                                                        \
-        perror("     ->");                                                \
+        perror(FG_RED "     -> " RST);                                    \
         fprintf(stderr, "\n");                                            \
       }                                                                   \
       abort();                                                            \
@@ -65,7 +65,7 @@ extern int errno;
               pthread_self(), __FILE__, __LINE__);                        \
       fprintf(stderr, #op);                                               \
       fprintf(stderr, "\n");                                              \
-      perror("     ->");                                                  \
+      perror(FG_RED "     -> " RST);                                      \
       fprintf(stderr, "\n");                                              \
       abort();                                                            \
     }                                                                     \
@@ -85,7 +85,7 @@ extern int errno;
     fprintf(stderr, fmt, ##__VA_ARGS__);                                \
     fprintf(stderr, "\n");                                              \
     if (errno) {                                                        \
-      perror("     -> ");                                                \
+      perror(FG_RED "     -> " RST);                                    \
       fprintf(stderr, "\n");                                            \
     }                                                                   \
     abort();                                                            \

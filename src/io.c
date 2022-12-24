@@ -19,11 +19,13 @@ static noreturn void display_help(const char *restrict fmt, ...) {
       "  -h, --help\t\tDisplay this help message and exit\n"
       "  -v, --version\t\tDisplay the version of this program and exit\n"
       "  -l, --license\t\tDisplay the license of this program and exit\n"
-      "  -i, --input\t\tSpecify the input file\n"
-      "  -o, --output\t\tSpecify the output file\n"
+      "  -i, --in\t\tSpecify the input file\n"
+      "  -o, --out\t\tSpecify the output file\n"
       "  .., --tos\t\tDisplay the Symbol Table on runtime\n"
       "  .., --verbose\t\tDisplay verbose information on runtime\n"
-      "  -O, --opt_lvl\t\tSet the optimization level\n";
+      "  -O, --optlvl\t\tSet the optimization level\n"
+      "the input and output files can be non-option arguments\n"
+      "but are taken in order of appearance\n";
 
   if (fmt != NULL) {
     fprintf(stderr, FG_YEL " alert: " RST);
@@ -102,7 +104,7 @@ void parse_args(int argc, char *argv[], struct cmd_args *args) {
       {"out", required_argument, NULL, 'o'},
       {"tos", no_argument, NULL, TOS_OPT},
       {"verbose", no_argument, NULL, VERB_OPT},
-      {"opt_lvl", required_argument, NULL, 'O'},
+      {"optlvl", required_argument, NULL, 'O'},
       {NULL, 0, NULL, 0},
   };
   static const char short_options[] = ":i:o:O:hvl";
@@ -153,7 +155,7 @@ void parse_args(int argc, char *argv[], struct cmd_args *args) {
       break;
 
     case '?':
-      display_help("unrecognized option 'abc%sabs'", argv[optind - 1]);
+      display_help("unrecognized option '%s'", argv[optind - 1]);
       unreachable();
       break;
 
