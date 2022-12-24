@@ -1,6 +1,7 @@
 #include <stdlib.h>
 
 #include "dict_test.h"
+#include "symtable_test.h"
 #include "threadpool_test.h"
 #include "vec_test.h"
 
@@ -10,6 +11,7 @@ int main(void) {
   thpool_test();
   dict_test();
   vec_test();
+  symtable_test();
 
   return EXIT_SUCCESS;
 }

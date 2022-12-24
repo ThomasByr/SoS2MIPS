@@ -1,11 +1,22 @@
 #include <pthread.h>
 #include <stdlib.h>
 
+#include "lib.h"
 #include "m.h"
 
 #include "vec.h"
 
-void access_vec(void *arg) { (void)arg; }
+void *access_vec(void *arg) {
+  vec_t v = (vec_t)arg;
+  for (size_t i = 0; i < 1000; i++) {
+    vec_push(v, (void *)i);
+  }
+
+  for (size_t i = 0; i < 1000; i++) {
+    vec_pop(v);
+  }
+  return NULL;
+}
 
 void vec_test_0(void) {
   vec_t v = vec_new();
@@ -89,7 +100,19 @@ void vec_test_4(void) {
     vec_push(v, (void *)i);
   }
 
-  // todo: check for thread safety
+  // check for thread safety
+  pthread_t threads[10];
+  for (size_t i = 0; i < 10; i++) {
+    TCHK(pthread_create(&threads[i], NULL, (void *(*)(void *))access_vec, v));
+  }
+
+  for (size_t i = 0; i < 10; i++) {
+    TCHK(pthread_join(threads[i], NULL));
+    assert_eq(vec_size(v), n);
+  }
+  assert_eq(vec_size(v), n);
+
+  vec_free(v);
 }
 
 void vec_test(void) {
@@ -97,5 +120,5 @@ void vec_test(void) {
   test_case(vec_test_1);
   test_case(vec_test_2);
   test_case(vec_test_3);
-  // test_case(vec_test_4);
+  test_case(vec_test_4);
 }
