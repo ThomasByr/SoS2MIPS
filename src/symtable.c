@@ -46,6 +46,7 @@ static struct symnode *symnode_new(char *name, int num_nodes) {
 
 static void symnode_free(struct symnode *node) {
   free(node->name);
+  free(node->mangled_name);
   free(node);
 }
 
@@ -81,6 +82,9 @@ static void symhashtable_free(struct symhashtable *hashtable) {
       symnode_free(node);
     }
   }
+
+  free(hashtable->table);
+  free(hashtable);
 }
 
 /**
@@ -153,6 +157,8 @@ void symtable_free(struct symtable *symtab) {
     outer = table->outer_scope;
     symhashtable_free(table);
   }
+
+  free(symtab);
 }
 
 struct symnode *symtable_insert(struct symtable *symtab, char *name) {
