@@ -21,7 +21,7 @@
 4. [🧑‍🏫 Contributing](#-contributing)
 5. [⚖️ License](#️-license)
 6. [🔄 Changelog](#-changelog)
-7. [🐛 Bugs & TODO](#-bugs--todo)
+7. [🐛 Bugs \& TODO](#-bugs--todo)
 
 ## ✏️ Setup
 
@@ -47,16 +47,16 @@ The produced executable binary is to be found inside of the `bin` folder.
 
 The program takes command line arguments from (`..` indicating no short option, `<>` that an argument is required and `*` mutual incompatibility) :
 
-| command              | hint                                     | required ? | default |
-| -------------------- | ---------------------------------------- | ---------- | ------- |
-| `-h, --help`         | display help and **exit**                | ❔         |         |
-| `-v, --version`      | display version and **exit**             | ❔         |         |
-| `-l, --license`      | display license and **exit**             | ❔         |         |
-| `-i, --in` `<>`      | path to input file                       | ✔️         |         |
-| `-o, --out` `<>`     | path to output file                      | ❌         | `a.s`   |
-| `.., --tos`          | display the Symbol Table on running time | ❌         |         |
-| `.., --verbose`      | be very noisy                            | ❌         |         |
-| `-O, --opt_lvl` `<>` | set optimization level (from `0` or `1`) | ❌         | `0`     |
+| command             | hint                                     | required ? | default |
+| ------------------- | ---------------------------------------- | ---------- | ------- |
+| `-h, --help`        | display help and **exit**                | ❔         |         |
+| `-v, --version`     | display version and **exit**             | ❔         |         |
+| `-l, --license`     | display license and **exit**             | ❔         |         |
+| `-i, --in` `<>`     | path to input file                       | ✔️         |         |
+| `-o, --out` `<>`    | path to output file                      | ❌         | `a.s`   |
+| `.., --tos`         | display the Symbol Table on running time | ❌         |         |
+| `.., --verbose`     | be very noisy                            | ❌         |         |
+| `-O, --optlvl` `<>` | set optimization level (from `0` or `1`) | ❌         | `0`     |
 
 A legal launching instruction could be :
 
