@@ -85,7 +85,7 @@ extern int errno;
     fprintf(stderr, fmt, ##__VA_ARGS__);                                \
     fprintf(stderr, "\n");                                              \
     if (errno) {                                                        \
-      perror("     ->");                                                \
+      perror("     -> ");                                                \
       fprintf(stderr, "\n");                                            \
     }                                                                   \
     abort();                                                            \

@@ -26,11 +26,12 @@ static noreturn void display_help(const char *restrict fmt, ...) {
       "  -O, --opt_lvl\t\tSet the optimization level\n";
 
   if (fmt != NULL) {
-    va_list args;
-    va_start(args, fmt);
-    alert(fmt, &args);
-    va_end(args);
-    printf("\n");
+    fprintf(stderr, FG_YEL " alert: " RST);
+    va_list ap;
+    va_start(ap, fmt);
+    vfprintf(stderr, fmt, ap);
+    va_end(ap);
+    fprintf(stderr, "\n\n");
   }
   printf("%s", help);
 
@@ -74,7 +75,7 @@ static noreturn void display_license(void) {
   exit(EXIT_SUCCESS);
 }
 
-void cmd_args_init(struct cmd_args* args) {
+void cmd_args_init(struct cmd_args *args) {
   // struct _io *args = (struct _io *)malloc(sizeof(struct _io));
   args->filename = NULL;
   args->output = "a.s";
@@ -104,10 +105,12 @@ void parse_args(int argc, char *argv[], struct cmd_args *args) {
       {"opt_lvl", required_argument, NULL, 'O'},
       {NULL, 0, NULL, 0},
   };
-  static const char short_options[] = "i:o:O:hvl";
+  static const char short_options[] = ":i:o:O:hvl";
+
+  extern int opterr;
+  opterr = 0;
 
   int opt;
-  char *bad_opt;
   while ((opt = getopt_long(argc, argv, short_options, long_options, NULL)) !=
          -1) {
 
@@ -149,16 +152,35 @@ void parse_args(int argc, char *argv[], struct cmd_args *args) {
       args->opt_lvl = strtoi(optarg);
       break;
 
-    default:
-      bad_opt = argv[optind - 1];
-      display_help("unrecognized option '%s'", bad_opt);
+    case '?':
+      display_help("unrecognized option 'abc%sabs'", argv[optind - 1]);
       unreachable();
       break;
+
+    case ':':
+      display_help("option '%s' requires an argument", argv[optind - 1]);
+      unreachable();
+      break;
+
+    default:
+      unreachable();
     }
   }
-  if (optind < argc) {
-    display_help("unrecognized argument '%s'", argv[optind]);
-    unreachable();
+  if (optind < argc) /* non-option arguments remain */ {
+    if (args->filename == NULL) {
+      args->filename = argv[optind];
+      optind++;
+    }
+    if (optind < argc) {
+      args->output = argv[optind];
+      args->dispose_on_exit = false;
+      optind++;
+    }
+
+    // check if there are more arguments
+    for (int i = optind; i < argc; i++) {
+      alert("ignoring extra argument: %s", argv[i]);
+    }
   }
   optind = 0;
 }
