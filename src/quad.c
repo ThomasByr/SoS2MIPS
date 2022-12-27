@@ -179,7 +179,7 @@ void quad_patch(struct quad *q, int arg_index,
 struct quad *quad_modify_op(struct quad *quad,
                             enum global_quadop op) {
     switch (op) {
-    case plus:
+    case plus_op:
         if (quad->arg1->type == int_arg &&
             quad->arg2->type == int_arg &&
             quad->arg3->type == int_arg) {
@@ -192,7 +192,7 @@ struct quad *quad_modify_op(struct quad *quad,
             alert("quad_modify_op: invalid types for +");
         }
         break;
-    case minus:
+    case minus_op:
         if (quad->arg1->type == int_arg &&
             quad->arg2->type == int_arg &&
             quad->arg3->type == int_arg) {
@@ -205,7 +205,7 @@ struct quad *quad_modify_op(struct quad *quad,
             alert("quad_modify_op: invalid types for -");
         }
         break;
-    case mult:
+    case mult_op:
         if (quad->arg1->type == int_arg &&
             quad->arg2->type == int_arg &&
             quad->arg3->type == int_arg) {
@@ -218,7 +218,7 @@ struct quad *quad_modify_op(struct quad *quad,
             alert("quad_modify_op: invalid types for *");
         }
         break;
-    case divi:
+    case div_op:
         if (quad->arg1->type == int_arg &&
             quad->arg2->type == int_arg &&
             quad->arg3->type == int_arg) {
@@ -231,13 +231,91 @@ struct quad *quad_modify_op(struct quad *quad,
             alert("quad_modify_op: invalid types for /");
         }
         break;
-    case mod:
+    case mod_op:
         if (quad->arg1->type == int_arg &&
             quad->arg2->type == int_arg &&
             quad->arg3->type == int_arg) {
             quad->op = mod_op;
         } else {
             alert("quad_modify_op: invalid types for %%");
+        }
+        break;
+    case lt_op:
+        if (quad->arg1->type == int_arg &&
+            quad->arg2->type == int_arg &&
+            quad->arg3->type == int_arg) {
+            quad->op = lt_ints_op;
+        } else if (quad->arg1->type == dbl_arg &&
+                   quad->arg2->type == dbl_arg &&
+                   quad->arg3->type == dbl_arg) {
+            quad->op = lt_floats_op;
+        } else {
+            alert("quad_modify_op: invalid types for <");
+        }
+        break;
+    case le_op:
+        if (quad->arg1->type == int_arg &&
+            quad->arg2->type == int_arg &&
+            quad->arg3->type == int_arg) {
+            quad->op = leq_ints_op;
+        } else if (quad->arg1->type == dbl_arg &&
+                   quad->arg2->type == dbl_arg &&
+                   quad->arg3->type == dbl_arg) {
+            quad->op = leq_floats_op;
+        } else {
+            alert("quad_modify_op: invalid types for <=");
+        }
+        break;
+    case gt_op:
+        if (quad->arg1->type == int_arg &&
+            quad->arg2->type == int_arg &&
+            quad->arg3->type == int_arg) {
+            quad->op = gt_ints_op;
+        } else if (quad->arg1->type == dbl_arg &&
+                   quad->arg2->type == dbl_arg &&
+                   quad->arg3->type == dbl_arg) {
+            quad->op = gt_floats_op;
+        } else {
+            alert("quad_modify_op: invalid types for >");
+        }
+        break;
+    case ge_op:
+        if (quad->arg1->type == int_arg &&
+            quad->arg2->type == int_arg &&
+            quad->arg3->type == int_arg) {
+            quad->op = geq_ints_op;
+        } else if (quad->arg1->type == dbl_arg &&
+                   quad->arg2->type == dbl_arg &&
+                   quad->arg3->type == dbl_arg) {
+            quad->op = geq_floats_op;
+        } else {
+            alert("quad_modify_op: invalid types for >=");
+        }
+        break;
+    case eq_op:
+        if (quad->arg1->type == int_arg &&
+            quad->arg2->type == int_arg &&
+            quad->arg3->type == int_arg) {
+            quad->op = eq_ints_op;
+        } else if (quad->arg1->type == dbl_arg &&
+                   quad->arg2->type == dbl_arg &&
+                   quad->arg3->type == dbl_arg) {
+            quad->op = eq_floats_op;
+        } else {
+            alert("quad_modify_op: invalid types for ==");
+        }
+        break;
+    case neq_op:
+        if (quad->arg1->type == int_arg &&
+            quad->arg2->type == int_arg &&
+            quad->arg3->type == int_arg) {
+            quad->op = neq_ints_op;
+        } else if (quad->arg1->type == dbl_arg &&
+                   quad->arg2->type == dbl_arg &&
+                   quad->arg3->type == dbl_arg) {
+            quad->op = neq_floats_op;
+        } else {
+            alert("quad_modify_op: invalid types for !=");
         }
         break;
     default:

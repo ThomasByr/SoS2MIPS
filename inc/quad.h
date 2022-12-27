@@ -3,20 +3,17 @@
 #include "symtable.h"
 
 enum global_quadop {
-    plus,
-    minus,
-    mult,
-    divi,
-    mod,
-    // lt,
-    // leq,
-    // gt,
-    // geq,
-    // eq,
-    // neq,
-    // and,
-    // or,
-    // not,
+    plus_op,
+    minus_op,
+    mult_op,
+    div_op,
+    mod_op,
+    lt_op,
+    le_op,
+    gt_op,
+    ge_op,
+    eq_op,
+    neq_op,
 };
 
 enum quadop {
@@ -39,7 +36,7 @@ enum quadop {
     mult_floats_op,
     div_ints_op,
     div_floats_op,
-    mod_op,
+    mod_int_op,
     lt_ints_op,
     lt_floats_op,
     leq_ints_op,

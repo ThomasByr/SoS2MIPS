@@ -46,6 +46,8 @@
 %token expr
 %token local
 
+
+%type <quad> operator2
 %type <quad> sum_int
 %type <quad> prod_int
 %type <quad> op_int
@@ -164,11 +166,17 @@ operator1
 
 operator2
 : eq
+{ $$ = quad_new(0,eq_op,NULL,NULL,NULL); }
 | neq
+{ $$ = quad_new(0,neq_op,NULL,NULL,NULL); }
 | gt
+{ $$ = quad_new(0,gt_op,NULL,NULL,NULL); }
 | ge
+{ $$ = quad_new(0,ge_op,NULL,NULL,NULL); }
 | lt
+{ $$ = quad_new(0,lt_op,NULL,NULL,NULL); }
 | le
+{ $$ = quad_new(0,le_op,NULL,NULL,NULL); }
 ;
 
 sum_int
@@ -208,18 +216,18 @@ op_int
 
 plus_minus
 : '+' 
-{ $$ = quad_new(0,plus,NULL,NULL,NULL); }
+{ $$ = quad_new(0,plus_op,NULL,NULL,NULL); }
 | '-' 
-{ $$ = quad_new(0,minus,NULL,NULL,NULL); }
+{ $$ = quad_new(0,minus_op,NULL,NULL,NULL); }
 ;
 
 mult_div_mod
 : '*' 
-{ $$ = quad_new(0,mult,NULL,NULL,NULL); }
+{ $$ = quad_new(0,mult_op,NULL,NULL,NULL); }
 | '/'   
-{ $$ = quad_new(0,divi,NULL,NULL,NULL); }
+{ $$ = quad_new(0,div_op,NULL,NULL,NULL); }
 | '%'
-{ $$ = quad_new(0,mod,NULL,NULL,NULL); }
+{ $$ = quad_new(0,mod_op,NULL,NULL,NULL); }
 ;
 
 dfun
