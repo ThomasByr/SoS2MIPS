@@ -310,6 +310,7 @@ vec_t quad_append(vec_t quad_array1, vec_t quad_array2) {
 }
 
 struct quadarg *quadarg_new(enum quadargtype type, void *value) {
+
   struct quadarg *quadarg = calloc(1, sizeof(struct quadarg));
   quadarg->type = type;
 
@@ -322,6 +323,9 @@ struct quadarg *quadarg_new(enum quadargtype type, void *value) {
     break;
   case dbl_arg:
     quadarg->value.dbl_value = *(double *)value;
+    break;
+  case str_arg:
+    quadarg->value.str_value = (char *)value;
     break;
   case id_arg:
     quadarg->value.varnode = (struct symnode *)value;

@@ -30,6 +30,14 @@ enum quadop {
   assn_float_to_var_op,
   assn_float_to_arraysub_op,
   assn_float_from_arraysub_op,
+  assn_string_to_var_op,
+  assn_arg_to_var_op,
+  assn_all_arg_to_var_op,
+  assn_status_to_var_op,
+  assn_string_with_quotes_to_var_op,
+  assn_expr_value_to_var_op,
+  assn_array_to_var_op,
+  assn_op_to_var_op,
   add_ints_op,
   add_floats_op,
   sub_ints_op,
@@ -86,6 +94,7 @@ struct quadarg {
   union {
     int int_value;
     double dbl_value;
+    char *str_value;
     struct symnode *varnode;
   } value;
   enum quadargtype type;

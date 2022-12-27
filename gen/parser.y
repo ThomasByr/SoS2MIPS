@@ -46,6 +46,7 @@
 %token expr
 %token local
 
+%type <quad> op
 %type <quad> operator1
 %type <quad> operator2
 %type <quad> sum_int
@@ -107,6 +108,7 @@ filter
 | '*'
 ;
 
+// row of operation -> put vec_t
 ops
 : ops op
 | op
@@ -148,16 +150,26 @@ test_instr
 
 op
 : '$' '{' ID '}'
-// { $$ = quad_new(0, assn_int_to_var_op, quadarg_new(id_arg, &$3), NULL, NULL); }
+{ $$ = quad_new(0, assn_int_to_var_op, quadarg_new(id_arg, &$3), NULL, NULL); }
 | '$' '{' ID '[' op_int ']' '}'
+{ $$ = quad_new(0, assn_int_to_arraysub_op, quadarg_new(id_arg, &$3), quadarg_new(int_arg, &$5), NULL); }
 | word 
+{ $$ = quad_new(0, assn_string_to_var_op, quadarg_new(str_arg, &$1), NULL, NULL); }
 | '$' integer
+{ $$ = quad_new(0, assn_arg_to_var_op, quadarg_new(int_arg, &$2), NULL, NULL); }
 | '$' '*'
+{ $$ = quad_new(0, assn_all_arg_to_var_op, NULL, NULL, NULL); }
 | '$' '?'
+{ $$ = quad_new(0, assn_status_to_var_op, NULL, NULL, NULL); }
 | '"' string '"'
+{ $$ = quad_new(0, assn_string_to_var_op, quadarg_new(str_arg, &$2), NULL, NULL); }
 | '\'' string '\''
+{ $$ = quad_new(0, assn_string_with_quotes_to_var_op, quadarg_new(str_arg, &$2), NULL, NULL); }
 | '$' '(' expr sum_int ')'
+{ $$ = quad_new(0, assn_expr_value_to_var_op, quadarg_new(int_arg, &$4), NULL, NULL); }
 | '$' '(' cfun ')'
+// not done yet
+{ $$ = quad_new(0, return_op, NULL, NULL, NULL); }
 ;
 
 operator1
