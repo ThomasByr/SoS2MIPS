@@ -14,6 +14,7 @@
   char *id;
   int integer;
   char *string;
+  struct quad *quad;
 }
 
 %token <id>ID
@@ -44,6 +45,8 @@
 %token null nnull
 %token expr
 %token local
+
+%type <quad> plus_minus
 
 %%
 
@@ -187,8 +190,8 @@ op_int
 ;
 
 plus_minus
-: '+'
-| '-'
+: '+' { $$ = quad_new(0,plus,NULL,NULL,NULL); }
+| '-' { $$ = quad_new(0,minus,NULL,NULL,NULL); }
 ;
 
 mult_div_mod
