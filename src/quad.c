@@ -318,6 +318,10 @@ struct quad *quad_modify_op(struct quad *quad,
             alert("quad_modify_op: invalid types for !=");
         }
         break;
+    case null_op:
+        break;
+    case nnull_op:
+        break;
     default:
         alert("quad_modify_op: invalid op");
         break;

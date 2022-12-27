@@ -14,6 +14,8 @@ enum global_quadop {
     ge_op,
     eq_op,
     neq_op,
+    null_op,
+    nnull_op,
 };
 
 enum quadop {

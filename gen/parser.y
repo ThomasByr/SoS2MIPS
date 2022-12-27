@@ -46,7 +46,7 @@
 %token expr
 %token local
 
-
+%type <quad> operator1
 %type <quad> operator2
 %type <quad> sum_int
 %type <quad> prod_int
@@ -160,8 +160,10 @@ op
 ;
 
 operator1
-: nnull
+: nnull 
+{ $$ = quad_new(0,nnull_op,NULL,NULL,NULL); }
 | null
+{ $$ = quad_new(0,null_op,NULL,NULL,NULL); }
 ; 
 
 operator2
