@@ -3,101 +3,101 @@
 #include "symtable.h"
 
 enum global_quadop {
-    plus_op,
-    minus_op,
-    mult_op,
-    div_op,
-    mod_op,
-    lt_op,
-    le_op,
-    gt_op,
-    ge_op,
-    eq_op,
-    neq_op,
-    null_op,
-    nnull_op,
+  plus_op,
+  minus_op,
+  mult_op,
+  div_op,
+  mod_op,
+  lt_op,
+  le_op,
+  gt_op,
+  ge_op,
+  eq_op,
+  neq_op,
+  null_op,
+  nnull_op,
 };
 
 enum quadop {
-    call_func_op,
-    print_int_op,
-    print_float_op,
-    print_string_op,
-    int_to_float_op,
-    assn_int_to_var_op,
-    assn_int_to_arraysub_op,
-    assn_int_from_arraysub_op,
-    assn_float_to_var_op,
-    assn_float_to_arraysub_op,
-    assn_float_from_arraysub_op,
-    add_ints_op,
-    add_floats_op,
-    sub_ints_op,
-    sub_floats_op,
-    mult_ints_op,
-    mult_floats_op,
-    div_ints_op,
-    div_floats_op,
-    mod_int_op,
-    lt_ints_op,
-    lt_floats_op,
-    leq_ints_op,
-    leq_floats_op,
-    gt_ints_op,
-    gt_floats_op,
-    geq_ints_op,
-    geq_floats_op,
-    eq_ints_op,
-    eq_floats_op,
-    neq_ints_op,
-    neq_floats_op,
-    int_neg_op,
-    float_neg_op,
-    bang_op,
-    var_inc_op,
-    array_inc_op,
-    var_dec_op,
-    array_dec_op,
-    if_false_op,
-    if_true_op,
-    goto_op,
-    read_int_op,
-    read_double_op,
-    func_decl_op,
-    push_param_op,
-    pop_params_op,
-    alloc_array_op,
-    return_op,
-    assign_int_literal,
-    assign_double_literal,
-    initial_main_call,
-    store_string_op,
+  call_func_op,
+  print_int_op,
+  print_float_op,
+  print_string_op,
+  int_to_float_op,
+  assn_int_to_var_op,
+  assn_int_to_arraysub_op,
+  assn_int_from_arraysub_op,
+  assn_float_to_var_op,
+  assn_float_to_arraysub_op,
+  assn_float_from_arraysub_op,
+  add_ints_op,
+  add_floats_op,
+  sub_ints_op,
+  sub_floats_op,
+  mult_ints_op,
+  mult_floats_op,
+  div_ints_op,
+  div_floats_op,
+  mod_int_op,
+  lt_ints_op,
+  lt_floats_op,
+  leq_ints_op,
+  leq_floats_op,
+  gt_ints_op,
+  gt_floats_op,
+  geq_ints_op,
+  geq_floats_op,
+  eq_ints_op,
+  eq_floats_op,
+  neq_ints_op,
+  neq_floats_op,
+  int_neg_op,
+  float_neg_op,
+  bang_op,
+  var_inc_op,
+  array_inc_op,
+  var_dec_op,
+  array_dec_op,
+  if_false_op,
+  if_true_op,
+  goto_op,
+  read_int_op,
+  read_double_op,
+  func_decl_op,
+  push_param_op,
+  pop_params_op,
+  alloc_array_op,
+  return_op,
+  assign_int_literal,
+  assign_double_literal,
+  initial_main_call,
+  store_string_op,
 };
 
 enum quadargtype {
-    no_arg_type,
-    int_arg,
-    dbl_arg,
-    id_arg,
-    str_arg,
+  no_arg_type,
+  int_arg,
+  dbl_arg,
+  id_arg,
+  str_arg,
 };
 
 struct quadarg {
-    union {
-        int int_value;
-        double dbl_value;
-        struct symnode *varnode;
-    } value;
-    enum quadargtype type;
+  union {
+    int int_value;
+    double dbl_value;
+    struct symnode *varnode;
+  } value;
+  enum quadargtype type;
 };
 
 struct quad {
-    enum quadop op;
-    struct quadarg *arg1;
-    struct quadarg *arg2;
-    struct quadarg *arg3;
+  enum quadop op;
+  struct quadarg *arg1;
+  struct quadarg *arg2;
+  struct quadarg *arg3;
 
-    int lineno;
+  int lineno;
 };
 
 /**
@@ -125,14 +125,13 @@ struct quad *quad_new(int lineno, enum quadop, struct quadarg *,
  * @param op
  * @return struct quad*
  */
-struct quad *quad_modify_op(struct quad *quad, enum global_quadop op);
+struct quad *quad_modify_op(struct quad *quad);
 
 /**
  * @brief Retroactively change the arguments of a quad.
  *
  */
-void quad_patch(struct quad *, int arg_index,
-                struct quadarg *new_quadarg);
+void quad_patch(struct quad *, int arg_index, struct quadarg *new_quadarg);
 
 /**
  * @brief Create a new quad argument.
@@ -145,8 +144,7 @@ struct quadarg *quadarg_new(enum quadargtype type, void *value);
  * @brief Get a new temp (current function name as prefix)
  *
  */
-struct quadarg *quadarg_new_tmp(struct symtable *symtab,
-                                enum vartype type);
+struct quadarg *quadarg_new_tmp(struct symtable *symtab, enum vartype type);
 
 // todo: how tf do we do this
 // struct quadarg *quad_gencode(struct astnode *node);
