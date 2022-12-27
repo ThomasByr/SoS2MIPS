@@ -1,13 +1,23 @@
 %{
+  #include "symtable.h"
+  #include "quad.h"
+  #include "vec.h"
 
   #include "lib.h"
 
   extern int yylex();
   extern void yyerror(const char *s);
+  extern vec_t quad_array;
 %}
 
-%token ID
-%token integer
+%union {
+  char *id;
+  int integer;
+  char *string;
+}
+
+%token <id>ID
+%token <integer>integer
 %token declare
 %token IF THEN FI ELIF ELSE
 %token FOR DO IN DONE
@@ -17,7 +27,8 @@
 %token READ 
 %token RETURN
 %token EXIT
-%token word string
+%token <string>word 
+%token <string>string
 %token test
 
 %left or
