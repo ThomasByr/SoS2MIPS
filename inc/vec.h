@@ -37,7 +37,7 @@ vec_t _vec_new_args(vec_args_t args);
 /**
  * @brief new vector
    set size to number of elements to preallocate
- * 
+ *
  */
 #define vec_new(...) _vec_new_args((vec_args_t){__VA_ARGS__})
 
@@ -114,6 +114,15 @@ void vec_pop(vec_t vec);
  * @param data element to insert
  */
 void vec_insert(vec_t vec, size_t index, void *data);
+
+/**
+ * @brief Append vector 2 to vector 1
+ *
+ * @param vec1 vector 1
+ * @param vec2 vector 2
+ * @return vec_t - concatenated vector
+ */
+vec_t vec_append(vec_t vec1, vec_t vec2);
 
 /**
  * @brief Remove the element at the given index

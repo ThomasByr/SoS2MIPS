@@ -154,3 +154,23 @@ void quad_patch(struct quad *q, int arg_index, struct quadarg *new_quadarg) {
     alert("quad_patch: invalid arg_index");
   }
 }
+
+struct quad *quad_new(int lineno, enum quadop op, struct quadarg *arg1,
+                      struct quadarg *arg2, struct quadarg *arg3) {
+
+  struct quad *quad = malloc(sizeof(struct quad));
+  quad->op = op;
+  quad->arg1 = arg1;
+  quad->arg2 = arg2;
+  quad->arg3 = arg3;
+  quad->lineno = lineno;
+  quad_add(quad);
+
+  return quad;
+}
+
+void quad_add(struct quad *quad) { vec_push(quad_array, quad); }
+
+vec_t quad_append(vec_t quad_array1, vec_t quad_array2) {
+  return vec_append(quad_array1, quad_array2);
+}

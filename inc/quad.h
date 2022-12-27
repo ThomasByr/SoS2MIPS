@@ -131,3 +131,7 @@ void quad_vec_display();
 void quad_display(struct quad *quad);
 
 void quadarg_display(struct quadarg *quadarg);
+
+void quad_add(struct quad *quad);
+
+vec_t quad_append(vec_t quad_array1, vec_t quad_array2);

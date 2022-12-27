@@ -45,7 +45,7 @@ vec_t vec_from(void *data, ...) {
     vec->data[i] = va_arg(args, void *);
   }
 
-  return vec;  
+  return vec;
 }
 
 void vec_free(vec_t vec) {
@@ -118,6 +118,15 @@ void vec_insert(vec_t vec, size_t index, void *data) {
   TCHK(pthread_mutex_unlock(vec->lock));
 }
 
+vec_t vec_append(vec_t vec1, vec_t vec2) {
+
+  for (size_t i = 0; i < vec2->size; i++) {
+    vec_push(vec1, vec2->data[i]);
+  }
+
+  return vec1;
+}
+
 void vec_remove(vec_t vec, size_t index) {
   if (index >= vec->size) {
     return;
@@ -143,9 +152,9 @@ void *vec_first(vec_t vec) {
   return vec->data[0];
 }
 
-void *vec_last(vec_t vec) { 
+void *vec_last(vec_t vec) {
   if (vec->size == 0) {
     return NULL;
-  }  
+  }
   return vec->data[vec->size - 1];
 }

@@ -1,6 +1,7 @@
 %{
 
   #include "lib.h"
+  #include "quad.h"
 
   extern int yylex();
   extern void yyerror(const char *s);
@@ -37,7 +38,7 @@
 %%
 
 program
-: instructions
+: instructions 
 ;
 
 instructions
@@ -46,7 +47,7 @@ instructions
 ;
 
 instruction
-: ID '=' concat
+: ID '=' concat 
 | ID '[' op_int ']' '=' concat
 | declare ID '[' integer ']'
 | IF testing THEN instructions maybe_else instructions FI
