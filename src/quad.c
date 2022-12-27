@@ -96,7 +96,6 @@ struct quadarg *generate_binary_op_with_widening(struct pnode *node,
 
 void quad_vec_display() {
   struct quad *quad;
-
   vec_foreach(quad_array, i, quad) {
     printf("%zu\t", i);
     quad_display(quad);
@@ -153,4 +152,67 @@ void quad_patch(struct quad *q, int arg_index, struct quadarg *new_quadarg) {
   default:
     alert("quad_patch: invalid arg_index");
   }
+}
+
+struct quad *quad_new(int lineno, enum quadop op, struct quadarg *arg1,
+                      struct quadarg *arg2, struct quadarg *arg3) {
+
+  struct quad *quad = malloc(sizeof(struct quad));
+  quad->op = op;
+  quad->arg1 = arg1;
+  quad->arg2 = arg2;
+  quad->arg3 = arg3;
+  quad->lineno = lineno;
+  quad_add(quad);
+
+  return quad;
+}
+
+void quad_add(struct quad *quad) { vec_push(quad_array, quad); }
+
+vec_t quad_append(vec_t quad_array1, vec_t quad_array2) {
+  return vec_append(quad_array1, quad_array2);
+}
+
+struct quadarg *quadarg_new(enum quadargtype type) {
+  struct quadarg *quadarg = calloc(1, sizeof(struct quadarg));
+  quadarg->type = type;
+  return quadarg;
+}
+
+struct quadarg *quadarg_new_tmp(struct symtable *symtab, enum vartype type) {
+  int digits_counter_num = temp_count / 10;
+  int num_digits = 1;
+  while (digits_counter_num != 0) {
+    num_digits++;
+    digits_counter_num /= 10;
+  }
+
+  int tempname_len = num_digits + 4;
+  char *tempname = calloc(tempname_len + 1, sizeof(char));
+  snprintf_s(tempname, tempname_len + 1, "temp%d", temp_count);
+
+  // symbol table node
+  struct symnode *temp_symnode = symtable_insert(symtab, tempname);
+  temp_symnode->var_type = type;
+  temp_symnode->node_type = val_node;
+
+  // set memory address + increment temp_count
+  // todo: fix this shit to work with global-by-default
+  if (curr_func_symnode_quad != NULL) {
+    temp_symnode->mem_addr_type = off_fp;
+    curr_func_symnode_quad->num_temps++;
+    temp_symnode->var_addr = -8 * (curr_func_symnode_quad->num_vars +
+                                   curr_func_symnode_quad->num_temps);
+  } else {
+    temp_symnode->mem_addr_type = global;
+    global_temp_count++;
+    temp_symnode->var_addr = -8 * (num_global_vars + global_temp_count);
+  }
+
+  struct quadarg *quadarg = quadarg_new(id_arg);
+  quadarg->value.varnode = temp_symnode;
+
+  temp_count++;
+  return quadarg;
 }

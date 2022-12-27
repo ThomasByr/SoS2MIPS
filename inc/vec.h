@@ -37,7 +37,7 @@ vec_t _vec_new_args(vec_args_t args);
 /**
  * @brief new vector
    set size to number of elements to preallocate
- * 
+ *
  */
 #define vec_new(...) _vec_new_args((vec_args_t){__VA_ARGS__})
 
@@ -145,6 +145,15 @@ void *vec_first(vec_t vec);
  * @return void* - last element of the vector
  */
 void *vec_last(vec_t vec);
+
+/**
+ * @brief Append vector 2 to vector 1
+ *
+ * @param vec1 vector 1
+ * @param vec2 vector 2
+ * @return vec_t - concatenated vector
+ */
+vec_t vec_append(vec_t vec1, vec_t vec2);
 
 // iterate over the vector
 #define vec_foreach(vec, i, data) \
