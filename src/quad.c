@@ -89,3 +89,68 @@ char *quad_op_string[] = {
 struct quadarg *generate_binary_op_with_widening(struct pnode *node,
                                                  enum quadop quad_op_ints,
                                                  enum quadop quad_op_floats);
+
+/* variables */
+
+/* functions */
+
+void quad_vec_display() {
+  struct quad *quad;
+
+  vec_foreach(quad_array, i, quad) {
+    printf("%zu\t", i);
+    quad_display(quad);
+  }
+}
+
+void quad_display(struct quad *quad) {
+  printf("(%s, ", quad_op_string[quad->op]);
+  quadarg_display(quad->arg1);
+  printf(", ");
+  quadarg_display(quad->arg2);
+  printf(", ");
+  quadarg_display(quad->arg3);
+  printf(") (%d)\n", quad->lineno);
+}
+
+void quadarg_display(struct quadarg *quadarg) {
+  if (!quadarg) {
+    printf("null");
+    return;
+  }
+  switch (quadarg->type) {
+  case int_arg:
+    printf("int: %d", quadarg->value.int_value);
+    break;
+  case dbl_arg:
+    printf("dbl: %f", quadarg->value.dbl_value);
+    break;
+  case id_arg:
+    printf("id: %s", quadarg->value.varnode->name);
+    break;
+  default:
+    printf("unknown");
+    break;
+  }
+}
+
+void quad_vec_init(int size) {
+  if (size <= 0) size = DEFAULT_QUAD_ARRAY_SIZE;
+  quad_array = vec_new(size);
+}
+
+void quad_patch(struct quad *q, int arg_index, struct quadarg *new_quadarg) {
+  switch (arg_index) {
+  case 1:
+    q->arg1 = new_quadarg;
+    break;
+  case 2:
+    q->arg2 = new_quadarg;
+    break;
+  case 3:
+    q->arg3 = new_quadarg;
+    break;
+  default:
+    alert("quad_patch: invalid arg_index");
+  }
+}

@@ -77,9 +77,9 @@ struct quadarg {
 
 struct quad {
   enum quadop op;
-  struct quadarg arg1;
-  struct quadarg arg2;
-  struct quadarg arg3;
+  struct quadarg *arg1;
+  struct quadarg *arg2;
+  struct quadarg *arg3;
 
   int lineno;
 };
