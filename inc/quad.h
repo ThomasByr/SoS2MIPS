@@ -5,9 +5,9 @@
 enum global_quadop {
     plus,
     minus,
-    // mult,
-    // div,
-    // mod,
+    mult,
+    divi,
+    mod,
     // lt,
     // leq,
     // gt,
@@ -140,7 +140,7 @@ void quad_patch(struct quad *, int arg_index,
  * Value field must be set manually.
  *
  */
-struct quadarg *quadarg_new(enum quadargtype type);
+struct quadarg *quadarg_new(enum quadargtype type, void *value);
 
 /**
  * @brief Get a new temp (current function name as prefix)

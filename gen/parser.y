@@ -46,7 +46,11 @@
 %token expr
 %token local
 
+%type <quad> sum_int
+%type <quad> prod_int
+%type <quad> op_int
 %type <quad> plus_minus
+%type <quad> mult_div_mod
 
 %%
 
@@ -169,35 +173,53 @@ operator2
 
 sum_int
 : sum_int plus_minus prod_int
+{ $$ = quad_new(0, $2->op, NULL, quadarg_new(int_arg, &$1), quadarg_new(int_arg, &$3)); }
 | prod_int
+{ $$ = $1;}
 ;
 
 prod_int
 : prod_int mult_div_mod op_int
+{ $$ = quad_new(0, $2->op, NULL, quadarg_new(int_arg, &$1), quadarg_new(int_arg, &$3)); }
 | op_int
+{ $$ = $1;}
 ;
 
 op_int
-: '$' '{' ID '}'
-| '$' '{' ID '[' op_int ']' '}'
-| '$' integer
-| plus_minus '$' '{' ID '}'
-| plus_minus '$' '{' ID '[' op_int ']' '}'
+: '$' '{' ID '}' 
+{ $$ = quad_new(0,assn_int_to_var_op,NULL,NULL,quadarg_new(id_arg, &$3)); }
+| '$' '{' ID '[' op_int ']' '}' 
+{ $$ = quad_new(0,assn_int_to_arraysub_op,NULL,quadarg_new(id_arg, &$3), quadarg_new(int_arg, &$5)); }
+| '$' integer 
+{ $$ = quad_new(0,assn_int_to_var_op,NULL,NULL,quadarg_new(int_arg, &$2)); }
+| plus_minus '$' '{' ID '}' 
+{ $$ = quad_new(0,$1->op,NULL,NULL,quadarg_new(id_arg, &$4)); }
+| plus_minus '$' '{' ID '[' op_int ']' '}' 
+{ $$ = quad_new(0,$1->op,NULL,quadarg_new(id_arg, &$4), quadarg_new(int_arg, &$6)); }
 | plus_minus '$' integer
+{ $$ = quad_new(0,$1->op,NULL,NULL,quadarg_new(int_arg, &$3)); }
 | integer
-| plus_minus integer
+{ $$ = quad_new(0,assn_int_to_var_op,NULL,NULL,quadarg_new(int_arg, &$1)); }
+| plus_minus integer 
+{ $$ = quad_new(0,$1->op,NULL,NULL,quadarg_new(int_arg, &$2)); }
 | '(' sum_int ')'
+{ $$ = $2; }
 ;
 
 plus_minus
-: '+' { $$ = quad_new(0,plus,NULL,NULL,NULL); }
-| '-' { $$ = quad_new(0,minus,NULL,NULL,NULL); }
+: '+' 
+{ $$ = quad_new(0,plus,NULL,NULL,NULL); }
+| '-' 
+{ $$ = quad_new(0,minus,NULL,NULL,NULL); }
 ;
 
 mult_div_mod
-: '*'
-| '/'
+: '*' 
+{ $$ = quad_new(0,mult,NULL,NULL,NULL); }
+| '/'   
+{ $$ = quad_new(0,divi,NULL,NULL,NULL); }
 | '%'
+{ $$ = quad_new(0,mod,NULL,NULL,NULL); }
 ;
 
 dfun

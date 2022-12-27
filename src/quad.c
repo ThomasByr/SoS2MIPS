@@ -140,6 +140,25 @@ void quad_vec_init(int size) {
     quad_array = vec_new(size);
 }
 
+struct quad *quad_new(int lineno, enum quadop op,
+                      struct quadarg *arg1, struct quadarg *arg2,
+                      struct quadarg *arg3) {
+
+    struct quad *quad = malloc(sizeof(struct quad));
+    quad->op = op;
+    quad->arg1 = arg1;
+    quad->arg2 = arg2;
+    quad->arg3 = arg3;
+    quad->lineno = lineno;
+
+    if (arg2->type != arg3->type)
+        alert("quad_new: arg2 and arg3 have different types");
+
+    quad_add(quad);
+
+    return quad;
+}
+
 void quad_patch(struct quad *q, int arg_index,
                 struct quadarg *new_quadarg) {
     switch (arg_index) {
@@ -155,24 +174,6 @@ void quad_patch(struct quad *q, int arg_index,
     default:
         alert("quad_patch: invalid arg_index");
     }
-}
-
-struct quad *quad_new(int lineno, enum quadop op,
-                      struct quadarg *arg1, struct quadarg *arg2,
-                      struct quadarg *arg3) {
-
-    struct quad *quad = malloc(sizeof(struct quad));
-    quad->op = op;
-    quad->arg1 = arg1;
-    quad->arg2 = arg2;
-    quad->arg3 = arg3;
-    quad->lineno = lineno;
-
-    if (arg2->type != arg3->type)
-        alert("quad_new: arg2 and arg3 have different types");
-    quad_add(quad);
-
-    return quad;
 }
 
 struct quad *quad_modify_op(struct quad *quad,
@@ -204,6 +205,44 @@ struct quad *quad_modify_op(struct quad *quad,
             alert("quad_modify_op: invalid types for -");
         }
         break;
+    case mult:
+        if (quad->arg1->type == int_arg &&
+            quad->arg2->type == int_arg &&
+            quad->arg3->type == int_arg) {
+            quad->op = mult_ints_op;
+        } else if (quad->arg1->type == dbl_arg &&
+                   quad->arg2->type == dbl_arg &&
+                   quad->arg3->type == dbl_arg) {
+            quad->op = mult_floats_op;
+        } else {
+            alert("quad_modify_op: invalid types for *");
+        }
+        break;
+    case divi:
+        if (quad->arg1->type == int_arg &&
+            quad->arg2->type == int_arg &&
+            quad->arg3->type == int_arg) {
+            quad->op = div_ints_op;
+        } else if (quad->arg1->type == dbl_arg &&
+                   quad->arg2->type == dbl_arg &&
+                   quad->arg3->type == dbl_arg) {
+            quad->op = div_floats_op;
+        } else {
+            alert("quad_modify_op: invalid types for /");
+        }
+        break;
+    case mod:
+        if (quad->arg1->type == int_arg &&
+            quad->arg2->type == int_arg &&
+            quad->arg3->type == int_arg) {
+            quad->op = mod_op;
+        } else {
+            alert("quad_modify_op: invalid types for %%");
+        }
+        break;
+    default:
+        alert("quad_modify_op: invalid op");
+        break;
     }
 
     return quad;
@@ -215,9 +254,28 @@ vec_t quad_append(vec_t quad_array1, vec_t quad_array2) {
     return vec_append(quad_array1, quad_array2);
 }
 
-struct quadarg *quadarg_new(enum quadargtype type) {
+struct quadarg *quadarg_new(enum quadargtype type, void *value) {
     struct quadarg *quadarg = calloc(1, sizeof(struct quadarg));
     quadarg->type = type;
+
+    // if no value enter, return the quadarg
+    if (!value)
+        return quadarg;
+
+    switch (type) {
+    case int_arg:
+        quadarg->value.int_value = *(int *)value;
+        break;
+    case dbl_arg:
+        quadarg->value.dbl_value = *(double *)value;
+        break;
+    case id_arg:
+        quadarg->value.varnode = (struct symnode *)value;
+        break;
+    default:
+        alert("quadarg_new: invalid type");
+    }
+
     return quadarg;
 }
 
@@ -254,7 +312,7 @@ struct quadarg *quadarg_new_tmp(struct symtable *symtab,
             -8 * (num_global_vars + global_temp_count);
     }
 
-    struct quadarg *quadarg = quadarg_new(id_arg);
+    struct quadarg *quadarg = quadarg_new(id_arg, NULL);
     quadarg->value.varnode = temp_symnode;
 
     temp_count++;
