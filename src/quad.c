@@ -148,131 +148,97 @@ struct quad *quad_new(int lineno, enum quadop op, struct quadarg *arg1,
   quad->arg3 = arg3;
   quad->lineno = lineno;
 
-  quad_add(quad);
+  quad_array = quadarray_add(quad_array, quad);
   quad = quad_modify_op(quad);
 
   return quad;
+}
+
+int quadarg_test(enum quadargtype type, struct quad *quad) {
+  if (((quad->arg1 && quad->arg1->type == type) || !quad->arg1) &&
+      ((quad->arg2 && quad->arg2->type == type) || !quad->arg2) &&
+      ((quad->arg3 && quad->arg3->type == type) || !quad->arg3))
+    return 1;
+
+  return 0;
 }
 
 struct quad *quad_modify_op(struct quad *quad) {
 
   switch (quad->op) {
   case plus_op:
-    if (quad->arg1->type == int_arg && quad->arg2->type == int_arg &&
-        quad->arg3->type == int_arg) {
+    if (quadarg_test(int_arg, quad)) {
       quad->op = add_ints_op;
-    } else if (quad->arg1->type == dbl_arg && quad->arg2->type == dbl_arg &&
-               quad->arg3->type == dbl_arg) {
+    } else if (quadarg_test(dbl_arg, quad)) {
       quad->op = add_floats_op;
-    } else {
-      alert("quad_modify_op: invalid types for +");
     }
     break;
   case minus_op:
-    if (quad->arg1->type == int_arg && quad->arg2->type == int_arg &&
-        quad->arg3->type == int_arg) {
+    if (quadarg_test(int_arg, quad)) {
       quad->op = sub_ints_op;
-    } else if (quad->arg1->type == dbl_arg && quad->arg2->type == dbl_arg &&
-               quad->arg3->type == dbl_arg) {
+    } else if (quadarg_test(dbl_arg, quad)) {
       quad->op = sub_floats_op;
-    } else {
-      alert("quad_modify_op: invalid types for -");
     }
     break;
   case mult_op:
-    if (quad->arg1->type == int_arg && quad->arg2->type == int_arg &&
-        quad->arg3->type == int_arg) {
+    if (quadarg_test(int_arg, quad)) {
       quad->op = mult_ints_op;
-    } else if (quad->arg1->type == dbl_arg && quad->arg2->type == dbl_arg &&
-               quad->arg3->type == dbl_arg) {
+    } else if (quadarg_test(dbl_arg, quad)) {
       quad->op = mult_floats_op;
-    } else {
-      alert("quad_modify_op: invalid types for *");
     }
     break;
   case div_op:
-    if (quad->arg1->type == int_arg && quad->arg2->type == int_arg &&
-        quad->arg3->type == int_arg) {
+    if (quadarg_test(int_arg, quad)) {
       quad->op = div_ints_op;
-    } else if (quad->arg1->type == dbl_arg && quad->arg2->type == dbl_arg &&
-               quad->arg3->type == dbl_arg) {
+    } else if (quadarg_test(dbl_arg, quad)) {
       quad->op = div_floats_op;
-    } else {
-      alert("quad_modify_op: invalid types for /");
     }
     break;
   case mod_op:
-    if (quad->arg1->type == int_arg && quad->arg2->type == int_arg &&
-        quad->arg3->type == int_arg) {
-      quad->op = mod_op;
-    } else {
-      alert("quad_modify_op: invalid types for %%");
+    if (quadarg_test(int_arg, quad)) {
+      quad->op = mod_ints_op;
     }
     break;
   case lt_op:
-    if (quad->arg1->type == int_arg && quad->arg2->type == int_arg &&
-        quad->arg3->type == int_arg) {
+    if (quadarg_test(int_arg, quad)) {
       quad->op = lt_ints_op;
-    } else if (quad->arg1->type == dbl_arg && quad->arg2->type == dbl_arg &&
-               quad->arg3->type == dbl_arg) {
+    } else if (quadarg_test(dbl_arg, quad)) {
       quad->op = lt_floats_op;
-    } else {
-      alert("quad_modify_op: invalid types for <");
     }
     break;
   case le_op:
-    if (quad->arg1->type == int_arg && quad->arg2->type == int_arg &&
-        quad->arg3->type == int_arg) {
+    if (quadarg_test(int_arg, quad)) {
       quad->op = leq_ints_op;
-    } else if (quad->arg1->type == dbl_arg && quad->arg2->type == dbl_arg &&
-               quad->arg3->type == dbl_arg) {
+    } else if (quadarg_test(dbl_arg, quad)) {
       quad->op = leq_floats_op;
-    } else {
-      alert("quad_modify_op: invalid types for <=");
     }
     break;
   case gt_op:
-    if (quad->arg1->type == int_arg && quad->arg2->type == int_arg &&
-        quad->arg3->type == int_arg) {
+    if (quadarg_test(int_arg, quad)) {
       quad->op = gt_ints_op;
-    } else if (quad->arg1->type == dbl_arg && quad->arg2->type == dbl_arg &&
-               quad->arg3->type == dbl_arg) {
+    } else if (quadarg_test(dbl_arg, quad)) {
       quad->op = gt_floats_op;
-    } else {
-      alert("quad_modify_op: invalid types for >");
     }
     break;
   case ge_op:
-    if (quad->arg1->type == int_arg && quad->arg2->type == int_arg &&
-        quad->arg3->type == int_arg) {
+    if (quadarg_test(int_arg, quad)) {
       quad->op = geq_ints_op;
-    } else if (quad->arg1->type == dbl_arg && quad->arg2->type == dbl_arg &&
-               quad->arg3->type == dbl_arg) {
+    } else if (quadarg_test(dbl_arg, quad)) {
       quad->op = geq_floats_op;
-    } else {
-      alert("quad_modify_op: invalid types for >=");
     }
     break;
   case eq_op:
-    if (quad->arg1->type == int_arg && quad->arg2->type == int_arg &&
-        quad->arg3->type == int_arg) {
+    if (quadarg_test(int_arg, quad)) {
       quad->op = eq_ints_op;
-    } else if (quad->arg1->type == dbl_arg && quad->arg2->type == dbl_arg &&
-               quad->arg3->type == dbl_arg) {
+    } else if (quadarg_test(dbl_arg, quad)) {
       quad->op = eq_floats_op;
-    } else {
-      alert("quad_modify_op: invalid types for ==");
     }
     break;
   case neq_op:
-    if (quad->arg1->type == int_arg && quad->arg2->type == int_arg &&
-        quad->arg3->type == int_arg) {
+    if (quadarg_test(int_arg, quad)) {
       quad->op = neq_ints_op;
-    } else if (quad->arg1->type == dbl_arg && quad->arg2->type == dbl_arg &&
-               quad->arg3->type == dbl_arg) {
+    } else if (quadarg_test(dbl_arg, quad)) {
       quad->op = neq_floats_op;
-    } else {
-      alert("quad_modify_op: invalid types for !=");
     }
     break;
   case null_op:
@@ -303,9 +269,14 @@ void quad_patch(struct quad *q, int arg_index, struct quadarg *new_quadarg) {
   }
 }
 
-void quad_add(struct quad *quad) { vec_push(quad_array, quad); }
+vec_t quadarray_new() { return vec_new(); }
 
-vec_t quad_append(vec_t quad_array1, vec_t quad_array2) {
+vec_t quadarray_add(vec_t quad_subarray, struct quad *quad) {
+  vec_push(quad_subarray, quad);
+  return quad_subarray;
+}
+
+vec_t quadarray_append(vec_t quad_array1, vec_t quad_array2) {
   return vec_append(quad_array1, quad_array2);
 }
 

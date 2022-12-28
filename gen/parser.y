@@ -15,6 +15,7 @@
   int integer;
   char *string;
   struct quad *quad;
+  struct vec_s *vec;
 }
 
 %token <id>ID
@@ -46,9 +47,16 @@
 %token expr
 %token local
 
+%type <vec> ops
+%type <vec> concat
+%type <quad> testing
+%type <quad> test_expr
+%type <quad> test_expr2
+%type <quad> test_expr3
+%type <quad> test_instr
 %type <quad> op
-%type <quad> operator1
-%type <quad> operator2
+%type <integer> operator1
+%type <integer> operator2
 %type <quad> sum_int
 %type <quad> prod_int
 %type <quad> op_int
@@ -108,44 +116,64 @@ filter
 | '*'
 ;
 
-// row of operation -> put vec_t
 ops
 : ops op
+{ $$ = quadarray_add($1, $2); }
 | op
+{ $$ = quadarray_new(); 
+  $$ = quadarray_add($$, $1); }
 | '$' '{' ID '[' '*' ']' '}'
+{ $$ = quadarray_new(); 
+  $$ = quadarray_add($$, quad_new(0, assn_array_to_var_op, quadarg_new(id_arg, &$3), NULL, NULL)); }
 ;
 
 concat
 : concat op
+{ $$ = quadarray_add($1, $2); }
 | op
+{ $$ = quadarray_new(); 
+  $$ = quadarray_add($$, $1); }
 ;
 
 testing
 : test test_expr
+{ $$ = quad_new(0, test_op, quadarg_new(quad_arg, &$2), NULL, NULL); }
 ;
 
 test_expr
 : test_expr or test_expr2
+{ $$ = quad_new(0, or_op, quadarg_new(quad_arg, &$1), quadarg_new(quad_arg, &$3), NULL); }
 | test_expr2
+{ $$ = $1; }
 ;
 
 test_expr2
 : test_expr2 and test_expr3
+{ $$ = quad_new(0, and_op, quadarg_new(quad_arg, &$1), quadarg_new(quad_arg, &$3), NULL); }
 | test_expr3
+{ $$ = $1; }
 ;
 
 test_expr3
 : '(' test_expr ')'
+{ $$ = $2; }
 | '!' '(' test_expr ')'
+{ $$ = quad_new(0, not_op, quadarg_new(quad_arg, &$3), NULL, NULL); }
 | test_instr
+{ $$ = $1; }
 | '!' test_instr
+{ $$ = quad_new(0, not_op, quadarg_new(quad_arg, &$2), NULL, NULL); }
 ;
 
 test_instr
 : concat eq concat
+{ $$ = quad_new(0, eq_vec_op, quadarg_new(vec_arg, &$1), quadarg_new(vec_arg, &$3), NULL); }
 | concat neq concat
+{ $$ = quad_new(0, neq_vec_op, quadarg_new(vec_arg, &$1), quadarg_new(vec_arg, &$3), NULL); }
 | operator1 concat
+{ $$ = quad_new(0, $1, quadarg_new(vec_arg, &$2), NULL, NULL); }
 | op operator2 op
+{ $$ = quad_new(0, $2, quadarg_new(vec_arg, &$1), quadarg_new(vec_arg, &$3), NULL); }
 ;
 
 op
@@ -164,7 +192,7 @@ op
 | '"' string '"'
 { $$ = quad_new(0, assn_string_to_var_op, quadarg_new(str_arg, &$2), NULL, NULL); }
 | '\'' string '\''
-{ $$ = quad_new(0, assn_string_with_quotes_to_var_op, quadarg_new(str_arg, &$2), NULL, NULL); }
+{ $$ = quad_new(0, assn_string_to_var_op, quadarg_new(str_arg, &$2), NULL, NULL); }
 | '$' '(' expr sum_int ')'
 { $$ = quad_new(0, assn_expr_value_to_var_op, quadarg_new(int_arg, &$4), NULL, NULL); }
 | '$' '(' cfun ')'
@@ -174,24 +202,24 @@ op
 
 operator1
 : nnull 
-{ $$ = quad_new(0, nnull_op, NULL, NULL, NULL); }
+{ $$ = nnull_op; }
 | null
-{ $$ = quad_new(0, null_op, NULL, NULL, NULL); }
+{ $$ = null_op; }
 ; 
 
 operator2
 : eq
-{ $$ = quad_new(0, eq_op, NULL, NULL, NULL); }
+{ $$ = eq_op; }
 | neq
-{ $$ = quad_new(0, neq_op, NULL, NULL, NULL); }
+{ $$ = neq_op; }
 | gt
-{ $$ = quad_new(0, gt_op, NULL, NULL, NULL); }
+{ $$ = gt_op; }
 | ge
-{ $$ = quad_new(0, ge_op, NULL, NULL, NULL); }
+{ $$ = ge_op; }
 | lt
-{ $$ = quad_new(0, lt_op, NULL, NULL, NULL); }
+{ $$ = lt_op; }
 | le
-{ $$ = quad_new(0, le_op, NULL, NULL, NULL); }
+{ $$ = le_op; }
 ;
 
 sum_int

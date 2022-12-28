@@ -19,11 +19,13 @@ enum global_quadop {
 };
 
 enum quadop {
+
   call_func_op,
   print_int_op,
   print_float_op,
   print_string_op,
   int_to_float_op,
+  // assignation operations
   assn_int_to_var_op,
   assn_int_to_arraysub_op,
   assn_int_from_arraysub_op,
@@ -34,10 +36,10 @@ enum quadop {
   assn_arg_to_var_op,
   assn_all_arg_to_var_op,
   assn_status_to_var_op,
-  assn_string_with_quotes_to_var_op,
   assn_expr_value_to_var_op,
   assn_array_to_var_op,
   assn_op_to_var_op,
+  // arithmetic operations
   add_ints_op,
   add_floats_op,
   sub_ints_op,
@@ -46,19 +48,31 @@ enum quadop {
   mult_floats_op,
   div_ints_op,
   div_floats_op,
-  mod_int_op,
+  mod_ints_op,
   lt_ints_op,
   lt_floats_op,
+  lt_vec_op,
   leq_ints_op,
   leq_floats_op,
+  leq_vec_op,
   gt_ints_op,
   gt_floats_op,
+  gt_vec_op,
   geq_ints_op,
   geq_floats_op,
+  geq_vec_op,
   eq_ints_op,
   eq_floats_op,
+  eq_vec_op,
   neq_ints_op,
   neq_floats_op,
+  neq_vec_op,
+  // logical operations
+  not_op,
+  and_op,
+  or_op,
+  test_op,
+
   int_neg_op,
   float_neg_op,
   bang_op,
@@ -88,6 +102,8 @@ enum quadargtype {
   dbl_arg,
   id_arg,
   str_arg,
+  quad_arg,
+  vec_arg,
 };
 
 struct quadarg {
@@ -96,6 +112,8 @@ struct quadarg {
     double dbl_value;
     char *str_value;
     struct symnode *varnode;
+    struct quad *quad_value;
+    vec_t vec_value;
   } value;
   enum quadargtype type;
 };
@@ -168,6 +186,8 @@ void quad_display(struct quad *quad);
 
 void quadarg_display(struct quadarg *quadarg);
 
-void quad_add(struct quad *quad);
+vec_t quadarray_new();
 
-vec_t quad_append(vec_t quad_array1, vec_t quad_array2);
+vec_t quadarray_add(vec_t quad_subarray, struct quad *quad);
+
+vec_t quadarray_append(vec_t quad_array1, vec_t quad_array2);
