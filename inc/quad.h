@@ -1,5 +1,6 @@
 #pragma once
 
+#include "protocol.h"
 #include "symtable.h"
 
 enum quadop {
@@ -92,6 +93,7 @@ struct quadarg {
     struct quad *quad_value;
   } value;
   enum quadargtype type;
+  enum reg reg_arg;
 };
 
 struct quad {

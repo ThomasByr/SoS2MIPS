@@ -1,11 +1,15 @@
-#include <stdbool.h>
-
-#include "processing.h"
 #include "protocol.h"
+#include "quad.h"
+#include "symtable.h"
+#include "vec.h"
+#include <stdbool.h>
+#include <stdio.h>
 
 extern int opt_lvl;
 extern bool verbose;
 extern char *output;
+extern struct symtable *id_name_table;
+extern vec_t quad_array;
 
 static const char sys_call_names[][16] = {
     "print_int", "print_float", "print_double",    "print_string",
@@ -21,8 +25,126 @@ static const char reg_names[][4] = {
     "$s6", "$s7", "$t8", "$t9", "$k0", "$k1", "$gp", "$sp", "$fp", "$ra",
 };
 
+bool reg_use[32] = {false};
+
 const char *reg_name(enum reg reg) { return reg_names[reg]; }
 
 const char *sys_call_name(enum sys_call sys_call) {
   return sys_call_names[sys_call];
 }
+
+/**
+ * @brief function to find the first free temporary register
+ *
+ * @return enum reg
+ */
+enum reg find_free_reg(void) {
+  int i;
+  for (i = reg_t0; i <= reg_t7; i++) {
+    if (!reg_use[i]) {
+      reg_use[i] = true;
+      return i;
+    }
+  }
+  panic("no free registers");
+}
+
+/**
+ * @brief function to free a temporary register
+ *
+ * @param reg
+ */
+void free_reg(enum reg reg) { reg_use[reg] = false; }
+
+/**
+ * @brief Generate MIPS assembly code from the quad array
+ *
+ */
+void generate_asm(void) {
+
+  FILE *out = fopen(output, "w");
+  if (out == NULL) panic("fopen");
+
+  int i;
+  struct quad *quad;
+  for (i = vec_size(quad_array) - 1; i >= 0; i--) {
+    quad = vec_get(quad_array, i);
+    switch (quad->op) {
+    case plus_op:
+      quad->arg1->reg_arg = find_free_reg();
+      fprintf(out, "li %s, %d\n", reg_name(quad->arg1->reg_arg),
+              quad->arg1->value.int_value);
+
+      quad->arg2->reg_arg = find_free_reg();
+      fprintf(out, "li %s, %d\n", reg_name(quad->arg2->reg_arg),
+              quad->arg2->value.int_value);
+
+      quad->arg3->reg_arg = find_free_reg();
+      fprintf(out, "add %s, %s, %s\n", reg_name(quad->arg3->reg_arg),
+              reg_name(quad->arg1->reg_arg), reg_name(quad->arg2->reg_arg));
+
+      free_reg(quad->arg1->reg_arg);
+      free_reg(quad->arg2->reg_arg);
+      break;
+    case minus_op:
+      quad->arg1->reg_arg = find_free_reg();
+      fprintf(out, "li %s, %d\n", reg_name(quad->arg1->reg_arg),
+              quad->arg1->value.int_value);
+
+      quad->arg2->reg_arg = find_free_reg();
+      fprintf(out, "li %s, %d\n", reg_name(quad->arg2->reg_arg),
+              quad->arg2->value.int_value);
+
+      quad->arg3->reg_arg = find_free_reg();
+      fprintf(out, "sub %s, %s, %s\n", reg_name(quad->arg3->reg_arg),
+              reg_name(quad->arg1->reg_arg), reg_name(quad->arg2->reg_arg));
+
+      free_reg(quad->arg1->reg_arg);
+      free_reg(quad->arg2->reg_arg);
+      break;
+    case mult_op:
+      quad->arg1->reg_arg = find_free_reg();
+      fprintf(out, "li %s, %d\n", reg_name(quad->arg1->reg_arg),
+              quad->arg1->value.int_value);
+
+      quad->arg2->reg_arg = find_free_reg();
+      fprintf(out, "li %s, %d\n", reg_name(quad->arg2->reg_arg),
+              quad->arg2->value.int_value);
+
+      quad->arg3->reg_arg = find_free_reg();
+      fprintf(out, "mul %s, %s, %s\n", reg_name(quad->arg3->reg_arg),
+              reg_name(quad->arg1->reg_arg), reg_name(quad->arg2->reg_arg));
+
+      free_reg(quad->arg1->reg_arg);
+      free_reg(quad->arg2->reg_arg);
+      break;
+    case div_op:
+      quad->arg1->reg_arg = find_free_reg();
+      fprintf(out, "li %s, %d\n", reg_name(quad->arg1->reg_arg),
+              quad->arg1->value.int_value);
+
+      quad->arg2->reg_arg = find_free_reg();
+      fprintf(out, "li %s, %d\n", reg_name(quad->arg2->reg_arg),
+              quad->arg2->value.int_value);
+
+      quad->arg3->reg_arg = find_free_reg();
+      fprintf(out, "div %s, %s, %s\n", reg_name(quad->arg3->reg_arg),
+              reg_name(quad->arg1->reg_arg), reg_name(quad->arg2->reg_arg));
+
+      free_reg(quad->arg1->reg_arg);
+      free_reg(quad->arg2->reg_arg);
+      break;
+
+    default:
+      break;
+    }
+  }
+  fclose(out);
+}
+
+/*
+  if (1+2 == 3 && 1+3==4)
+
+
+
+*/

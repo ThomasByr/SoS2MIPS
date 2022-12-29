@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "processing.h"
 #include "quad.h"
 #include "vec.h"
 
@@ -96,14 +95,6 @@ char *quad_op_string[] = {
     "cfun_ops",
     "cfun_op",
 };
-
-/* some more prototypes */
-
-// Generates code for the standard binary operation with widening
-// : +, -, *, /
-struct quadarg *generate_binary_op_with_widening(struct pnode *node,
-                                                 enum quadop quad_op_ints,
-                                                 enum quadop quad_op_floats);
 
 /* variables */
 
@@ -356,7 +347,7 @@ struct quadarg *quadarg_new_tmp(struct symtable *symtab, enum vartype type) {
   } else {
     temp_symnode->mem_addr_type = global;
     global_temp_count++;
-    temp_symnode->var_addr = -8 * (num_global_vars + global_temp_count);
+    temp_symnode->var_addr = -8 * global_temp_count;
   }
 
   struct quadarg *quadarg = calloc(1, sizeof(struct quadarg));

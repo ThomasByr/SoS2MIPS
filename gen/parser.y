@@ -3,6 +3,7 @@
   #include "quad.h"
   #include "vec.h"
   #include <string.h>
+  #include <stdio.h>
 
   #include "lib.h"
 
@@ -82,7 +83,7 @@
 
 program
 : instructions
-{ $$ = $1; }
+{ $$ = $1; printf("BIG\n"); }
 ;
 
 instructions
@@ -326,7 +327,7 @@ op_int
 
 plus_minus
 : '+' 
-{ $$ = plus_op; }
+{ $$ = plus_op; printf("test\n"); }
 | '-' 
 { $$ = minus_op; }
 ;

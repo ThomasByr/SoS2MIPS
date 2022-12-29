@@ -7,6 +7,7 @@
 #include <unistd.h>
 
 #include "app.h"
+#include "protocol.h"
 #include "quad.h"
 #include "symtable.h"
 #include "threadpool.h"
@@ -22,6 +23,7 @@ struct symtable *flat_id_table;
 struct symtable *stringconst_table;
 // Used by the parser to save memory with ID names
 struct symtable *id_name_table;
+extern vec_t quad_array;
 
 int error_count = 0;
 
@@ -78,11 +80,17 @@ int run_app(const struct cmd_args *args) {
   if (yyout == NULL) panic("failed to open output file");
 
   id_name_table = symtable_new();
+  quad_array = vec_new();
 
   // launch yyparse
   if (yyparse() != 0) {
+    printf("error\n");
     status = EXIT_FAILURE;
   }
+
+  if (args->stdisplay) symtable_display(id_name_table);
+
+  quad_vec_display();
 
   // launch qtspim
   switch (threadpool_add(pool, launch_qtspim, args->output, 0)) {
@@ -133,6 +141,8 @@ int run_app(const struct cmd_args *args) {
 
   CHK(fclose(yyin));
   CHK(fclose(yyout));
+
+  generate_asm();
 
   return status;
 }
