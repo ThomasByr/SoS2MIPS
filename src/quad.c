@@ -20,6 +20,7 @@ struct symnode *curr_func_symnode_quad;
 extern int num_global_vars;
 extern struct symtable *flat_id_table;
 extern struct symtable *stringconst_table;
+extern struct symtable *id_name_table;
 
 int temp_count = 0;
 
@@ -125,7 +126,7 @@ void quadarg_display(struct quadarg *quadarg) {
     printf("dbl: %f", quadarg->value.dbl_value);
     break;
   case id_arg:
-    printf("id: %s", quadarg->value.varnode->name);
+    printf("id: %s", quadarg->value.id_value->name);
     break;
   default:
     printf("unknown");
@@ -280,31 +281,38 @@ vec_t quadarray_append(vec_t quad_array1, vec_t quad_array2) {
   return vec_append(quad_array1, quad_array2);
 }
 
-struct quadarg *quadarg_new(enum quadargtype type, void *value) {
-
+struct quadarg *quadarg_new_int(int value) {
   struct quadarg *quadarg = calloc(1, sizeof(struct quadarg));
-  quadarg->type = type;
+  quadarg->type = int_arg;
+  quadarg->value.int_value = value;
+  return quadarg;
+}
 
-  // if no value enter, return the quadarg
-  if (!value) return quadarg;
+struct quadarg *quadarg_new_dbl(double value) {
+  struct quadarg *quadarg = calloc(1, sizeof(struct quadarg));
+  quadarg->type = dbl_arg;
+  quadarg->value.dbl_value = value;
+  return quadarg;
+}
 
-  switch (type) {
-  case int_arg:
-    quadarg->value.int_value = *(int *)value;
-    break;
-  case dbl_arg:
-    quadarg->value.dbl_value = *(double *)value;
-    break;
-  case str_arg:
-    quadarg->value.str_value = (char *)value;
-    break;
-  case id_arg:
-    quadarg->value.varnode = (struct symnode *)value;
-    break;
-  default:
-    alert("quadarg_new: invalid type");
-  }
+struct quadarg *quadarg_new_str(char *value) {
+  struct quadarg *quadarg = calloc(1, sizeof(struct quadarg));
+  quadarg->type = str_arg;
+  quadarg->value.str_value = strdup(value);
+  return quadarg;
+}
 
+struct quadarg *quadarg_new_id(char *value) {
+  struct quadarg *quadarg = calloc(1, sizeof(struct quadarg));
+  quadarg->type = id_arg;
+  quadarg->value.id_value = symtable_insert(id_name_table, value);
+  return quadarg;
+}
+
+struct quadarg *quadarg_new_array_str(char **value) {
+  struct quadarg *quadarg = calloc(1, sizeof(struct quadarg));
+  quadarg->type = array_str_arg;
+  quadarg->value.array_str_value = value;
   return quadarg;
 }
 
@@ -338,8 +346,9 @@ struct quadarg *quadarg_new_tmp(struct symtable *symtab, enum vartype type) {
     temp_symnode->var_addr = -8 * (num_global_vars + global_temp_count);
   }
 
-  struct quadarg *quadarg = quadarg_new(id_arg, NULL);
-  quadarg->value.varnode = temp_symnode;
+  struct quadarg *quadarg = calloc(1, sizeof(struct quadarg));
+  quadarg->type = id_arg;
+  quadarg->value.id_value = temp_symnode;
 
   temp_count++;
   return quadarg;

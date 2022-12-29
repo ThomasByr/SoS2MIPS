@@ -77,6 +77,8 @@ int run_app(const struct cmd_args *args) {
   yyout = fopen(args->output, "w");
   if (yyout == NULL) panic("failed to open output file");
 
+  id_name_table = symtable_new();
+
   // launch yyparse
   if (yyparse() != 0) {
     status = EXIT_FAILURE;

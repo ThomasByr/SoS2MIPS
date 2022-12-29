@@ -2,6 +2,7 @@
 
   #include "parser.h"
   #include "lib.h"
+  #include <string.h>
 %}
 
 %option noinput
@@ -80,10 +81,10 @@
 "local" return local;
 
 [_]?[a-zA-Z][a-zA-Z0-9_]* return ID;
-([0]|[1-9]+[0-9]*) return integer;
+([0]|[1-9]+[0-9]*) { yylval = (YYSTYPE){ .integer = strtoi(yytext) }; return integer; }
 
 [_]?[a-zA-Z][a-zA-Z0-9_]* return word;
-([^"\\\n]|\\.|\\\n)* return string;
+([^"\\\n]|\\.|\\\n)* { yylval = (YYSTYPE){ .string = strdup(yytext) }; return string; }
 
 [[:space:]] ;
 
