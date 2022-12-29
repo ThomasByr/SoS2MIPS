@@ -235,9 +235,9 @@ test_expr3
 
 test_instr
 : concat eq concat
-{ $$ = quad_new(0, eq_vec_op, $1->arg3, $3->arg3, NULL); }
+{ $$ = quad_new(0, eq_op, $1->arg3, $3->arg3, NULL); }
 | concat neq concat
-{ $$ = quad_new(0, neq_vec_op, $1->arg3, $3->arg3, NULL); }
+{ $$ = quad_new(0, neq_op, $1->arg3, $3->arg3, NULL); }
 | operator1 concat
 { $$ = quad_new(0, $1, $2->arg3, NULL, NULL); }
 | op operator2 op
