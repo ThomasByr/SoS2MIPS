@@ -84,6 +84,8 @@
 program
 : instructions
 { $$ = $1; printf("BIG\n"); }
+| %empty
+{ $$ = quad_new(0, empty_op, NULL, NULL, NULL); printf("EMPTY\n"); }
 ;
 
 instructions

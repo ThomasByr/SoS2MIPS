@@ -531,7 +531,7 @@ union yyalloc
 /* YYNNTS -- Number of nonterminals.  */
 #define YYNNTS  26
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  94
+#define YYNRULES  95
 /* YYNSTATES -- Number of states.  */
 #define YYNSTATES  217
 
@@ -586,16 +586,16 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,    85,    85,    90,    92,    97,    99,   102,   104,   108,
-     110,   113,   115,   117,   119,   121,   123,   125,   127,   129,
-     131,   133,   135,   140,   143,   145,   151,   150,   157,   162,
-     165,   168,   171,   176,   181,   186,   192,   194,   196,   201,
-     203,   208,   213,   215,   220,   222,   227,   229,   231,   233,
-     238,   240,   242,   244,   249,   251,   253,   255,   257,   259,
-     261,   263,   265,   267,   272,   274,   279,   281,   283,   285,
-     287,   289,   294,   296,   301,   303,   308,   310,   312,   314,
-     316,   318,   320,   322,   324,   329,   331,   336,   338,   340,
-     345,   351,   354,   359,   361
+       0,    85,    85,    87,    92,    94,    99,   101,   104,   106,
+     110,   112,   115,   117,   119,   121,   123,   125,   127,   129,
+     131,   133,   135,   137,   142,   145,   147,   153,   152,   159,
+     164,   167,   170,   173,   178,   183,   188,   194,   196,   198,
+     203,   205,   210,   215,   217,   222,   224,   229,   231,   233,
+     235,   240,   242,   244,   246,   251,   253,   255,   257,   259,
+     261,   263,   265,   267,   269,   274,   276,   281,   283,   285,
+     287,   289,   291,   296,   298,   303,   305,   310,   312,   314,
+     316,   318,   320,   322,   324,   326,   331,   333,   338,   340,
+     342,   347,   353,   356,   361,   363
 };
 #endif
 
@@ -674,28 +674,28 @@ static const yytype_int16 yypact[] =
    means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-       0,    94,     0,     0,     0,     0,     0,     0,     0,     0,
-      19,    21,     0,     2,     4,    17,    18,    56,     0,     0,
-       0,     0,     0,     0,    93,    37,     0,     0,     0,     0,
-       0,     0,     0,     0,    14,    15,    82,     0,     0,    85,
-      86,    20,     0,    22,     1,     0,     5,    40,     0,     0,
-       0,    57,    58,     0,     0,    59,     0,    36,     0,    65,
-      64,     0,     0,     0,    41,    43,    45,    48,    40,     0,
-       0,     0,     0,     0,     0,     0,     0,     0,    78,     0,
-       0,    73,    75,    83,     0,     3,    39,     0,    60,    61,
-       0,    94,     0,     0,    92,     0,     0,     0,    49,     0,
-       0,     0,     0,    66,    67,    68,    69,    70,    71,     0,
-      52,    25,     0,     0,     0,     0,     0,    29,     0,     0,
-      35,     0,     0,     0,     0,    84,     0,    87,    88,    89,
-       0,    81,     0,     0,     0,    54,     0,    63,     0,     7,
-      46,     0,    50,    51,    42,    44,    53,     0,     0,     0,
-       9,     0,    11,    12,     0,     0,     0,    13,    26,     0,
-       0,    16,     0,    76,    72,    74,     0,     6,     0,     0,
-      62,     0,     0,    47,     0,    24,     0,     0,    30,    31,
-       0,     0,    32,     0,     0,     0,     0,    79,     0,     0,
-       0,    90,     0,     8,    10,     0,     0,     0,     0,     0,
-       0,    38,    55,     0,    25,     0,    28,    33,    34,    77,
-       0,     0,    23,     0,    80,    91,    27
+       3,    95,     0,     0,     0,     0,     0,     0,     0,     0,
+      20,    22,     0,     2,     5,    18,    19,    57,     0,     0,
+       0,     0,     0,     0,    94,    38,     0,     0,     0,     0,
+       0,     0,     0,     0,    15,    16,    83,     0,     0,    86,
+      87,    21,     0,    23,     1,     0,     6,    41,     0,     0,
+       0,    58,    59,     0,     0,    60,     0,    37,     0,    66,
+      65,     0,     0,     0,    42,    44,    46,    49,    41,     0,
+       0,     0,     0,     0,     0,     0,     0,     0,    79,     0,
+       0,    74,    76,    84,     0,     4,    40,     0,    61,    62,
+       0,    95,     0,     0,    93,     0,     0,     0,    50,     0,
+       0,     0,     0,    67,    68,    69,    70,    71,    72,     0,
+      53,    26,     0,     0,     0,     0,     0,    30,     0,     0,
+      36,     0,     0,     0,     0,    85,     0,    88,    89,    90,
+       0,    82,     0,     0,     0,    55,     0,    64,     0,     8,
+      47,     0,    51,    52,    43,    45,    54,     0,     0,     0,
+      10,     0,    12,    13,     0,     0,     0,    14,    27,     0,
+       0,    17,     0,    77,    73,    75,     0,     7,     0,     0,
+      63,     0,     0,    48,     0,    25,     0,     0,    31,    32,
+       0,     0,    33,     0,     0,     0,     0,    80,     0,     0,
+       0,    91,     0,     9,    11,     0,     0,     0,     0,     0,
+       0,    39,    56,     0,    26,     0,    29,    34,    35,    78,
+       0,     0,    24,     0,    81,    92,    28
 };
 
 /* YYPGOTO[NTERM-NUM].  */
@@ -818,31 +818,31 @@ static const yytype_int8 yystos[] =
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    57,    58,    59,    59,    60,    60,    60,    60,    60,
+       0,    57,    58,    58,    59,    59,    60,    60,    60,    60,
       60,    60,    60,    60,    60,    60,    60,    60,    60,    60,
-      60,    60,    60,    61,    61,    61,    63,    62,    62,    64,
-      64,    64,    64,    64,    64,    64,    65,    65,    65,    66,
-      66,    67,    68,    68,    69,    69,    70,    70,    70,    70,
-      71,    71,    71,    71,    72,    72,    72,    72,    72,    72,
-      72,    72,    72,    72,    73,    73,    74,    74,    74,    74,
-      74,    74,    75,    75,    76,    76,    77,    77,    77,    77,
-      77,    77,    77,    77,    77,    78,    78,    79,    79,    79,
-      80,    81,    81,    82,    82
+      60,    60,    60,    60,    61,    61,    61,    63,    62,    62,
+      64,    64,    64,    64,    64,    64,    64,    65,    65,    65,
+      66,    66,    67,    68,    68,    69,    69,    70,    70,    70,
+      70,    71,    71,    71,    71,    72,    72,    72,    72,    72,
+      72,    72,    72,    72,    72,    73,    73,    74,    74,    74,
+      74,    74,    74,    75,    75,    76,    76,    77,    77,    77,
+      77,    77,    77,    77,    77,    77,    78,    78,    79,    79,
+      79,    80,    81,    81,    82,    82
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr2[] =
 {
-       0,     2,     1,     3,     1,     3,     6,     5,     7,     5,
-       7,     5,     5,     5,     2,     2,     5,     1,     1,     1,
-       2,     1,     2,     5,     2,     0,     0,     7,     5,     1,
-       3,     3,     3,     5,     5,     1,     2,     1,     7,     2,
-       1,     2,     3,     1,     3,     1,     3,     4,     1,     2,
-       3,     3,     2,     3,     4,     7,     1,     2,     2,     2,
-       3,     3,     5,     4,     1,     1,     1,     1,     1,     1,
-       1,     1,     3,     1,     3,     1,     4,     7,     2,     5,
-       8,     3,     1,     2,     3,     1,     1,     1,     1,     1,
-       7,     6,     0,     2,     1
+       0,     2,     1,     0,     3,     1,     3,     6,     5,     7,
+       5,     7,     5,     5,     5,     2,     2,     5,     1,     1,
+       1,     2,     1,     2,     5,     2,     0,     0,     7,     5,
+       1,     3,     3,     3,     5,     5,     1,     2,     1,     7,
+       2,     1,     2,     3,     1,     3,     1,     3,     4,     1,
+       2,     3,     3,     2,     3,     4,     7,     1,     2,     2,
+       2,     3,     3,     5,     4,     1,     1,     1,     1,     1,
+       1,     1,     1,     3,     1,     3,     1,     4,     7,     2,
+       5,     8,     3,     1,     2,     3,     1,     1,     1,     1,
+       1,     7,     6,     0,     2,     1
 };
 
 
@@ -1311,583 +1311,589 @@ yyreduce:
 #line 1312 "src/parser.c"
     break;
 
-  case 3: /* instructions: instructions ';' instruction  */
-#line 91 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, instr_op, (yyvsp[-2].quad)->arg3, (yyvsp[0].quad)->arg3, NULL); }
+  case 3: /* program: %empty  */
+#line 88 "gen/parser.y"
+{ (yyval.quad) = quad_new(0, empty_op, NULL, NULL, NULL); printf("EMPTY\n"); }
 #line 1318 "src/parser.c"
     break;
 
-  case 4: /* instructions: instruction  */
+  case 4: /* instructions: instructions ';' instruction  */
 #line 93 "gen/parser.y"
-{ (yyval.quad) = (yyvsp[0].quad); }
+{ (yyval.quad) = quad_new(0, instr_op, (yyvsp[-2].quad)->arg3, (yyvsp[0].quad)->arg3, NULL); }
 #line 1324 "src/parser.c"
     break;
 
-  case 5: /* instruction: ID '=' concat  */
-#line 98 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, assn_instr_op, quadarg_new_id((yyvsp[-2].id)), (yyvsp[0].quad)->arg3, NULL); }
+  case 5: /* instructions: instruction  */
+#line 95 "gen/parser.y"
+{ (yyval.quad) = (yyvsp[0].quad); }
 #line 1330 "src/parser.c"
     break;
 
-  case 6: /* instruction: ID '[' op_int ']' '=' concat  */
+  case 6: /* instruction: ID '=' concat  */
 #line 100 "gen/parser.y"
-{ struct quad *marker = quad_new(0, array_instr_op, quadarg_new_id((yyvsp[-5].id)), (yyvsp[-3].quad)->arg3, NULL);
-  (yyval.quad) = quad_new(0, assn_array_instr_op, marker->arg3, (yyvsp[0].quad)->arg3, NULL); }
-#line 1337 "src/parser.c"
+{ (yyval.quad) = quad_new(0, assn_instr_op, quadarg_new_id((yyvsp[-2].id)), (yyvsp[0].quad)->arg3, NULL); }
+#line 1336 "src/parser.c"
     break;
 
-  case 7: /* instruction: declare ID '[' integer ']'  */
-#line 103 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, declare_array_instr_op, quadarg_new_id((yyvsp[-3].id)), quadarg_new_int((yyvsp[-1].integer)), NULL); }
+  case 7: /* instruction: ID '[' op_int ']' '=' concat  */
+#line 102 "gen/parser.y"
+{ struct quad *marker = quad_new(0, array_instr_op, quadarg_new_id((yyvsp[-5].id)), (yyvsp[-3].quad)->arg3, NULL);
+  (yyval.quad) = quad_new(0, assn_array_instr_op, marker->arg3, (yyvsp[0].quad)->arg3, NULL); }
 #line 1343 "src/parser.c"
     break;
 
-  case 8: /* instruction: IF testing THEN instructions maybe_else instructions FI  */
+  case 8: /* instruction: declare ID '[' integer ']'  */
 #line 105 "gen/parser.y"
+{ (yyval.quad) = quad_new(0, declare_array_instr_op, quadarg_new_id((yyvsp[-3].id)), quadarg_new_int((yyvsp[-1].integer)), NULL); }
+#line 1349 "src/parser.c"
+    break;
+
+  case 9: /* instruction: IF testing THEN instructions maybe_else instructions FI  */
+#line 107 "gen/parser.y"
 { struct quad *marker1 = quad_new(0, test_instr_op, (yyvsp[-5].quad)->arg3, (yyvsp[-3].quad)->arg3, NULL);
   struct quad *marker2 = quad_new(0, maybe_else_instr_op, (yyvsp[-2].quad)->arg3, (yyvsp[-1].quad)->arg3, NULL);
   (yyval.quad) = quad_new(0, if_instr_op, marker1->arg3, marker2->arg3, NULL); }
-#line 1351 "src/parser.c"
-    break;
-
-  case 9: /* instruction: FOR ID DO instructions DONE  */
-#line 109 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, for_instr_op, quadarg_new_id((yyvsp[-3].id)), (yyvsp[-1].quad)->arg3, NULL); }
 #line 1357 "src/parser.c"
     break;
 
-  case 10: /* instruction: FOR ID IN ops DO instructions DONE  */
+  case 10: /* instruction: FOR ID DO instructions DONE  */
 #line 111 "gen/parser.y"
-{ struct quad *marker = quad_new(0, in_instr_op, quadarg_new_id((yyvsp[-5].id)), (yyvsp[-3].quad)->arg3, NULL);
-  (yyval.quad) = quad_new(0, for_instr_op, marker->arg3, (yyvsp[-1].quad)->arg3, NULL); }
-#line 1364 "src/parser.c"
+{ (yyval.quad) = quad_new(0, for_instr_op, quadarg_new_id((yyvsp[-3].id)), (yyvsp[-1].quad)->arg3, NULL); }
+#line 1363 "src/parser.c"
     break;
 
-  case 11: /* instruction: WHILE testing DO instructions DONE  */
-#line 114 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, while_instr_op, (yyvsp[-3].quad)->arg3, (yyvsp[-1].quad)->arg3, NULL); }
+  case 11: /* instruction: FOR ID IN ops DO instructions DONE  */
+#line 113 "gen/parser.y"
+{ struct quad *marker = quad_new(0, in_instr_op, quadarg_new_id((yyvsp[-5].id)), (yyvsp[-3].quad)->arg3, NULL);
+  (yyval.quad) = quad_new(0, for_instr_op, marker->arg3, (yyvsp[-1].quad)->arg3, NULL); }
 #line 1370 "src/parser.c"
     break;
 
-  case 12: /* instruction: UNTIL testing DO instructions DONE  */
+  case 12: /* instruction: WHILE testing DO instructions DONE  */
 #line 116 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, until_instr_op, (yyvsp[-3].quad)->arg3, (yyvsp[-1].quad)->arg3, NULL); }
+{ (yyval.quad) = quad_new(0, while_instr_op, (yyvsp[-3].quad)->arg3, (yyvsp[-1].quad)->arg3, NULL); }
 #line 1376 "src/parser.c"
     break;
 
-  case 13: /* instruction: CASE op IN cases ESAC  */
+  case 13: /* instruction: UNTIL testing DO instructions DONE  */
 #line 118 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, case_instr_op, (yyvsp[-3].quad)->arg3, (yyvsp[-1].quad)->arg3, NULL); }
+{ (yyval.quad) = quad_new(0, until_instr_op, (yyvsp[-3].quad)->arg3, (yyvsp[-1].quad)->arg3, NULL); }
 #line 1382 "src/parser.c"
     break;
 
-  case 14: /* instruction: EKKO ops  */
+  case 14: /* instruction: CASE op IN cases ESAC  */
 #line 120 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, echo_instr_op, (yyvsp[0].quad)->arg3, NULL, NULL); }
+{ (yyval.quad) = quad_new(0, case_instr_op, (yyvsp[-3].quad)->arg3, (yyvsp[-1].quad)->arg3, NULL); }
 #line 1388 "src/parser.c"
     break;
 
-  case 15: /* instruction: READ ID  */
+  case 15: /* instruction: EKKO ops  */
 #line 122 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, read_instr_op, quadarg_new_id((yyvsp[0].id)), NULL, NULL); }
+{ (yyval.quad) = quad_new(0, echo_instr_op, (yyvsp[0].quad)->arg3, NULL, NULL); }
 #line 1394 "src/parser.c"
     break;
 
-  case 16: /* instruction: READ ID '[' op_int ']'  */
+  case 16: /* instruction: READ ID  */
 #line 124 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, read_array_instr_op, quadarg_new_id((yyvsp[-3].id)), (yyvsp[-1].quad)->arg3, NULL); }
+{ (yyval.quad) = quad_new(0, read_instr_op, quadarg_new_id((yyvsp[0].id)), NULL, NULL); }
 #line 1400 "src/parser.c"
     break;
 
-  case 17: /* instruction: dfun  */
+  case 17: /* instruction: READ ID '[' op_int ']'  */
 #line 126 "gen/parser.y"
-{ (yyval.quad) = (yyvsp[0].quad); }
+{ (yyval.quad) = quad_new(0, read_array_instr_op, quadarg_new_id((yyvsp[-3].id)), (yyvsp[-1].quad)->arg3, NULL); }
 #line 1406 "src/parser.c"
     break;
 
-  case 18: /* instruction: cfun  */
+  case 18: /* instruction: dfun  */
 #line 128 "gen/parser.y"
 { (yyval.quad) = (yyvsp[0].quad); }
 #line 1412 "src/parser.c"
     break;
 
-  case 19: /* instruction: RETURN  */
+  case 19: /* instruction: cfun  */
 #line 130 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, return_void_op, NULL, NULL, NULL); }
+{ (yyval.quad) = (yyvsp[0].quad); }
 #line 1418 "src/parser.c"
     break;
 
-  case 20: /* instruction: RETURN op_int  */
+  case 20: /* instruction: RETURN  */
 #line 132 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, return_int_op, (yyvsp[0].quad)->arg3, NULL, NULL); }
+{ (yyval.quad) = quad_new(0, return_void_op, NULL, NULL, NULL); }
 #line 1424 "src/parser.c"
     break;
 
-  case 21: /* instruction: EXIT  */
+  case 21: /* instruction: RETURN op_int  */
 #line 134 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, exit_void_op, NULL, NULL, NULL); }
+{ (yyval.quad) = quad_new(0, return_int_op, (yyvsp[0].quad)->arg3, NULL, NULL); }
 #line 1430 "src/parser.c"
     break;
 
-  case 22: /* instruction: EXIT op_int  */
+  case 22: /* instruction: EXIT  */
 #line 136 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, exit_int_op, (yyvsp[0].quad)->arg3, NULL, NULL); }
+{ (yyval.quad) = quad_new(0, exit_void_op, NULL, NULL, NULL); }
 #line 1436 "src/parser.c"
     break;
 
-  case 23: /* maybe_else: ELIF testing THEN instructions maybe_else  */
-#line 141 "gen/parser.y"
-{ struct quad *marker = quad_new(0, testing_op, (yyvsp[-3].quad)->arg3, (yyvsp[-1].quad)->arg3, NULL);
-  (yyval.quad) = quad_new(0, elif_op, marker->arg3, (yyvsp[-1].quad)->arg3, NULL); }
-#line 1443 "src/parser.c"
+  case 23: /* instruction: EXIT op_int  */
+#line 138 "gen/parser.y"
+{ (yyval.quad) = quad_new(0, exit_int_op, (yyvsp[0].quad)->arg3, NULL, NULL); }
+#line 1442 "src/parser.c"
     break;
 
-  case 24: /* maybe_else: ELSE instructions  */
-#line 144 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, else_op, (yyvsp[0].quad)->arg3, NULL, NULL); }
+  case 24: /* maybe_else: ELIF testing THEN instructions maybe_else  */
+#line 143 "gen/parser.y"
+{ struct quad *marker = quad_new(0, testing_op, (yyvsp[-3].quad)->arg3, (yyvsp[-1].quad)->arg3, NULL);
+  (yyval.quad) = quad_new(0, elif_op, marker->arg3, (yyvsp[-1].quad)->arg3, NULL); }
 #line 1449 "src/parser.c"
     break;
 
-  case 25: /* maybe_else: %empty  */
+  case 25: /* maybe_else: ELSE instructions  */
 #line 146 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, empty_op, NULL, NULL, NULL); }
+{ (yyval.quad) = quad_new(0, else_op, (yyvsp[0].quad)->arg3, NULL, NULL); }
 #line 1455 "src/parser.c"
     break;
 
-  case 26: /* $@1: %empty  */
-#line 151 "gen/parser.y"
+  case 26: /* maybe_else: %empty  */
+#line 148 "gen/parser.y"
+{ (yyval.quad) = quad_new(0, empty_op, NULL, NULL, NULL); }
+#line 1461 "src/parser.c"
+    break;
+
+  case 27: /* $@1: %empty  */
+#line 153 "gen/parser.y"
 { (yyvsp[0].filter_t) = calloc(1, sizeof(struct filter_s));
   (yyvsp[0].filter_t)->array_string = malloc(sizeof(char *)); 
   (yyvsp[0].filter_t)->size = 0; }
-#line 1463 "src/parser.c"
+#line 1469 "src/parser.c"
     break;
 
-  case 27: /* cases: cases filter $@1 ')' instructions ';' ';'  */
-#line 155 "gen/parser.y"
+  case 28: /* cases: cases filter $@1 ')' instructions ';' ';'  */
+#line 157 "gen/parser.y"
 { struct quad *marker = quad_new(0, filter_instr, quadarg_new_array_str((yyvsp[-5].filter_t)->array_string), (yyvsp[-2].quad)->arg3, NULL); 
   (yyval.quad) = quad_new(0, cases_op, (yyvsp[-6].quad)->arg3, marker->arg3, NULL); }
-#line 1470 "src/parser.c"
-    break;
-
-  case 28: /* cases: filter ')' instructions ';' ';'  */
-#line 158 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, filter_instr, quadarg_new_array_str((yyvsp[-4].filter_t)->array_string), (yyvsp[-2].quad)->arg3, NULL); }
 #line 1476 "src/parser.c"
     break;
 
-  case 29: /* filter: word  */
-#line 163 "gen/parser.y"
+  case 29: /* cases: filter ')' instructions ';' ';'  */
+#line 160 "gen/parser.y"
+{ (yyval.quad) = quad_new(0, filter_instr, quadarg_new_array_str((yyvsp[-4].filter_t)->array_string), (yyvsp[-2].quad)->arg3, NULL); }
+#line 1482 "src/parser.c"
+    break;
+
+  case 30: /* filter: word  */
+#line 165 "gen/parser.y"
 { (yyval.filter_t)->array_string[(yyval.filter_t)->size] = strdup((yyvsp[0].string));
   (yyval.filter_t)->size++; }
-#line 1483 "src/parser.c"
+#line 1489 "src/parser.c"
     break;
 
-  case 30: /* filter: '"' string '"'  */
-#line 166 "gen/parser.y"
+  case 31: /* filter: '"' string '"'  */
+#line 168 "gen/parser.y"
 { (yyval.filter_t)->array_string[(yyval.filter_t)->size] = strdup((yyvsp[-1].string));
   (yyval.filter_t)->size++; }
-#line 1490 "src/parser.c"
+#line 1496 "src/parser.c"
     break;
 
-  case 31: /* filter: '\'' string '\''  */
-#line 169 "gen/parser.y"
+  case 32: /* filter: '\'' string '\''  */
+#line 171 "gen/parser.y"
 { (yyval.filter_t)->array_string[(yyval.filter_t)->size] = strdup((yyvsp[-1].string));
   (yyval.filter_t)->size++; }
-#line 1497 "src/parser.c"
+#line 1503 "src/parser.c"
     break;
 
-  case 32: /* filter: filter '|' word  */
-#line 172 "gen/parser.y"
+  case 33: /* filter: filter '|' word  */
+#line 174 "gen/parser.y"
 { (yyval.filter_t) = (yyvsp[-2].filter_t);
   (yyval.filter_t)->array_string = realloc((yyval.filter_t)->array_string, sizeof(char *) * ((yyval.filter_t)->size + 1));
   (yyval.filter_t)->array_string[(yyval.filter_t)->size] = strdup((yyvsp[0].string));
   (yyval.filter_t)->size++; }
-#line 1506 "src/parser.c"
+#line 1512 "src/parser.c"
     break;
 
-  case 33: /* filter: filter '|' '"' string '"'  */
-#line 177 "gen/parser.y"
+  case 34: /* filter: filter '|' '"' string '"'  */
+#line 179 "gen/parser.y"
 { (yyval.filter_t) = (yyvsp[-4].filter_t);
   (yyval.filter_t)->array_string = realloc((yyval.filter_t)->array_string, sizeof(char *) * ((yyval.filter_t)->size + 1));
   (yyval.filter_t)->array_string[(yyval.filter_t)->size] = strdup((yyvsp[-1].string));
   (yyval.filter_t)->size++; }
-#line 1515 "src/parser.c"
+#line 1521 "src/parser.c"
     break;
 
-  case 34: /* filter: filter '|' '\'' string '\''  */
-#line 182 "gen/parser.y"
+  case 35: /* filter: filter '|' '\'' string '\''  */
+#line 184 "gen/parser.y"
 { (yyval.filter_t) = (yyvsp[-4].filter_t);
   (yyval.filter_t)->array_string = realloc((yyval.filter_t)->array_string, sizeof(char *) * ((yyval.filter_t)->size + 1));
   (yyval.filter_t)->array_string[(yyval.filter_t)->size] = strdup((yyvsp[-1].string));
   (yyval.filter_t)->size++; }
-#line 1524 "src/parser.c"
+#line 1530 "src/parser.c"
     break;
 
-  case 35: /* filter: '*'  */
-#line 187 "gen/parser.y"
+  case 36: /* filter: '*'  */
+#line 189 "gen/parser.y"
 { (yyval.filter_t)->array_string[(yyval.filter_t)->size] = "*"; 
   (yyval.filter_t)->size++; }
-#line 1531 "src/parser.c"
-    break;
-
-  case 36: /* ops: ops op  */
-#line 193 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, concat_op, (yyvsp[-1].quad)->arg3, (yyvsp[0].quad)->arg3, NULL); }
 #line 1537 "src/parser.c"
     break;
 
-  case 37: /* ops: op  */
+  case 37: /* ops: ops op  */
 #line 195 "gen/parser.y"
-{ (yyval.quad) = (yyvsp[0].quad); }
+{ (yyval.quad) = quad_new(0, concat_op, (yyvsp[-1].quad)->arg3, (yyvsp[0].quad)->arg3, NULL); }
 #line 1543 "src/parser.c"
     break;
 
-  case 38: /* ops: '$' '{' ID '[' '*' ']' '}'  */
+  case 38: /* ops: op  */
 #line 197 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, assn_array_to_var_ops, quadarg_new_id((yyvsp[-4].id)), NULL, NULL); }
+{ (yyval.quad) = (yyvsp[0].quad); }
 #line 1549 "src/parser.c"
     break;
 
-  case 39: /* concat: concat op  */
-#line 202 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, concat_op, (yyvsp[-1].quad)->arg3, (yyvsp[0].quad)->arg3, NULL); }
+  case 39: /* ops: '$' '{' ID '[' '*' ']' '}'  */
+#line 199 "gen/parser.y"
+{ (yyval.quad) = quad_new(0, assn_array_to_var_ops, quadarg_new_id((yyvsp[-4].id)), NULL, NULL); }
 #line 1555 "src/parser.c"
     break;
 
-  case 40: /* concat: op  */
+  case 40: /* concat: concat op  */
 #line 204 "gen/parser.y"
-{ (yyval.quad) = (yyvsp[0].quad); }
+{ (yyval.quad) = quad_new(0, concat_op, (yyvsp[-1].quad)->arg3, (yyvsp[0].quad)->arg3, NULL); }
 #line 1561 "src/parser.c"
     break;
 
-  case 41: /* testing: test test_expr  */
-#line 209 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, test_op, (yyvsp[0].quad)->arg3, NULL, NULL); }
+  case 41: /* concat: op  */
+#line 206 "gen/parser.y"
+{ (yyval.quad) = (yyvsp[0].quad); }
 #line 1567 "src/parser.c"
     break;
 
-  case 42: /* test_expr: test_expr or test_expr2  */
-#line 214 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, or_op, (yyvsp[-2].quad)->arg3, (yyvsp[0].quad)->arg3, NULL); }
+  case 42: /* testing: test test_expr  */
+#line 211 "gen/parser.y"
+{ (yyval.quad) = quad_new(0, test_op, (yyvsp[0].quad)->arg3, NULL, NULL); }
 #line 1573 "src/parser.c"
     break;
 
-  case 43: /* test_expr: test_expr2  */
+  case 43: /* test_expr: test_expr or test_expr2  */
 #line 216 "gen/parser.y"
-{ (yyval.quad) = (yyvsp[0].quad); }
+{ (yyval.quad) = quad_new(0, or_op, (yyvsp[-2].quad)->arg3, (yyvsp[0].quad)->arg3, NULL); }
 #line 1579 "src/parser.c"
     break;
 
-  case 44: /* test_expr2: test_expr2 and test_expr3  */
-#line 221 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, and_op, (yyvsp[-2].quad)->arg3, (yyvsp[0].quad)->arg3, NULL); }
+  case 44: /* test_expr: test_expr2  */
+#line 218 "gen/parser.y"
+{ (yyval.quad) = (yyvsp[0].quad); }
 #line 1585 "src/parser.c"
     break;
 
-  case 45: /* test_expr2: test_expr3  */
+  case 45: /* test_expr2: test_expr2 and test_expr3  */
 #line 223 "gen/parser.y"
-{ (yyval.quad) = (yyvsp[0].quad); }
+{ (yyval.quad) = quad_new(0, and_op, (yyvsp[-2].quad)->arg3, (yyvsp[0].quad)->arg3, NULL); }
 #line 1591 "src/parser.c"
     break;
 
-  case 46: /* test_expr3: '(' test_expr ')'  */
-#line 228 "gen/parser.y"
-{ (yyval.quad) = (yyvsp[-1].quad); }
+  case 46: /* test_expr2: test_expr3  */
+#line 225 "gen/parser.y"
+{ (yyval.quad) = (yyvsp[0].quad); }
 #line 1597 "src/parser.c"
     break;
 
-  case 47: /* test_expr3: '!' '(' test_expr ')'  */
+  case 47: /* test_expr3: '(' test_expr ')'  */
 #line 230 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, not_op, (yyvsp[-1].quad)->arg3, NULL, NULL); }
+{ (yyval.quad) = (yyvsp[-1].quad); }
 #line 1603 "src/parser.c"
     break;
 
-  case 48: /* test_expr3: test_instr  */
+  case 48: /* test_expr3: '!' '(' test_expr ')'  */
 #line 232 "gen/parser.y"
-{ (yyval.quad) = (yyvsp[0].quad); }
+{ (yyval.quad) = quad_new(0, not_op, (yyvsp[-1].quad)->arg3, NULL, NULL); }
 #line 1609 "src/parser.c"
     break;
 
-  case 49: /* test_expr3: '!' test_instr  */
+  case 49: /* test_expr3: test_instr  */
 #line 234 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, not_op, (yyvsp[0].quad)->arg3, NULL, NULL); }
+{ (yyval.quad) = (yyvsp[0].quad); }
 #line 1615 "src/parser.c"
     break;
 
-  case 50: /* test_instr: concat eq concat  */
-#line 239 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, eq_op, (yyvsp[-2].quad)->arg3, (yyvsp[0].quad)->arg3, NULL); }
+  case 50: /* test_expr3: '!' test_instr  */
+#line 236 "gen/parser.y"
+{ (yyval.quad) = quad_new(0, not_op, (yyvsp[0].quad)->arg3, NULL, NULL); }
 #line 1621 "src/parser.c"
     break;
 
-  case 51: /* test_instr: concat neq concat  */
+  case 51: /* test_instr: concat eq concat  */
 #line 241 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, neq_op, (yyvsp[-2].quad)->arg3, (yyvsp[0].quad)->arg3, NULL); }
+{ (yyval.quad) = quad_new(0, eq_op, (yyvsp[-2].quad)->arg3, (yyvsp[0].quad)->arg3, NULL); }
 #line 1627 "src/parser.c"
     break;
 
-  case 52: /* test_instr: operator1 concat  */
+  case 52: /* test_instr: concat neq concat  */
 #line 243 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, (yyvsp[-1].integer), (yyvsp[0].quad)->arg3, NULL, NULL); }
+{ (yyval.quad) = quad_new(0, neq_op, (yyvsp[-2].quad)->arg3, (yyvsp[0].quad)->arg3, NULL); }
 #line 1633 "src/parser.c"
     break;
 
-  case 53: /* test_instr: op operator2 op  */
+  case 53: /* test_instr: operator1 concat  */
 #line 245 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, (yyvsp[-1].integer), (yyvsp[-2].quad)->arg3, (yyvsp[0].quad)->arg3, NULL); }
+{ (yyval.quad) = quad_new(0, (yyvsp[-1].integer), (yyvsp[0].quad)->arg3, NULL, NULL); }
 #line 1639 "src/parser.c"
     break;
 
-  case 54: /* op: '$' '{' ID '}'  */
-#line 250 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, assn_int_to_var_op, quadarg_new_id((yyvsp[-1].id)), NULL, NULL); }
+  case 54: /* test_instr: op operator2 op  */
+#line 247 "gen/parser.y"
+{ (yyval.quad) = quad_new(0, (yyvsp[-1].integer), (yyvsp[-2].quad)->arg3, (yyvsp[0].quad)->arg3, NULL); }
 #line 1645 "src/parser.c"
     break;
 
-  case 55: /* op: '$' '{' ID '[' op_int ']' '}'  */
+  case 55: /* op: '$' '{' ID '}'  */
 #line 252 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, assn_elem_array_to_var_op, quadarg_new_id((yyvsp[-4].id)), (yyvsp[-2].quad)->arg3, NULL); }
+{ (yyval.quad) = quad_new(0, assn_int_to_var_op, quadarg_new_id((yyvsp[-1].id)), NULL, NULL); }
 #line 1651 "src/parser.c"
     break;
 
-  case 56: /* op: word  */
+  case 56: /* op: '$' '{' ID '[' op_int ']' '}'  */
 #line 254 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, assn_string_to_var_op, quadarg_new_str((yyvsp[0].string)), NULL, NULL); }
+{ (yyval.quad) = quad_new(0, assn_elem_array_to_var_op, quadarg_new_id((yyvsp[-4].id)), (yyvsp[-2].quad)->arg3, NULL); }
 #line 1657 "src/parser.c"
     break;
 
-  case 57: /* op: '$' integer  */
+  case 57: /* op: word  */
 #line 256 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, assn_arg_to_var_op, quadarg_new_int((yyvsp[0].integer)), NULL, NULL); }
+{ (yyval.quad) = quad_new(0, assn_string_to_var_op, quadarg_new_str((yyvsp[0].string)), NULL, NULL); }
 #line 1663 "src/parser.c"
     break;
 
-  case 58: /* op: '$' '*'  */
+  case 58: /* op: '$' integer  */
 #line 258 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, assn_all_arg_to_var_op, NULL, NULL, NULL); }
+{ (yyval.quad) = quad_new(0, assn_arg_to_var_op, quadarg_new_int((yyvsp[0].integer)), NULL, NULL); }
 #line 1669 "src/parser.c"
     break;
 
-  case 59: /* op: '$' '?'  */
+  case 59: /* op: '$' '*'  */
 #line 260 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, assn_status_to_var_op, NULL, NULL, NULL); }
+{ (yyval.quad) = quad_new(0, assn_all_arg_to_var_op, NULL, NULL, NULL); }
 #line 1675 "src/parser.c"
     break;
 
-  case 60: /* op: '"' string '"'  */
+  case 60: /* op: '$' '?'  */
 #line 262 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, assn_string_to_var_op, quadarg_new_str((yyvsp[-1].string)), NULL, NULL); }
+{ (yyval.quad) = quad_new(0, assn_status_to_var_op, NULL, NULL, NULL); }
 #line 1681 "src/parser.c"
     break;
 
-  case 61: /* op: '\'' string '\''  */
+  case 61: /* op: '"' string '"'  */
 #line 264 "gen/parser.y"
 { (yyval.quad) = quad_new(0, assn_string_to_var_op, quadarg_new_str((yyvsp[-1].string)), NULL, NULL); }
 #line 1687 "src/parser.c"
     break;
 
-  case 62: /* op: '$' '(' expr sum_int ')'  */
+  case 62: /* op: '\'' string '\''  */
 #line 266 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, assn_expr_value_to_var_op, (yyvsp[-1].quad)->arg3, NULL, NULL); }
+{ (yyval.quad) = quad_new(0, assn_string_to_var_op, quadarg_new_str((yyvsp[-1].string)), NULL, NULL); }
 #line 1693 "src/parser.c"
     break;
 
-  case 63: /* op: '$' '(' cfun ')'  */
+  case 63: /* op: '$' '(' expr sum_int ')'  */
 #line 268 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, assn_cfun_to_var_op, (yyvsp[-1].quad)->arg3, NULL, NULL); }
+{ (yyval.quad) = quad_new(0, assn_expr_value_to_var_op, (yyvsp[-1].quad)->arg3, NULL, NULL); }
 #line 1699 "src/parser.c"
     break;
 
-  case 64: /* operator1: nnull  */
-#line 273 "gen/parser.y"
-{ (yyval.integer) = nnull_op; }
+  case 64: /* op: '$' '(' cfun ')'  */
+#line 270 "gen/parser.y"
+{ (yyval.quad) = quad_new(0, assn_cfun_to_var_op, (yyvsp[-1].quad)->arg3, NULL, NULL); }
 #line 1705 "src/parser.c"
     break;
 
-  case 65: /* operator1: null  */
+  case 65: /* operator1: nnull  */
 #line 275 "gen/parser.y"
-{ (yyval.integer) = null_op; }
+{ (yyval.integer) = nnull_op; }
 #line 1711 "src/parser.c"
     break;
 
-  case 66: /* operator2: eq  */
-#line 280 "gen/parser.y"
-{ (yyval.integer) = eq_op; }
+  case 66: /* operator1: null  */
+#line 277 "gen/parser.y"
+{ (yyval.integer) = null_op; }
 #line 1717 "src/parser.c"
     break;
 
-  case 67: /* operator2: neq  */
+  case 67: /* operator2: eq  */
 #line 282 "gen/parser.y"
-{ (yyval.integer) = neq_op; }
+{ (yyval.integer) = eq_op; }
 #line 1723 "src/parser.c"
     break;
 
-  case 68: /* operator2: gt  */
+  case 68: /* operator2: neq  */
 #line 284 "gen/parser.y"
-{ (yyval.integer) = gt_op; }
+{ (yyval.integer) = neq_op; }
 #line 1729 "src/parser.c"
     break;
 
-  case 69: /* operator2: ge  */
+  case 69: /* operator2: gt  */
 #line 286 "gen/parser.y"
-{ (yyval.integer) = ge_op; }
+{ (yyval.integer) = gt_op; }
 #line 1735 "src/parser.c"
     break;
 
-  case 70: /* operator2: lt  */
+  case 70: /* operator2: ge  */
 #line 288 "gen/parser.y"
-{ (yyval.integer) = lt_op; }
+{ (yyval.integer) = ge_op; }
 #line 1741 "src/parser.c"
     break;
 
-  case 71: /* operator2: le  */
+  case 71: /* operator2: lt  */
 #line 290 "gen/parser.y"
-{ (yyval.integer) = le_op; }
+{ (yyval.integer) = lt_op; }
 #line 1747 "src/parser.c"
     break;
 
-  case 72: /* sum_int: sum_int plus_minus prod_int  */
-#line 295 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, (yyvsp[-1].integer), (yyvsp[-2].quad)->arg3, (yyvsp[0].quad)->arg3, NULL); }
+  case 72: /* operator2: le  */
+#line 292 "gen/parser.y"
+{ (yyval.integer) = le_op; }
 #line 1753 "src/parser.c"
     break;
 
-  case 73: /* sum_int: prod_int  */
+  case 73: /* sum_int: sum_int plus_minus prod_int  */
 #line 297 "gen/parser.y"
-{ (yyval.quad) = (yyvsp[0].quad);}
+{ (yyval.quad) = quad_new(0, (yyvsp[-1].integer), (yyvsp[-2].quad)->arg3, (yyvsp[0].quad)->arg3, NULL); }
 #line 1759 "src/parser.c"
     break;
 
-  case 74: /* prod_int: prod_int mult_div_mod op_int  */
-#line 302 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, (yyvsp[-1].integer), (yyvsp[-2].quad)->arg3, (yyvsp[0].quad)->arg3, NULL); }
+  case 74: /* sum_int: prod_int  */
+#line 299 "gen/parser.y"
+{ (yyval.quad) = (yyvsp[0].quad);}
 #line 1765 "src/parser.c"
     break;
 
-  case 75: /* prod_int: op_int  */
+  case 75: /* prod_int: prod_int mult_div_mod op_int  */
 #line 304 "gen/parser.y"
-{ (yyval.quad) = (yyvsp[0].quad);}
+{ (yyval.quad) = quad_new(0, (yyvsp[-1].integer), (yyvsp[-2].quad)->arg3, (yyvsp[0].quad)->arg3, NULL); }
 #line 1771 "src/parser.c"
     break;
 
-  case 76: /* op_int: '$' '{' ID '}'  */
-#line 309 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, assn_int_to_var_op, quadarg_new_id((yyvsp[-1].id)), NULL, NULL); }
+  case 76: /* prod_int: op_int  */
+#line 306 "gen/parser.y"
+{ (yyval.quad) = (yyvsp[0].quad);}
 #line 1777 "src/parser.c"
     break;
 
-  case 77: /* op_int: '$' '{' ID '[' op_int ']' '}'  */
+  case 77: /* op_int: '$' '{' ID '}'  */
 #line 311 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, assn_elem_array_to_var_op, quadarg_new_id((yyvsp[-4].id)), (yyvsp[-2].quad)->arg3, NULL); }
+{ (yyval.quad) = quad_new(0, assn_int_to_var_op, quadarg_new_id((yyvsp[-1].id)), NULL, NULL); }
 #line 1783 "src/parser.c"
     break;
 
-  case 78: /* op_int: '$' integer  */
+  case 78: /* op_int: '$' '{' ID '[' op_int ']' '}'  */
 #line 313 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, assn_int_to_var_op, quadarg_new_int((yyvsp[0].integer)), NULL, NULL); }
+{ (yyval.quad) = quad_new(0, assn_elem_array_to_var_op, quadarg_new_id((yyvsp[-4].id)), (yyvsp[-2].quad)->arg3, NULL); }
 #line 1789 "src/parser.c"
     break;
 
-  case 79: /* op_int: plus_minus '$' '{' ID '}'  */
+  case 79: /* op_int: '$' integer  */
 #line 315 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, (yyvsp[-4].integer), quadarg_new_id((yyvsp[-1].id)), NULL, NULL);  }
+{ (yyval.quad) = quad_new(0, assn_int_to_var_op, quadarg_new_int((yyvsp[0].integer)), NULL, NULL); }
 #line 1795 "src/parser.c"
     break;
 
-  case 80: /* op_int: plus_minus '$' '{' ID '[' op_int ']' '}'  */
+  case 80: /* op_int: plus_minus '$' '{' ID '}'  */
 #line 317 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, (yyvsp[-7].integer), quadarg_new_id((yyvsp[-4].id)), (yyvsp[-2].quad)->arg3, NULL); }
+{ (yyval.quad) = quad_new(0, (yyvsp[-4].integer), quadarg_new_id((yyvsp[-1].id)), NULL, NULL);  }
 #line 1801 "src/parser.c"
     break;
 
-  case 81: /* op_int: plus_minus '$' integer  */
+  case 81: /* op_int: plus_minus '$' '{' ID '[' op_int ']' '}'  */
 #line 319 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, (yyvsp[-2].integer), quadarg_new_int((yyvsp[0].integer)), NULL, NULL); }
+{ (yyval.quad) = quad_new(0, (yyvsp[-7].integer), quadarg_new_id((yyvsp[-4].id)), (yyvsp[-2].quad)->arg3, NULL); }
 #line 1807 "src/parser.c"
     break;
 
-  case 82: /* op_int: integer  */
+  case 82: /* op_int: plus_minus '$' integer  */
 #line 321 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, assn_int_to_var_op, quadarg_new_int((yyvsp[0].integer)), NULL, NULL); }
+{ (yyval.quad) = quad_new(0, (yyvsp[-2].integer), quadarg_new_int((yyvsp[0].integer)), NULL, NULL); }
 #line 1813 "src/parser.c"
     break;
 
-  case 83: /* op_int: plus_minus integer  */
+  case 83: /* op_int: integer  */
 #line 323 "gen/parser.y"
-{ (yyval.quad) = quad_new(0,(yyvsp[-1].integer), quadarg_new_int((yyvsp[0].integer)), NULL, NULL); }
+{ (yyval.quad) = quad_new(0, assn_int_to_var_op, quadarg_new_int((yyvsp[0].integer)), NULL, NULL); }
 #line 1819 "src/parser.c"
     break;
 
-  case 84: /* op_int: '(' sum_int ')'  */
+  case 84: /* op_int: plus_minus integer  */
 #line 325 "gen/parser.y"
-{ (yyval.quad) = (yyvsp[-1].quad); }
+{ (yyval.quad) = quad_new(0,(yyvsp[-1].integer), quadarg_new_int((yyvsp[0].integer)), NULL, NULL); }
 #line 1825 "src/parser.c"
     break;
 
-  case 85: /* plus_minus: '+'  */
-#line 330 "gen/parser.y"
-{ (yyval.integer) = plus_op; printf("test\n"); }
+  case 85: /* op_int: '(' sum_int ')'  */
+#line 327 "gen/parser.y"
+{ (yyval.quad) = (yyvsp[-1].quad); }
 #line 1831 "src/parser.c"
     break;
 
-  case 86: /* plus_minus: '-'  */
+  case 86: /* plus_minus: '+'  */
 #line 332 "gen/parser.y"
-{ (yyval.integer) = minus_op; }
+{ (yyval.integer) = plus_op; printf("test\n"); }
 #line 1837 "src/parser.c"
     break;
 
-  case 87: /* mult_div_mod: '*'  */
-#line 337 "gen/parser.y"
-{ (yyval.integer) = mult_op; }
+  case 87: /* plus_minus: '-'  */
+#line 334 "gen/parser.y"
+{ (yyval.integer) = minus_op; }
 #line 1843 "src/parser.c"
     break;
 
-  case 88: /* mult_div_mod: '/'  */
+  case 88: /* mult_div_mod: '*'  */
 #line 339 "gen/parser.y"
-{ (yyval.integer) = div_op; }
+{ (yyval.integer) = mult_op; }
 #line 1849 "src/parser.c"
     break;
 
-  case 89: /* mult_div_mod: '%'  */
+  case 89: /* mult_div_mod: '/'  */
 #line 341 "gen/parser.y"
-{ (yyval.integer) = mod_op; }
+{ (yyval.integer) = div_op; }
 #line 1855 "src/parser.c"
     break;
 
-  case 90: /* dfun: ID '(' ')' '{' declarations instructions '}'  */
-#line 346 "gen/parser.y"
+  case 90: /* mult_div_mod: '%'  */
+#line 343 "gen/parser.y"
+{ (yyval.integer) = mod_op; }
+#line 1861 "src/parser.c"
+    break;
+
+  case 91: /* dfun: ID '(' ')' '{' declarations instructions '}'  */
+#line 348 "gen/parser.y"
 { struct quad *marker = quad_new(0, cont_func_op, (yyvsp[-2].quad)->arg3, (yyvsp[-1].quad)->arg3, NULL);
   (yyval.quad) = quad_new(0, dfun_op, quadarg_new_id((yyvsp[-6].id)), marker->arg3, NULL); }
-#line 1862 "src/parser.c"
+#line 1868 "src/parser.c"
     break;
 
-  case 91: /* declarations: declarations local ID '=' concat ';'  */
-#line 352 "gen/parser.y"
+  case 92: /* declarations: declarations local ID '=' concat ';'  */
+#line 354 "gen/parser.y"
 { struct quad *marker = quad_new(0, local_decl_op, (yyvsp[-5].quad)->arg3, quadarg_new_id((yyvsp[-3].id)), NULL);
   (yyval.quad) = quad_new(0, decl_op, quadarg_new_id((yyvsp[-3].id)), marker->arg3, NULL); }
-#line 1869 "src/parser.c"
-    break;
-
-  case 92: /* declarations: %empty  */
-#line 355 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, decl_op, NULL, NULL, NULL); }
 #line 1875 "src/parser.c"
     break;
 
-  case 93: /* cfun: ID ops  */
-#line 360 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, cfun_ops, quadarg_new_id((yyvsp[-1].id)), (yyvsp[0].quad)->arg3, NULL); }
+  case 93: /* declarations: %empty  */
+#line 357 "gen/parser.y"
+{ (yyval.quad) = quad_new(0, decl_op, NULL, NULL, NULL); }
 #line 1881 "src/parser.c"
     break;
 
-  case 94: /* cfun: ID  */
+  case 94: /* cfun: ID ops  */
 #line 362 "gen/parser.y"
-{ (yyval.quad) = quad_new(0, cfun_op, quadarg_new_id((yyvsp[0].id)), NULL, NULL); }
+{ (yyval.quad) = quad_new(0, cfun_ops, quadarg_new_id((yyvsp[-1].id)), (yyvsp[0].quad)->arg3, NULL); }
 #line 1887 "src/parser.c"
     break;
 
+  case 95: /* cfun: ID  */
+#line 364 "gen/parser.y"
+{ (yyval.quad) = quad_new(0, cfun_op, quadarg_new_id((yyvsp[0].id)), NULL, NULL); }
+#line 1893 "src/parser.c"
+    break;
 
-#line 1891 "src/parser.c"
+
+#line 1897 "src/parser.c"
 
       default: break;
     }
@@ -2080,7 +2086,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 365 "gen/parser.y"
+#line 367 "gen/parser.y"
 
 
 void yyerror(const char *s) {
