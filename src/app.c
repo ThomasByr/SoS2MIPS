@@ -82,12 +82,8 @@ int run_app(const struct cmd_args *args) {
   id_name_table = symtable_new();
   quad_array = vec_new();
 
-  // print the token
-  extern int yylex(void);
-  int token;
-  while ((token = yylex()) != 0) {
-    printf("TOKEN : %d\n", token);
-  }
+  extern int yydebug;
+  yydebug = 1;
 
   // launch yyparse
   if (yyparse() != 0) {
@@ -98,6 +94,8 @@ int run_app(const struct cmd_args *args) {
   if (args->stdisplay) symtable_display(id_name_table);
 
   quad_vec_display();
+
+  // generate_asm();
 
   // launch qtspim
   switch (threadpool_add(pool, launch_qtspim, args->output, 0)) {
@@ -148,8 +146,6 @@ int run_app(const struct cmd_args *args) {
 
   CHK(fclose(yyin));
   CHK(fclose(yyout));
-
-  generate_asm();
 
   return status;
 }

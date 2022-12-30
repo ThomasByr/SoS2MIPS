@@ -19,14 +19,14 @@
 
 %union {
   char *id;
-  int integer;
+  int integer_t;
   char *string;
   struct quad *quad;
   struct filter_s *filter_t;
 }
 
 %token <id>ID
-%token <integer>integer
+%token <integer_t>integer
 %token declare
 %token IF THEN FI ELIF ELSE
 %token FOR DO IN DONE
@@ -39,6 +39,10 @@
 %token <string>word 
 %token <string>string
 %token test
+
+%right '='
+%left '+' '-'
+%left '*' '/' '%'
 
 %left or
 %left and
@@ -68,36 +72,35 @@
 %type <quad> test_expr3
 %type <quad> test_instr
 %type <quad> op
-%type <integer> operator1
-%type <integer> operator2
+%type <integer_t> operator1
+%type <integer_t> operator2
 %type <quad> sum_int
 %type <quad> prod_int
 %type <quad> op_int
-%type <integer> plus_minus
-%type <integer> mult_div_mod
+%type <integer_t> plus_minus
+%type <integer_t> mult_div_mod
 %type <quad> dfun
 %type <quad> declarations
 %type <quad> cfun
+
 
 %%
 
 program
 : instructions
-{ $$ = $1; printf("BIG\n"); }
-| %empty
-{ $$ = quad_new(0, empty_op, NULL, NULL, NULL); printf("EMPTY\n"); }
+{ $$ = $1;}
 ;
 
 instructions
 : instructions ';' instruction
-{ $$ = quad_new(0, instr_op, $1->arg3, $3->arg3, NULL); }
+{ $$ = quad_new(0, instr_op, $1->arg1, $3->arg1, NULL); }
 | instruction
 { $$ = $1; }
 ;
 
 instruction
 : ID '=' concat
-{ $$ = quad_new(0, assn_instr_op, quadarg_new_id($1), $3->arg3, NULL); }
+{ $$ = quad_new(0, assn_instr_op, quadarg_new_id($1), $3->arg1, $3->arg2);}
 | ID '[' op_int ']' '=' concat
 { struct quad *marker = quad_new(0, array_instr_op, quadarg_new_id($1), $3->arg3, NULL);
   $$ = quad_new(0, assn_array_instr_op, marker->arg3, $6->arg3, NULL); }
@@ -265,9 +268,11 @@ op
 | '\'' string '\''
 { $$ = quad_new(0, assn_string_to_var_op, quadarg_new_str($2), NULL, NULL); }
 | '$' '(' expr sum_int ')'
-{ $$ = quad_new(0, assn_expr_value_to_var_op, $4->arg3, NULL, NULL); }
+{ $$ = quad_new(0, assn_expr_value_to_var_op, $4->arg1, $4->arg2, NULL); }
 | '$' '(' cfun ')' 
 { $$ = quad_new(0, assn_cfun_to_var_op, $3->arg3, NULL, NULL); }
+| integer 
+{ $$ = quad_new(0, assn_int_to_var_op, quadarg_new_int($1), NULL, NULL); }
 ;
 
 operator1
@@ -294,7 +299,7 @@ operator2
 
 sum_int
 : sum_int plus_minus prod_int
-{ $$ = quad_new(0, $2, $1->arg3, $3->arg3, NULL); }
+{ $$ = quad_new(0, $2, $1->arg1, $3->arg1, NULL); }
 | prod_int
 { $$ = $1;}
 ;
@@ -329,7 +334,7 @@ op_int
 
 plus_minus
 : '+' 
-{ $$ = plus_op; printf("test\n"); }
+{ $$ = plus_op;}
 | '-' 
 { $$ = minus_op; }
 ;
