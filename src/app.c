@@ -82,6 +82,13 @@ int run_app(const struct cmd_args *args) {
   id_name_table = symtable_new();
   quad_array = vec_new();
 
+  // print the token
+  extern int yylex(void);
+  int token;
+  while ((token = yylex()) != 0) {
+    printf("TOKEN : %d\n", token);
+  }
+
   // launch yyparse
   if (yyparse() != 0) {
     printf("error\n");

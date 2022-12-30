@@ -81,11 +81,12 @@
 
 "local" return local;
 
-[_]?[a-zA-Z][a-zA-Z0-9_]* return ID;
+"\0" return '\0';
+
 ([0]|[1-9]+[0-9]*) { yylval = (YYSTYPE){ .integer = strtoi(yytext) }; return integer; }
 
-[_]?[a-zA-Z][a-zA-Z0-9_]* { yylval = (YYSTYPE){ .string = strdup(yytext) }; return word; } 
-([^"\\\n]|\\.|\\\n)* { yylval = (YYSTYPE){ .string = strdup(yytext) }; return string; }
+[_]?[a-zA-Z][a-zA-Z0-9_]* return ID;
+
 
 [[:space:]] ;
 

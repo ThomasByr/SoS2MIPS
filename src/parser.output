@@ -1,0 +1,2532 @@
+State 68 conflicts: 2 shift/reduce
+
+
+Grammar
+
+    0 $accept: program $end
+
+    1 program: instructions
+
+    2 instructions: instructions ';' instruction
+    3             | instruction
+
+    4 instruction: ID '=' concat
+    5            | ID '[' op_int ']' '=' concat
+    6            | declare ID '[' integer ']'
+    7            | IF testing THEN instructions maybe_else instructions FI
+    8            | FOR ID DO instructions DONE
+    9            | FOR ID IN ops DO instructions DONE
+   10            | WHILE testing DO instructions DONE
+   11            | UNTIL testing DO instructions DONE
+   12            | CASE op IN cases ESAC
+   13            | EKKO ops
+   14            | READ ID
+   15            | READ ID '[' op_int ']'
+   16            | dfun
+   17            | cfun
+   18            | RETURN
+   19            | RETURN op_int
+   20            | EXIT
+   21            | EXIT op_int
+
+   22 maybe_else: ELIF testing THEN instructions maybe_else
+   23           | ELSE instructions
+   24           | ε
+
+   25 $@1: ε
+
+   26 cases: cases filter $@1 ')' instructions ';' ';'
+   27      | filter ')' instructions ';' ';'
+
+   28 filter: word
+   29       | '"' string '"'
+   30       | '\'' string '\''
+   31       | filter '|' word
+   32       | filter '|' '"' string '"'
+   33       | filter '|' '\'' string '\''
+   34       | '*'
+
+   35 ops: ops op
+   36    | op
+   37    | '$' '{' ID '[' '*' ']' '}'
+
+   38 concat: concat op
+   39       | op
+
+   40 testing: test test_expr
+
+   41 test_expr: test_expr or test_expr2
+   42          | test_expr2
+
+   43 test_expr2: test_expr2 and test_expr3
+   44           | test_expr3
+
+   45 test_expr3: '(' test_expr ')'
+   46           | '!' '(' test_expr ')'
+   47           | test_instr
+   48           | '!' test_instr
+
+   49 test_instr: concat eq concat
+   50           | concat neq concat
+   51           | operator1 concat
+   52           | op operator2 op
+
+   53 op: '$' '{' ID '}'
+   54   | '$' '{' ID '[' op_int ']' '}'
+   55   | word
+   56   | '$' integer
+   57   | '$' '*'
+   58   | '$' '?'
+   59   | '"' string '"'
+   60   | '\'' string '\''
+   61   | '$' '(' expr sum_int ')'
+   62   | '$' '(' cfun ')'
+
+   63 operator1: nnull
+   64          | null
+
+   65 operator2: eq
+   66          | neq
+   67          | gt
+   68          | ge
+   69          | lt
+   70          | le
+
+   71 sum_int: sum_int plus_minus prod_int
+   72        | prod_int
+
+   73 prod_int: prod_int mult_div_mod op_int
+   74         | op_int
+
+   75 op_int: '$' '{' ID '}'
+   76       | '$' '{' ID '[' op_int ']' '}'
+   77       | '$' integer
+   78       | plus_minus '$' '{' ID '}'
+   79       | plus_minus '$' '{' ID '[' op_int ']' '}'
+   80       | plus_minus '$' integer
+   81       | integer
+   82       | plus_minus integer
+   83       | '(' sum_int ')'
+
+   84 plus_minus: '+'
+   85           | '-'
+
+   86 mult_div_mod: '*'
+   87             | '/'
+   88             | '%'
+
+   89 dfun: ID '(' ')' '{' declarations instructions '}'
+
+   90 declarations: declarations local ID '=' concat ';'
+   91             | ε
+
+   92 cfun: ID ops
+   93     | ID
+
+
+Terminals, with rules where they appear
+
+    $end (0) 0
+    '!' (33) 46 48
+    '"' (34) 29 32 59
+    '$' (36) 37 53 54 56 57 58 61 62 75 76 77 78 79 80
+    '%' (37) 88
+    '\'' (39) 30 33 60
+    '(' (40) 45 46 61 62 83 89
+    ')' (41) 26 27 45 46 61 62 83 89
+    '*' (42) 34 37 57 86
+    '+' (43) 84
+    '-' (45) 85
+    '/' (47) 87
+    ';' (59) 2 26 27 90
+    '=' (61) 4 5 90
+    '?' (63) 58
+    '[' (91) 5 6 15 37 54 76 79
+    ']' (93) 5 6 15 37 54 76 79
+    '{' (123) 37 53 54 75 76 78 79 89
+    '|' (124) 31 32 33
+    '}' (125) 37 53 54 75 76 78 79 89
+    error (256)
+    ID <id> (258) 4 5 6 8 9 14 15 37 53 54 75 76 78 79 89 90 92 93
+    integer <integer> (259) 6 56 77 80 81 82
+    declare (260) 6
+    IF (261) 7
+    THEN (262) 7 22
+    FI (263) 7
+    ELIF (264) 22
+    ELSE (265) 23
+    FOR (266) 8 9
+    DO (267) 8 9 10 11
+    IN (268) 9 12
+    DONE (269) 8 9 10 11
+    WHILE (270) 10
+    UNTIL (271) 11
+    CASE (272) 12
+    ESAC (273) 12
+    EKKO (274) 13
+    READ (275) 14 15
+    RETURN (276) 18 19
+    EXIT (277) 20 21
+    word <string> (278) 28 31 55
+    string <string> (279) 29 30 32 33 59 60
+    test (280) 40
+    or (281) 41
+    and (282) 43
+    eq (283) 49 65
+    neq (284) 50 66
+    gt (285) 67
+    ge (286) 68
+    lt (287) 69
+    le (288) 70
+    null (289) 64
+    nnull (290) 63
+    expr (291) 61
+    local (292) 90
+
+
+Nonterminals, with rules where they appear
+
+    $accept (57)
+        on left: 0
+    program <quad> (58)
+        on left: 1
+        on right: 0
+    instructions <quad> (59)
+        on left: 2 3
+        on right: 1 2 7 8 9 10 11 22 23 26 27 89
+    instruction <quad> (60)
+        on left: 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21
+        on right: 2 3
+    maybe_else <quad> (61)
+        on left: 22 23 24
+        on right: 7 22
+    cases <quad> (62)
+        on left: 26 27
+        on right: 12 26
+    $@1 (63)
+        on left: 25
+        on right: 26
+    filter <filter_t> (64)
+        on left: 28 29 30 31 32 33 34
+        on right: 26 27 31 32 33
+    ops <quad> (65)
+        on left: 35 36 37
+        on right: 9 13 35 92
+    concat <quad> (66)
+        on left: 38 39
+        on right: 4 5 38 49 50 51 90
+    testing <quad> (67)
+        on left: 40
+        on right: 7 10 11 22
+    test_expr <quad> (68)
+        on left: 41 42
+        on right: 40 41 45 46
+    test_expr2 <quad> (69)
+        on left: 43 44
+        on right: 41 42 43
+    test_expr3 <quad> (70)
+        on left: 45 46 47 48
+        on right: 43 44
+    test_instr <quad> (71)
+        on left: 49 50 51 52
+        on right: 47 48
+    op <quad> (72)
+        on left: 53 54 55 56 57 58 59 60 61 62
+        on right: 12 35 36 38 39 52
+    operator1 <integer> (73)
+        on left: 63 64
+        on right: 51
+    operator2 <integer> (74)
+        on left: 65 66 67 68 69 70
+        on right: 52
+    sum_int <quad> (75)
+        on left: 71 72
+        on right: 61 71 83
+    prod_int <quad> (76)
+        on left: 73 74
+        on right: 71 72 73
+    op_int <quad> (77)
+        on left: 75 76 77 78 79 80 81 82 83
+        on right: 5 15 19 21 54 73 74 76 79
+    plus_minus <integer> (78)
+        on left: 84 85
+        on right: 71 78 79 80 82
+    mult_div_mod <integer> (79)
+        on left: 86 87 88
+        on right: 73
+    dfun <quad> (80)
+        on left: 89
+        on right: 16
+    declarations <quad> (81)
+        on left: 90 91
+        on right: 89 90
+    cfun <quad> (82)
+        on left: 92 93
+        on right: 17 62
+
+
+State 0
+
+    0 $accept: • program $end
+
+    ID       shift, and go to state 1
+    declare  shift, and go to state 2
+    IF       shift, and go to state 3
+    FOR      shift, and go to state 4
+    WHILE    shift, and go to state 5
+    UNTIL    shift, and go to state 6
+    CASE     shift, and go to state 7
+    EKKO     shift, and go to state 8
+    READ     shift, and go to state 9
+    RETURN   shift, and go to state 10
+    EXIT     shift, and go to state 11
+
+    program       go to state 12
+    instructions  go to state 13
+    instruction   go to state 14
+    dfun          go to state 15
+    cfun          go to state 16
+
+
+State 1
+
+    4 instruction: ID • '=' concat
+    5            | ID • '[' op_int ']' '=' concat
+   89 dfun: ID • '(' ')' '{' declarations instructions '}'
+   92 cfun: ID • ops
+   93     | ID •
+
+    word  shift, and go to state 17
+    '='   shift, and go to state 18
+    '['   shift, and go to state 19
+    '"'   shift, and go to state 20
+    '\''  shift, and go to state 21
+    '$'   shift, and go to state 22
+    '('   shift, and go to state 23
+
+    $default  reduce using rule 93 (cfun)
+
+    ops  go to state 24
+    op   go to state 25
+
+
+State 2
+
+    6 instruction: declare • ID '[' integer ']'
+
+    ID  shift, and go to state 26
+
+
+State 3
+
+    7 instruction: IF • testing THEN instructions maybe_else instructions FI
+
+    test  shift, and go to state 27
+
+    testing  go to state 28
+
+
+State 4
+
+    8 instruction: FOR • ID DO instructions DONE
+    9            | FOR • ID IN ops DO instructions DONE
+
+    ID  shift, and go to state 29
+
+
+State 5
+
+   10 instruction: WHILE • testing DO instructions DONE
+
+    test  shift, and go to state 27
+
+    testing  go to state 30
+
+
+State 6
+
+   11 instruction: UNTIL • testing DO instructions DONE
+
+    test  shift, and go to state 27
+
+    testing  go to state 31
+
+
+State 7
+
+   12 instruction: CASE • op IN cases ESAC
+
+    word  shift, and go to state 17
+    '"'   shift, and go to state 20
+    '\''  shift, and go to state 21
+    '$'   shift, and go to state 32
+
+    op  go to state 33
+
+
+State 8
+
+   13 instruction: EKKO • ops
+
+    word  shift, and go to state 17
+    '"'   shift, and go to state 20
+    '\''  shift, and go to state 21
+    '$'   shift, and go to state 22
+
+    ops  go to state 34
+    op   go to state 25
+
+
+State 9
+
+   14 instruction: READ • ID
+   15            | READ • ID '[' op_int ']'
+
+    ID  shift, and go to state 35
+
+
+State 10
+
+   18 instruction: RETURN •
+   19            | RETURN • op_int
+
+    integer  shift, and go to state 36
+    '$'      shift, and go to state 37
+    '('      shift, and go to state 38
+    '+'      shift, and go to state 39
+    '-'      shift, and go to state 40
+
+    $default  reduce using rule 18 (instruction)
+
+    op_int      go to state 41
+    plus_minus  go to state 42
+
+
+State 11
+
+   20 instruction: EXIT •
+   21            | EXIT • op_int
+
+    integer  shift, and go to state 36
+    '$'      shift, and go to state 37
+    '('      shift, and go to state 38
+    '+'      shift, and go to state 39
+    '-'      shift, and go to state 40
+
+    $default  reduce using rule 20 (instruction)
+
+    op_int      go to state 43
+    plus_minus  go to state 42
+
+
+State 12
+
+    0 $accept: program • $end
+
+    $end  shift, and go to state 44
+
+
+State 13
+
+    1 program: instructions •
+    2 instructions: instructions • ';' instruction
+
+    ';'  shift, and go to state 45
+
+    $default  reduce using rule 1 (program)
+
+
+State 14
+
+    3 instructions: instruction •
+
+    $default  reduce using rule 3 (instructions)
+
+
+State 15
+
+   16 instruction: dfun •
+
+    $default  reduce using rule 16 (instruction)
+
+
+State 16
+
+   17 instruction: cfun •
+
+    $default  reduce using rule 17 (instruction)
+
+
+State 17
+
+   55 op: word •
+
+    $default  reduce using rule 55 (op)
+
+
+State 18
+
+    4 instruction: ID '=' • concat
+
+    word  shift, and go to state 17
+    '"'   shift, and go to state 20
+    '\''  shift, and go to state 21
+    '$'   shift, and go to state 32
+
+    concat  go to state 46
+    op      go to state 47
+
+
+State 19
+
+    5 instruction: ID '[' • op_int ']' '=' concat
+
+    integer  shift, and go to state 36
+    '$'      shift, and go to state 37
+    '('      shift, and go to state 38
+    '+'      shift, and go to state 39
+    '-'      shift, and go to state 40
+
+    op_int      go to state 48
+    plus_minus  go to state 42
+
+
+State 20
+
+   59 op: '"' • string '"'
+
+    string  shift, and go to state 49
+
+
+State 21
+
+   60 op: '\'' • string '\''
+
+    string  shift, and go to state 50
+
+
+State 22
+
+   37 ops: '$' • '{' ID '[' '*' ']' '}'
+   53 op: '$' • '{' ID '}'
+   54   | '$' • '{' ID '[' op_int ']' '}'
+   56   | '$' • integer
+   57   | '$' • '*'
+   58   | '$' • '?'
+   61   | '$' • '(' expr sum_int ')'
+   62   | '$' • '(' cfun ')'
+
+    integer  shift, and go to state 51
+    '*'      shift, and go to state 52
+    '{'      shift, and go to state 53
+    '('      shift, and go to state 54
+    '?'      shift, and go to state 55
+
+
+State 23
+
+   89 dfun: ID '(' • ')' '{' declarations instructions '}'
+
+    ')'  shift, and go to state 56
+
+
+State 24
+
+   35 ops: ops • op
+   92 cfun: ID ops •
+
+    word  shift, and go to state 17
+    '"'   shift, and go to state 20
+    '\''  shift, and go to state 21
+    '$'   shift, and go to state 32
+
+    $default  reduce using rule 92 (cfun)
+
+    op  go to state 57
+
+
+State 25
+
+   36 ops: op •
+
+    $default  reduce using rule 36 (ops)
+
+
+State 26
+
+    6 instruction: declare ID • '[' integer ']'
+
+    '['  shift, and go to state 58
+
+
+State 27
+
+   40 testing: test • test_expr
+
+    word   shift, and go to state 17
+    null   shift, and go to state 59
+    nnull  shift, and go to state 60
+    '"'    shift, and go to state 20
+    '\''   shift, and go to state 21
+    '$'    shift, and go to state 32
+    '('    shift, and go to state 61
+    '!'    shift, and go to state 62
+
+    concat      go to state 63
+    test_expr   go to state 64
+    test_expr2  go to state 65
+    test_expr3  go to state 66
+    test_instr  go to state 67
+    op          go to state 68
+    operator1   go to state 69
+
+
+State 28
+
+    7 instruction: IF testing • THEN instructions maybe_else instructions FI
+
+    THEN  shift, and go to state 70
+
+
+State 29
+
+    8 instruction: FOR ID • DO instructions DONE
+    9            | FOR ID • IN ops DO instructions DONE
+
+    DO  shift, and go to state 71
+    IN  shift, and go to state 72
+
+
+State 30
+
+   10 instruction: WHILE testing • DO instructions DONE
+
+    DO  shift, and go to state 73
+
+
+State 31
+
+   11 instruction: UNTIL testing • DO instructions DONE
+
+    DO  shift, and go to state 74
+
+
+State 32
+
+   53 op: '$' • '{' ID '}'
+   54   | '$' • '{' ID '[' op_int ']' '}'
+   56   | '$' • integer
+   57   | '$' • '*'
+   58   | '$' • '?'
+   61   | '$' • '(' expr sum_int ')'
+   62   | '$' • '(' cfun ')'
+
+    integer  shift, and go to state 51
+    '*'      shift, and go to state 52
+    '{'      shift, and go to state 75
+    '('      shift, and go to state 54
+    '?'      shift, and go to state 55
+
+
+State 33
+
+   12 instruction: CASE op • IN cases ESAC
+
+    IN  shift, and go to state 76
+
+
+State 34
+
+   13 instruction: EKKO ops •
+   35 ops: ops • op
+
+    word  shift, and go to state 17
+    '"'   shift, and go to state 20
+    '\''  shift, and go to state 21
+    '$'   shift, and go to state 32
+
+    $default  reduce using rule 13 (instruction)
+
+    op  go to state 57
+
+
+State 35
+
+   14 instruction: READ ID •
+   15            | READ ID • '[' op_int ']'
+
+    '['  shift, and go to state 77
+
+    $default  reduce using rule 14 (instruction)
+
+
+State 36
+
+   81 op_int: integer •
+
+    $default  reduce using rule 81 (op_int)
+
+
+State 37
+
+   75 op_int: '$' • '{' ID '}'
+   76       | '$' • '{' ID '[' op_int ']' '}'
+   77       | '$' • integer
+
+    integer  shift, and go to state 78
+    '{'      shift, and go to state 79
+
+
+State 38
+
+   83 op_int: '(' • sum_int ')'
+
+    integer  shift, and go to state 36
+    '$'      shift, and go to state 37
+    '('      shift, and go to state 38
+    '+'      shift, and go to state 39
+    '-'      shift, and go to state 40
+
+    sum_int     go to state 80
+    prod_int    go to state 81
+    op_int      go to state 82
+    plus_minus  go to state 42
+
+
+State 39
+
+   84 plus_minus: '+' •
+
+    $default  reduce using rule 84 (plus_minus)
+
+
+State 40
+
+   85 plus_minus: '-' •
+
+    $default  reduce using rule 85 (plus_minus)
+
+
+State 41
+
+   19 instruction: RETURN op_int •
+
+    $default  reduce using rule 19 (instruction)
+
+
+State 42
+
+   78 op_int: plus_minus • '$' '{' ID '}'
+   79       | plus_minus • '$' '{' ID '[' op_int ']' '}'
+   80       | plus_minus • '$' integer
+   82       | plus_minus • integer
+
+    integer  shift, and go to state 83
+    '$'      shift, and go to state 84
+
+
+State 43
+
+   21 instruction: EXIT op_int •
+
+    $default  reduce using rule 21 (instruction)
+
+
+State 44
+
+    0 $accept: program $end •
+
+    $default  accept
+
+
+State 45
+
+    2 instructions: instructions ';' • instruction
+
+    ID       shift, and go to state 1
+    declare  shift, and go to state 2
+    IF       shift, and go to state 3
+    FOR      shift, and go to state 4
+    WHILE    shift, and go to state 5
+    UNTIL    shift, and go to state 6
+    CASE     shift, and go to state 7
+    EKKO     shift, and go to state 8
+    READ     shift, and go to state 9
+    RETURN   shift, and go to state 10
+    EXIT     shift, and go to state 11
+
+    instruction  go to state 85
+    dfun         go to state 15
+    cfun         go to state 16
+
+
+State 46
+
+    4 instruction: ID '=' concat •
+   38 concat: concat • op
+
+    word  shift, and go to state 17
+    '"'   shift, and go to state 20
+    '\''  shift, and go to state 21
+    '$'   shift, and go to state 32
+
+    $default  reduce using rule 4 (instruction)
+
+    op  go to state 86
+
+
+State 47
+
+   39 concat: op •
+
+    $default  reduce using rule 39 (concat)
+
+
+State 48
+
+    5 instruction: ID '[' op_int • ']' '=' concat
+
+    ']'  shift, and go to state 87
+
+
+State 49
+
+   59 op: '"' string • '"'
+
+    '"'  shift, and go to state 88
+
+
+State 50
+
+   60 op: '\'' string • '\''
+
+    '\''  shift, and go to state 89
+
+
+State 51
+
+   56 op: '$' integer •
+
+    $default  reduce using rule 56 (op)
+
+
+State 52
+
+   57 op: '$' '*' •
+
+    $default  reduce using rule 57 (op)
+
+
+State 53
+
+   37 ops: '$' '{' • ID '[' '*' ']' '}'
+   53 op: '$' '{' • ID '}'
+   54   | '$' '{' • ID '[' op_int ']' '}'
+
+    ID  shift, and go to state 90
+
+
+State 54
+
+   61 op: '$' '(' • expr sum_int ')'
+   62   | '$' '(' • cfun ')'
+
+    ID    shift, and go to state 91
+    expr  shift, and go to state 92
+
+    cfun  go to state 93
+
+
+State 55
+
+   58 op: '$' '?' •
+
+    $default  reduce using rule 58 (op)
+
+
+State 56
+
+   89 dfun: ID '(' ')' • '{' declarations instructions '}'
+
+    '{'  shift, and go to state 94
+
+
+State 57
+
+   35 ops: ops op •
+
+    $default  reduce using rule 35 (ops)
+
+
+State 58
+
+    6 instruction: declare ID '[' • integer ']'
+
+    integer  shift, and go to state 95
+
+
+State 59
+
+   64 operator1: null •
+
+    $default  reduce using rule 64 (operator1)
+
+
+State 60
+
+   63 operator1: nnull •
+
+    $default  reduce using rule 63 (operator1)
+
+
+State 61
+
+   45 test_expr3: '(' • test_expr ')'
+
+    word   shift, and go to state 17
+    null   shift, and go to state 59
+    nnull  shift, and go to state 60
+    '"'    shift, and go to state 20
+    '\''   shift, and go to state 21
+    '$'    shift, and go to state 32
+    '('    shift, and go to state 61
+    '!'    shift, and go to state 62
+
+    concat      go to state 63
+    test_expr   go to state 96
+    test_expr2  go to state 65
+    test_expr3  go to state 66
+    test_instr  go to state 67
+    op          go to state 68
+    operator1   go to state 69
+
+
+State 62
+
+   46 test_expr3: '!' • '(' test_expr ')'
+   48           | '!' • test_instr
+
+    word   shift, and go to state 17
+    null   shift, and go to state 59
+    nnull  shift, and go to state 60
+    '"'    shift, and go to state 20
+    '\''   shift, and go to state 21
+    '$'    shift, and go to state 32
+    '('    shift, and go to state 97
+
+    concat      go to state 63
+    test_instr  go to state 98
+    op          go to state 68
+    operator1   go to state 69
+
+
+State 63
+
+   38 concat: concat • op
+   49 test_instr: concat • eq concat
+   50           | concat • neq concat
+
+    word  shift, and go to state 17
+    eq    shift, and go to state 99
+    neq   shift, and go to state 100
+    '"'   shift, and go to state 20
+    '\''  shift, and go to state 21
+    '$'   shift, and go to state 32
+
+    op  go to state 86
+
+
+State 64
+
+   40 testing: test test_expr •
+   41 test_expr: test_expr • or test_expr2
+
+    or  shift, and go to state 101
+
+    $default  reduce using rule 40 (testing)
+
+
+State 65
+
+   42 test_expr: test_expr2 •
+   43 test_expr2: test_expr2 • and test_expr3
+
+    and  shift, and go to state 102
+
+    $default  reduce using rule 42 (test_expr)
+
+
+State 66
+
+   44 test_expr2: test_expr3 •
+
+    $default  reduce using rule 44 (test_expr2)
+
+
+State 67
+
+   47 test_expr3: test_instr •
+
+    $default  reduce using rule 47 (test_expr3)
+
+
+State 68
+
+   39 concat: op •
+   52 test_instr: op • operator2 op
+
+    eq   shift, and go to state 103
+    neq  shift, and go to state 104
+    gt   shift, and go to state 105
+    ge   shift, and go to state 106
+    lt   shift, and go to state 107
+    le   shift, and go to state 108
+
+    eq        [reduce using rule 39 (concat)]
+    neq       [reduce using rule 39 (concat)]
+    $default  reduce using rule 39 (concat)
+
+    operator2  go to state 109
+
+
+State 69
+
+   51 test_instr: operator1 • concat
+
+    word  shift, and go to state 17
+    '"'   shift, and go to state 20
+    '\''  shift, and go to state 21
+    '$'   shift, and go to state 32
+
+    concat  go to state 110
+    op      go to state 47
+
+
+State 70
+
+    7 instruction: IF testing THEN • instructions maybe_else instructions FI
+
+    ID       shift, and go to state 1
+    declare  shift, and go to state 2
+    IF       shift, and go to state 3
+    FOR      shift, and go to state 4
+    WHILE    shift, and go to state 5
+    UNTIL    shift, and go to state 6
+    CASE     shift, and go to state 7
+    EKKO     shift, and go to state 8
+    READ     shift, and go to state 9
+    RETURN   shift, and go to state 10
+    EXIT     shift, and go to state 11
+
+    instructions  go to state 111
+    instruction   go to state 14
+    dfun          go to state 15
+    cfun          go to state 16
+
+
+State 71
+
+    8 instruction: FOR ID DO • instructions DONE
+
+    ID       shift, and go to state 1
+    declare  shift, and go to state 2
+    IF       shift, and go to state 3
+    FOR      shift, and go to state 4
+    WHILE    shift, and go to state 5
+    UNTIL    shift, and go to state 6
+    CASE     shift, and go to state 7
+    EKKO     shift, and go to state 8
+    READ     shift, and go to state 9
+    RETURN   shift, and go to state 10
+    EXIT     shift, and go to state 11
+
+    instructions  go to state 112
+    instruction   go to state 14
+    dfun          go to state 15
+    cfun          go to state 16
+
+
+State 72
+
+    9 instruction: FOR ID IN • ops DO instructions DONE
+
+    word  shift, and go to state 17
+    '"'   shift, and go to state 20
+    '\''  shift, and go to state 21
+    '$'   shift, and go to state 22
+
+    ops  go to state 113
+    op   go to state 25
+
+
+State 73
+
+   10 instruction: WHILE testing DO • instructions DONE
+
+    ID       shift, and go to state 1
+    declare  shift, and go to state 2
+    IF       shift, and go to state 3
+    FOR      shift, and go to state 4
+    WHILE    shift, and go to state 5
+    UNTIL    shift, and go to state 6
+    CASE     shift, and go to state 7
+    EKKO     shift, and go to state 8
+    READ     shift, and go to state 9
+    RETURN   shift, and go to state 10
+    EXIT     shift, and go to state 11
+
+    instructions  go to state 114
+    instruction   go to state 14
+    dfun          go to state 15
+    cfun          go to state 16
+
+
+State 74
+
+   11 instruction: UNTIL testing DO • instructions DONE
+
+    ID       shift, and go to state 1
+    declare  shift, and go to state 2
+    IF       shift, and go to state 3
+    FOR      shift, and go to state 4
+    WHILE    shift, and go to state 5
+    UNTIL    shift, and go to state 6
+    CASE     shift, and go to state 7
+    EKKO     shift, and go to state 8
+    READ     shift, and go to state 9
+    RETURN   shift, and go to state 10
+    EXIT     shift, and go to state 11
+
+    instructions  go to state 115
+    instruction   go to state 14
+    dfun          go to state 15
+    cfun          go to state 16
+
+
+State 75
+
+   53 op: '$' '{' • ID '}'
+   54   | '$' '{' • ID '[' op_int ']' '}'
+
+    ID  shift, and go to state 116
+
+
+State 76
+
+   12 instruction: CASE op IN • cases ESAC
+
+    word  shift, and go to state 117
+    '"'   shift, and go to state 118
+    '\''  shift, and go to state 119
+    '*'   shift, and go to state 120
+
+    cases   go to state 121
+    filter  go to state 122
+
+
+State 77
+
+   15 instruction: READ ID '[' • op_int ']'
+
+    integer  shift, and go to state 36
+    '$'      shift, and go to state 37
+    '('      shift, and go to state 38
+    '+'      shift, and go to state 39
+    '-'      shift, and go to state 40
+
+    op_int      go to state 123
+    plus_minus  go to state 42
+
+
+State 78
+
+   77 op_int: '$' integer •
+
+    $default  reduce using rule 77 (op_int)
+
+
+State 79
+
+   75 op_int: '$' '{' • ID '}'
+   76       | '$' '{' • ID '[' op_int ']' '}'
+
+    ID  shift, and go to state 124
+
+
+State 80
+
+   71 sum_int: sum_int • plus_minus prod_int
+   83 op_int: '(' sum_int • ')'
+
+    ')'  shift, and go to state 125
+    '+'  shift, and go to state 39
+    '-'  shift, and go to state 40
+
+    plus_minus  go to state 126
+
+
+State 81
+
+   72 sum_int: prod_int •
+   73 prod_int: prod_int • mult_div_mod op_int
+
+    '*'  shift, and go to state 127
+    '/'  shift, and go to state 128
+    '%'  shift, and go to state 129
+
+    $default  reduce using rule 72 (sum_int)
+
+    mult_div_mod  go to state 130
+
+
+State 82
+
+   74 prod_int: op_int •
+
+    $default  reduce using rule 74 (prod_int)
+
+
+State 83
+
+   82 op_int: plus_minus integer •
+
+    $default  reduce using rule 82 (op_int)
+
+
+State 84
+
+   78 op_int: plus_minus '$' • '{' ID '}'
+   79       | plus_minus '$' • '{' ID '[' op_int ']' '}'
+   80       | plus_minus '$' • integer
+
+    integer  shift, and go to state 131
+    '{'      shift, and go to state 132
+
+
+State 85
+
+    2 instructions: instructions ';' instruction •
+
+    $default  reduce using rule 2 (instructions)
+
+
+State 86
+
+   38 concat: concat op •
+
+    $default  reduce using rule 38 (concat)
+
+
+State 87
+
+    5 instruction: ID '[' op_int ']' • '=' concat
+
+    '='  shift, and go to state 133
+
+
+State 88
+
+   59 op: '"' string '"' •
+
+    $default  reduce using rule 59 (op)
+
+
+State 89
+
+   60 op: '\'' string '\'' •
+
+    $default  reduce using rule 60 (op)
+
+
+State 90
+
+   37 ops: '$' '{' ID • '[' '*' ']' '}'
+   53 op: '$' '{' ID • '}'
+   54   | '$' '{' ID • '[' op_int ']' '}'
+
+    '['  shift, and go to state 134
+    '}'  shift, and go to state 135
+
+
+State 91
+
+   92 cfun: ID • ops
+   93     | ID •
+
+    word  shift, and go to state 17
+    '"'   shift, and go to state 20
+    '\''  shift, and go to state 21
+    '$'   shift, and go to state 22
+
+    $default  reduce using rule 93 (cfun)
+
+    ops  go to state 24
+    op   go to state 25
+
+
+State 92
+
+   61 op: '$' '(' expr • sum_int ')'
+
+    integer  shift, and go to state 36
+    '$'      shift, and go to state 37
+    '('      shift, and go to state 38
+    '+'      shift, and go to state 39
+    '-'      shift, and go to state 40
+
+    sum_int     go to state 136
+    prod_int    go to state 81
+    op_int      go to state 82
+    plus_minus  go to state 42
+
+
+State 93
+
+   62 op: '$' '(' cfun • ')'
+
+    ')'  shift, and go to state 137
+
+
+State 94
+
+   89 dfun: ID '(' ')' '{' • declarations instructions '}'
+
+    $default  reduce using rule 91 (declarations)
+
+    declarations  go to state 138
+
+
+State 95
+
+    6 instruction: declare ID '[' integer • ']'
+
+    ']'  shift, and go to state 139
+
+
+State 96
+
+   41 test_expr: test_expr • or test_expr2
+   45 test_expr3: '(' test_expr • ')'
+
+    or   shift, and go to state 101
+    ')'  shift, and go to state 140
+
+
+State 97
+
+   46 test_expr3: '!' '(' • test_expr ')'
+
+    word   shift, and go to state 17
+    null   shift, and go to state 59
+    nnull  shift, and go to state 60
+    '"'    shift, and go to state 20
+    '\''   shift, and go to state 21
+    '$'    shift, and go to state 32
+    '('    shift, and go to state 61
+    '!'    shift, and go to state 62
+
+    concat      go to state 63
+    test_expr   go to state 141
+    test_expr2  go to state 65
+    test_expr3  go to state 66
+    test_instr  go to state 67
+    op          go to state 68
+    operator1   go to state 69
+
+
+State 98
+
+   48 test_expr3: '!' test_instr •
+
+    $default  reduce using rule 48 (test_expr3)
+
+
+State 99
+
+   49 test_instr: concat eq • concat
+
+    word  shift, and go to state 17
+    '"'   shift, and go to state 20
+    '\''  shift, and go to state 21
+    '$'   shift, and go to state 32
+
+    concat  go to state 142
+    op      go to state 47
+
+
+State 100
+
+   50 test_instr: concat neq • concat
+
+    word  shift, and go to state 17
+    '"'   shift, and go to state 20
+    '\''  shift, and go to state 21
+    '$'   shift, and go to state 32
+
+    concat  go to state 143
+    op      go to state 47
+
+
+State 101
+
+   41 test_expr: test_expr or • test_expr2
+
+    word   shift, and go to state 17
+    null   shift, and go to state 59
+    nnull  shift, and go to state 60
+    '"'    shift, and go to state 20
+    '\''   shift, and go to state 21
+    '$'    shift, and go to state 32
+    '('    shift, and go to state 61
+    '!'    shift, and go to state 62
+
+    concat      go to state 63
+    test_expr2  go to state 144
+    test_expr3  go to state 66
+    test_instr  go to state 67
+    op          go to state 68
+    operator1   go to state 69
+
+
+State 102
+
+   43 test_expr2: test_expr2 and • test_expr3
+
+    word   shift, and go to state 17
+    null   shift, and go to state 59
+    nnull  shift, and go to state 60
+    '"'    shift, and go to state 20
+    '\''   shift, and go to state 21
+    '$'    shift, and go to state 32
+    '('    shift, and go to state 61
+    '!'    shift, and go to state 62
+
+    concat      go to state 63
+    test_expr3  go to state 145
+    test_instr  go to state 67
+    op          go to state 68
+    operator1   go to state 69
+
+
+State 103
+
+   65 operator2: eq •
+
+    $default  reduce using rule 65 (operator2)
+
+
+State 104
+
+   66 operator2: neq •
+
+    $default  reduce using rule 66 (operator2)
+
+
+State 105
+
+   67 operator2: gt •
+
+    $default  reduce using rule 67 (operator2)
+
+
+State 106
+
+   68 operator2: ge •
+
+    $default  reduce using rule 68 (operator2)
+
+
+State 107
+
+   69 operator2: lt •
+
+    $default  reduce using rule 69 (operator2)
+
+
+State 108
+
+   70 operator2: le •
+
+    $default  reduce using rule 70 (operator2)
+
+
+State 109
+
+   52 test_instr: op operator2 • op
+
+    word  shift, and go to state 17
+    '"'   shift, and go to state 20
+    '\''  shift, and go to state 21
+    '$'   shift, and go to state 32
+
+    op  go to state 146
+
+
+State 110
+
+   38 concat: concat • op
+   51 test_instr: operator1 concat •
+
+    word  shift, and go to state 17
+    '"'   shift, and go to state 20
+    '\''  shift, and go to state 21
+    '$'   shift, and go to state 32
+
+    $default  reduce using rule 51 (test_instr)
+
+    op  go to state 86
+
+
+State 111
+
+    2 instructions: instructions • ';' instruction
+    7 instruction: IF testing THEN instructions • maybe_else instructions FI
+
+    ELIF  shift, and go to state 147
+    ELSE  shift, and go to state 148
+    ';'   shift, and go to state 45
+
+    $default  reduce using rule 24 (maybe_else)
+
+    maybe_else  go to state 149
+
+
+State 112
+
+    2 instructions: instructions • ';' instruction
+    8 instruction: FOR ID DO instructions • DONE
+
+    DONE  shift, and go to state 150
+    ';'   shift, and go to state 45
+
+
+State 113
+
+    9 instruction: FOR ID IN ops • DO instructions DONE
+   35 ops: ops • op
+
+    DO    shift, and go to state 151
+    word  shift, and go to state 17
+    '"'   shift, and go to state 20
+    '\''  shift, and go to state 21
+    '$'   shift, and go to state 32
+
+    op  go to state 57
+
+
+State 114
+
+    2 instructions: instructions • ';' instruction
+   10 instruction: WHILE testing DO instructions • DONE
+
+    DONE  shift, and go to state 152
+    ';'   shift, and go to state 45
+
+
+State 115
+
+    2 instructions: instructions • ';' instruction
+   11 instruction: UNTIL testing DO instructions • DONE
+
+    DONE  shift, and go to state 153
+    ';'   shift, and go to state 45
+
+
+State 116
+
+   53 op: '$' '{' ID • '}'
+   54   | '$' '{' ID • '[' op_int ']' '}'
+
+    '['  shift, and go to state 154
+    '}'  shift, and go to state 135
+
+
+State 117
+
+   28 filter: word •
+
+    $default  reduce using rule 28 (filter)
+
+
+State 118
+
+   29 filter: '"' • string '"'
+
+    string  shift, and go to state 155
+
+
+State 119
+
+   30 filter: '\'' • string '\''
+
+    string  shift, and go to state 156
+
+
+State 120
+
+   34 filter: '*' •
+
+    $default  reduce using rule 34 (filter)
+
+
+State 121
+
+   12 instruction: CASE op IN cases • ESAC
+   26 cases: cases • filter $@1 ')' instructions ';' ';'
+
+    ESAC  shift, and go to state 157
+    word  shift, and go to state 117
+    '"'   shift, and go to state 118
+    '\''  shift, and go to state 119
+    '*'   shift, and go to state 120
+
+    filter  go to state 158
+
+
+State 122
+
+   27 cases: filter • ')' instructions ';' ';'
+   31 filter: filter • '|' word
+   32       | filter • '|' '"' string '"'
+   33       | filter • '|' '\'' string '\''
+
+    ')'  shift, and go to state 159
+    '|'  shift, and go to state 160
+
+
+State 123
+
+   15 instruction: READ ID '[' op_int • ']'
+
+    ']'  shift, and go to state 161
+
+
+State 124
+
+   75 op_int: '$' '{' ID • '}'
+   76       | '$' '{' ID • '[' op_int ']' '}'
+
+    '['  shift, and go to state 162
+    '}'  shift, and go to state 163
+
+
+State 125
+
+   83 op_int: '(' sum_int ')' •
+
+    $default  reduce using rule 83 (op_int)
+
+
+State 126
+
+   71 sum_int: sum_int plus_minus • prod_int
+
+    integer  shift, and go to state 36
+    '$'      shift, and go to state 37
+    '('      shift, and go to state 38
+    '+'      shift, and go to state 39
+    '-'      shift, and go to state 40
+
+    prod_int    go to state 164
+    op_int      go to state 82
+    plus_minus  go to state 42
+
+
+State 127
+
+   86 mult_div_mod: '*' •
+
+    $default  reduce using rule 86 (mult_div_mod)
+
+
+State 128
+
+   87 mult_div_mod: '/' •
+
+    $default  reduce using rule 87 (mult_div_mod)
+
+
+State 129
+
+   88 mult_div_mod: '%' •
+
+    $default  reduce using rule 88 (mult_div_mod)
+
+
+State 130
+
+   73 prod_int: prod_int mult_div_mod • op_int
+
+    integer  shift, and go to state 36
+    '$'      shift, and go to state 37
+    '('      shift, and go to state 38
+    '+'      shift, and go to state 39
+    '-'      shift, and go to state 40
+
+    op_int      go to state 165
+    plus_minus  go to state 42
+
+
+State 131
+
+   80 op_int: plus_minus '$' integer •
+
+    $default  reduce using rule 80 (op_int)
+
+
+State 132
+
+   78 op_int: plus_minus '$' '{' • ID '}'
+   79       | plus_minus '$' '{' • ID '[' op_int ']' '}'
+
+    ID  shift, and go to state 166
+
+
+State 133
+
+    5 instruction: ID '[' op_int ']' '=' • concat
+
+    word  shift, and go to state 17
+    '"'   shift, and go to state 20
+    '\''  shift, and go to state 21
+    '$'   shift, and go to state 32
+
+    concat  go to state 167
+    op      go to state 47
+
+
+State 134
+
+   37 ops: '$' '{' ID '[' • '*' ']' '}'
+   54 op: '$' '{' ID '[' • op_int ']' '}'
+
+    integer  shift, and go to state 36
+    '*'      shift, and go to state 168
+    '$'      shift, and go to state 37
+    '('      shift, and go to state 38
+    '+'      shift, and go to state 39
+    '-'      shift, and go to state 40
+
+    op_int      go to state 169
+    plus_minus  go to state 42
+
+
+State 135
+
+   53 op: '$' '{' ID '}' •
+
+    $default  reduce using rule 53 (op)
+
+
+State 136
+
+   61 op: '$' '(' expr sum_int • ')'
+   71 sum_int: sum_int • plus_minus prod_int
+
+    ')'  shift, and go to state 170
+    '+'  shift, and go to state 39
+    '-'  shift, and go to state 40
+
+    plus_minus  go to state 126
+
+
+State 137
+
+   62 op: '$' '(' cfun ')' •
+
+    $default  reduce using rule 62 (op)
+
+
+State 138
+
+   89 dfun: ID '(' ')' '{' declarations • instructions '}'
+   90 declarations: declarations • local ID '=' concat ';'
+
+    ID       shift, and go to state 1
+    declare  shift, and go to state 2
+    IF       shift, and go to state 3
+    FOR      shift, and go to state 4
+    WHILE    shift, and go to state 5
+    UNTIL    shift, and go to state 6
+    CASE     shift, and go to state 7
+    EKKO     shift, and go to state 8
+    READ     shift, and go to state 9
+    RETURN   shift, and go to state 10
+    EXIT     shift, and go to state 11
+    local    shift, and go to state 171
+
+    instructions  go to state 172
+    instruction   go to state 14
+    dfun          go to state 15
+    cfun          go to state 16
+
+
+State 139
+
+    6 instruction: declare ID '[' integer ']' •
+
+    $default  reduce using rule 6 (instruction)
+
+
+State 140
+
+   45 test_expr3: '(' test_expr ')' •
+
+    $default  reduce using rule 45 (test_expr3)
+
+
+State 141
+
+   41 test_expr: test_expr • or test_expr2
+   46 test_expr3: '!' '(' test_expr • ')'
+
+    or   shift, and go to state 101
+    ')'  shift, and go to state 173
+
+
+State 142
+
+   38 concat: concat • op
+   49 test_instr: concat eq concat •
+
+    word  shift, and go to state 17
+    '"'   shift, and go to state 20
+    '\''  shift, and go to state 21
+    '$'   shift, and go to state 32
+
+    $default  reduce using rule 49 (test_instr)
+
+    op  go to state 86
+
+
+State 143
+
+   38 concat: concat • op
+   50 test_instr: concat neq concat •
+
+    word  shift, and go to state 17
+    '"'   shift, and go to state 20
+    '\''  shift, and go to state 21
+    '$'   shift, and go to state 32
+
+    $default  reduce using rule 50 (test_instr)
+
+    op  go to state 86
+
+
+State 144
+
+   41 test_expr: test_expr or test_expr2 •
+   43 test_expr2: test_expr2 • and test_expr3
+
+    and  shift, and go to state 102
+
+    $default  reduce using rule 41 (test_expr)
+
+
+State 145
+
+   43 test_expr2: test_expr2 and test_expr3 •
+
+    $default  reduce using rule 43 (test_expr2)
+
+
+State 146
+
+   52 test_instr: op operator2 op •
+
+    $default  reduce using rule 52 (test_instr)
+
+
+State 147
+
+   22 maybe_else: ELIF • testing THEN instructions maybe_else
+
+    test  shift, and go to state 27
+
+    testing  go to state 174
+
+
+State 148
+
+   23 maybe_else: ELSE • instructions
+
+    ID       shift, and go to state 1
+    declare  shift, and go to state 2
+    IF       shift, and go to state 3
+    FOR      shift, and go to state 4
+    WHILE    shift, and go to state 5
+    UNTIL    shift, and go to state 6
+    CASE     shift, and go to state 7
+    EKKO     shift, and go to state 8
+    READ     shift, and go to state 9
+    RETURN   shift, and go to state 10
+    EXIT     shift, and go to state 11
+
+    instructions  go to state 175
+    instruction   go to state 14
+    dfun          go to state 15
+    cfun          go to state 16
+
+
+State 149
+
+    7 instruction: IF testing THEN instructions maybe_else • instructions FI
+
+    ID       shift, and go to state 1
+    declare  shift, and go to state 2
+    IF       shift, and go to state 3
+    FOR      shift, and go to state 4
+    WHILE    shift, and go to state 5
+    UNTIL    shift, and go to state 6
+    CASE     shift, and go to state 7
+    EKKO     shift, and go to state 8
+    READ     shift, and go to state 9
+    RETURN   shift, and go to state 10
+    EXIT     shift, and go to state 11
+
+    instructions  go to state 176
+    instruction   go to state 14
+    dfun          go to state 15
+    cfun          go to state 16
+
+
+State 150
+
+    8 instruction: FOR ID DO instructions DONE •
+
+    $default  reduce using rule 8 (instruction)
+
+
+State 151
+
+    9 instruction: FOR ID IN ops DO • instructions DONE
+
+    ID       shift, and go to state 1
+    declare  shift, and go to state 2
+    IF       shift, and go to state 3
+    FOR      shift, and go to state 4
+    WHILE    shift, and go to state 5
+    UNTIL    shift, and go to state 6
+    CASE     shift, and go to state 7
+    EKKO     shift, and go to state 8
+    READ     shift, and go to state 9
+    RETURN   shift, and go to state 10
+    EXIT     shift, and go to state 11
+
+    instructions  go to state 177
+    instruction   go to state 14
+    dfun          go to state 15
+    cfun          go to state 16
+
+
+State 152
+
+   10 instruction: WHILE testing DO instructions DONE •
+
+    $default  reduce using rule 10 (instruction)
+
+
+State 153
+
+   11 instruction: UNTIL testing DO instructions DONE •
+
+    $default  reduce using rule 11 (instruction)
+
+
+State 154
+
+   54 op: '$' '{' ID '[' • op_int ']' '}'
+
+    integer  shift, and go to state 36
+    '$'      shift, and go to state 37
+    '('      shift, and go to state 38
+    '+'      shift, and go to state 39
+    '-'      shift, and go to state 40
+
+    op_int      go to state 169
+    plus_minus  go to state 42
+
+
+State 155
+
+   29 filter: '"' string • '"'
+
+    '"'  shift, and go to state 178
+
+
+State 156
+
+   30 filter: '\'' string • '\''
+
+    '\''  shift, and go to state 179
+
+
+State 157
+
+   12 instruction: CASE op IN cases ESAC •
+
+    $default  reduce using rule 12 (instruction)
+
+
+State 158
+
+   26 cases: cases filter • $@1 ')' instructions ';' ';'
+   31 filter: filter • '|' word
+   32       | filter • '|' '"' string '"'
+   33       | filter • '|' '\'' string '\''
+
+    '|'  shift, and go to state 160
+
+    $default  reduce using rule 25 ($@1)
+
+    $@1  go to state 180
+
+
+State 159
+
+   27 cases: filter ')' • instructions ';' ';'
+
+    ID       shift, and go to state 1
+    declare  shift, and go to state 2
+    IF       shift, and go to state 3
+    FOR      shift, and go to state 4
+    WHILE    shift, and go to state 5
+    UNTIL    shift, and go to state 6
+    CASE     shift, and go to state 7
+    EKKO     shift, and go to state 8
+    READ     shift, and go to state 9
+    RETURN   shift, and go to state 10
+    EXIT     shift, and go to state 11
+
+    instructions  go to state 181
+    instruction   go to state 14
+    dfun          go to state 15
+    cfun          go to state 16
+
+
+State 160
+
+   31 filter: filter '|' • word
+   32       | filter '|' • '"' string '"'
+   33       | filter '|' • '\'' string '\''
+
+    word  shift, and go to state 182
+    '"'   shift, and go to state 183
+    '\''  shift, and go to state 184
+
+
+State 161
+
+   15 instruction: READ ID '[' op_int ']' •
+
+    $default  reduce using rule 15 (instruction)
+
+
+State 162
+
+   76 op_int: '$' '{' ID '[' • op_int ']' '}'
+
+    integer  shift, and go to state 36
+    '$'      shift, and go to state 37
+    '('      shift, and go to state 38
+    '+'      shift, and go to state 39
+    '-'      shift, and go to state 40
+
+    op_int      go to state 185
+    plus_minus  go to state 42
+
+
+State 163
+
+   75 op_int: '$' '{' ID '}' •
+
+    $default  reduce using rule 75 (op_int)
+
+
+State 164
+
+   71 sum_int: sum_int plus_minus prod_int •
+   73 prod_int: prod_int • mult_div_mod op_int
+
+    '*'  shift, and go to state 127
+    '/'  shift, and go to state 128
+    '%'  shift, and go to state 129
+
+    $default  reduce using rule 71 (sum_int)
+
+    mult_div_mod  go to state 130
+
+
+State 165
+
+   73 prod_int: prod_int mult_div_mod op_int •
+
+    $default  reduce using rule 73 (prod_int)
+
+
+State 166
+
+   78 op_int: plus_minus '$' '{' ID • '}'
+   79       | plus_minus '$' '{' ID • '[' op_int ']' '}'
+
+    '['  shift, and go to state 186
+    '}'  shift, and go to state 187
+
+
+State 167
+
+    5 instruction: ID '[' op_int ']' '=' concat •
+   38 concat: concat • op
+
+    word  shift, and go to state 17
+    '"'   shift, and go to state 20
+    '\''  shift, and go to state 21
+    '$'   shift, and go to state 32
+
+    $default  reduce using rule 5 (instruction)
+
+    op  go to state 86
+
+
+State 168
+
+   37 ops: '$' '{' ID '[' '*' • ']' '}'
+
+    ']'  shift, and go to state 188
+
+
+State 169
+
+   54 op: '$' '{' ID '[' op_int • ']' '}'
+
+    ']'  shift, and go to state 189
+
+
+State 170
+
+   61 op: '$' '(' expr sum_int ')' •
+
+    $default  reduce using rule 61 (op)
+
+
+State 171
+
+   90 declarations: declarations local • ID '=' concat ';'
+
+    ID  shift, and go to state 190
+
+
+State 172
+
+    2 instructions: instructions • ';' instruction
+   89 dfun: ID '(' ')' '{' declarations instructions • '}'
+
+    ';'  shift, and go to state 45
+    '}'  shift, and go to state 191
+
+
+State 173
+
+   46 test_expr3: '!' '(' test_expr ')' •
+
+    $default  reduce using rule 46 (test_expr3)
+
+
+State 174
+
+   22 maybe_else: ELIF testing • THEN instructions maybe_else
+
+    THEN  shift, and go to state 192
+
+
+State 175
+
+    2 instructions: instructions • ';' instruction
+   23 maybe_else: ELSE instructions •
+
+    ';'  shift, and go to state 45
+
+    $default  reduce using rule 23 (maybe_else)
+
+
+State 176
+
+    2 instructions: instructions • ';' instruction
+    7 instruction: IF testing THEN instructions maybe_else instructions • FI
+
+    FI   shift, and go to state 193
+    ';'  shift, and go to state 45
+
+
+State 177
+
+    2 instructions: instructions • ';' instruction
+    9 instruction: FOR ID IN ops DO instructions • DONE
+
+    DONE  shift, and go to state 194
+    ';'   shift, and go to state 45
+
+
+State 178
+
+   29 filter: '"' string '"' •
+
+    $default  reduce using rule 29 (filter)
+
+
+State 179
+
+   30 filter: '\'' string '\'' •
+
+    $default  reduce using rule 30 (filter)
+
+
+State 180
+
+   26 cases: cases filter $@1 • ')' instructions ';' ';'
+
+    ')'  shift, and go to state 195
+
+
+State 181
+
+    2 instructions: instructions • ';' instruction
+   27 cases: filter ')' instructions • ';' ';'
+
+    ';'  shift, and go to state 196
+
+
+State 182
+
+   31 filter: filter '|' word •
+
+    $default  reduce using rule 31 (filter)
+
+
+State 183
+
+   32 filter: filter '|' '"' • string '"'
+
+    string  shift, and go to state 197
+
+
+State 184
+
+   33 filter: filter '|' '\'' • string '\''
+
+    string  shift, and go to state 198
+
+
+State 185
+
+   76 op_int: '$' '{' ID '[' op_int • ']' '}'
+
+    ']'  shift, and go to state 199
+
+
+State 186
+
+   79 op_int: plus_minus '$' '{' ID '[' • op_int ']' '}'
+
+    integer  shift, and go to state 36
+    '$'      shift, and go to state 37
+    '('      shift, and go to state 38
+    '+'      shift, and go to state 39
+    '-'      shift, and go to state 40
+
+    op_int      go to state 200
+    plus_minus  go to state 42
+
+
+State 187
+
+   78 op_int: plus_minus '$' '{' ID '}' •
+
+    $default  reduce using rule 78 (op_int)
+
+
+State 188
+
+   37 ops: '$' '{' ID '[' '*' ']' • '}'
+
+    '}'  shift, and go to state 201
+
+
+State 189
+
+   54 op: '$' '{' ID '[' op_int ']' • '}'
+
+    '}'  shift, and go to state 202
+
+
+State 190
+
+   90 declarations: declarations local ID • '=' concat ';'
+
+    '='  shift, and go to state 203
+
+
+State 191
+
+   89 dfun: ID '(' ')' '{' declarations instructions '}' •
+
+    $default  reduce using rule 89 (dfun)
+
+
+State 192
+
+   22 maybe_else: ELIF testing THEN • instructions maybe_else
+
+    ID       shift, and go to state 1
+    declare  shift, and go to state 2
+    IF       shift, and go to state 3
+    FOR      shift, and go to state 4
+    WHILE    shift, and go to state 5
+    UNTIL    shift, and go to state 6
+    CASE     shift, and go to state 7
+    EKKO     shift, and go to state 8
+    READ     shift, and go to state 9
+    RETURN   shift, and go to state 10
+    EXIT     shift, and go to state 11
+
+    instructions  go to state 204
+    instruction   go to state 14
+    dfun          go to state 15
+    cfun          go to state 16
+
+
+State 193
+
+    7 instruction: IF testing THEN instructions maybe_else instructions FI •
+
+    $default  reduce using rule 7 (instruction)
+
+
+State 194
+
+    9 instruction: FOR ID IN ops DO instructions DONE •
+
+    $default  reduce using rule 9 (instruction)
+
+
+State 195
+
+   26 cases: cases filter $@1 ')' • instructions ';' ';'
+
+    ID       shift, and go to state 1
+    declare  shift, and go to state 2
+    IF       shift, and go to state 3
+    FOR      shift, and go to state 4
+    WHILE    shift, and go to state 5
+    UNTIL    shift, and go to state 6
+    CASE     shift, and go to state 7
+    EKKO     shift, and go to state 8
+    READ     shift, and go to state 9
+    RETURN   shift, and go to state 10
+    EXIT     shift, and go to state 11
+
+    instructions  go to state 205
+    instruction   go to state 14
+    dfun          go to state 15
+    cfun          go to state 16
+
+
+State 196
+
+    2 instructions: instructions ';' • instruction
+   27 cases: filter ')' instructions ';' • ';'
+
+    ID       shift, and go to state 1
+    declare  shift, and go to state 2
+    IF       shift, and go to state 3
+    FOR      shift, and go to state 4
+    WHILE    shift, and go to state 5
+    UNTIL    shift, and go to state 6
+    CASE     shift, and go to state 7
+    EKKO     shift, and go to state 8
+    READ     shift, and go to state 9
+    RETURN   shift, and go to state 10
+    EXIT     shift, and go to state 11
+    ';'      shift, and go to state 206
+
+    instruction  go to state 85
+    dfun         go to state 15
+    cfun         go to state 16
+
+
+State 197
+
+   32 filter: filter '|' '"' string • '"'
+
+    '"'  shift, and go to state 207
+
+
+State 198
+
+   33 filter: filter '|' '\'' string • '\''
+
+    '\''  shift, and go to state 208
+
+
+State 199
+
+   76 op_int: '$' '{' ID '[' op_int ']' • '}'
+
+    '}'  shift, and go to state 209
+
+
+State 200
+
+   79 op_int: plus_minus '$' '{' ID '[' op_int • ']' '}'
+
+    ']'  shift, and go to state 210
+
+
+State 201
+
+   37 ops: '$' '{' ID '[' '*' ']' '}' •
+
+    $default  reduce using rule 37 (ops)
+
+
+State 202
+
+   54 op: '$' '{' ID '[' op_int ']' '}' •
+
+    $default  reduce using rule 54 (op)
+
+
+State 203
+
+   90 declarations: declarations local ID '=' • concat ';'
+
+    word  shift, and go to state 17
+    '"'   shift, and go to state 20
+    '\''  shift, and go to state 21
+    '$'   shift, and go to state 32
+
+    concat  go to state 211
+    op      go to state 47
+
+
+State 204
+
+    2 instructions: instructions • ';' instruction
+   22 maybe_else: ELIF testing THEN instructions • maybe_else
+
+    ELIF  shift, and go to state 147
+    ELSE  shift, and go to state 148
+    ';'   shift, and go to state 45
+
+    $default  reduce using rule 24 (maybe_else)
+
+    maybe_else  go to state 212
+
+
+State 205
+
+    2 instructions: instructions • ';' instruction
+   26 cases: cases filter $@1 ')' instructions • ';' ';'
+
+    ';'  shift, and go to state 213
+
+
+State 206
+
+   27 cases: filter ')' instructions ';' ';' •
+
+    $default  reduce using rule 27 (cases)
+
+
+State 207
+
+   32 filter: filter '|' '"' string '"' •
+
+    $default  reduce using rule 32 (filter)
+
+
+State 208
+
+   33 filter: filter '|' '\'' string '\'' •
+
+    $default  reduce using rule 33 (filter)
+
+
+State 209
+
+   76 op_int: '$' '{' ID '[' op_int ']' '}' •
+
+    $default  reduce using rule 76 (op_int)
+
+
+State 210
+
+   79 op_int: plus_minus '$' '{' ID '[' op_int ']' • '}'
+
+    '}'  shift, and go to state 214
+
+
+State 211
+
+   38 concat: concat • op
+   90 declarations: declarations local ID '=' concat • ';'
+
+    word  shift, and go to state 17
+    ';'   shift, and go to state 215
+    '"'   shift, and go to state 20
+    '\''  shift, and go to state 21
+    '$'   shift, and go to state 32
+
+    op  go to state 86
+
+
+State 212
+
+   22 maybe_else: ELIF testing THEN instructions maybe_else •
+
+    $default  reduce using rule 22 (maybe_else)
+
+
+State 213
+
+    2 instructions: instructions ';' • instruction
+   26 cases: cases filter $@1 ')' instructions ';' • ';'
+
+    ID       shift, and go to state 1
+    declare  shift, and go to state 2
+    IF       shift, and go to state 3
+    FOR      shift, and go to state 4
+    WHILE    shift, and go to state 5
+    UNTIL    shift, and go to state 6
+    CASE     shift, and go to state 7
+    EKKO     shift, and go to state 8
+    READ     shift, and go to state 9
+    RETURN   shift, and go to state 10
+    EXIT     shift, and go to state 11
+    ';'      shift, and go to state 216
+
+    instruction  go to state 85
+    dfun         go to state 15
+    cfun         go to state 16
+
+
+State 214
+
+   79 op_int: plus_minus '$' '{' ID '[' op_int ']' '}' •
+
+    $default  reduce using rule 79 (op_int)
+
+
+State 215
+
+   90 declarations: declarations local ID '=' concat ';' •
+
+    $default  reduce using rule 90 (declarations)
+
+
+State 216
+
+   26 cases: cases filter $@1 ')' instructions ';' ';' •
+
+    $default  reduce using rule 26 (cases)
