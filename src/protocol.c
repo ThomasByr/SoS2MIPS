@@ -65,6 +65,22 @@ enum reg find_free_reg(void) {
  */
 void free_reg(enum reg reg) { reg_use[reg] = false; }
 
+enum reg load_reg_for_type(FILE *file, struct quadarg *quadarg) {
+
+  if (quadarg->type == int_arg || quadarg->type == 0) {
+
+    quadarg->reg_arg = find_free_reg();
+    fprintf(file, "li %s, %d\n", reg_name(quadarg->reg_arg),
+            quadarg->value.int_value);
+    return quadarg->reg_arg;
+  }
+
+  else if (quadarg->type == id_arg)
+    return quadarg->value.id_value->reg_temp;
+
+  return -1;
+}
+
 /**
  * @brief Generate MIPS assembly code from the quad array
  *
@@ -76,74 +92,17 @@ void generate_asm(void) {
 
   int i;
   struct quad *quad;
+
   for (i = vec_size(quad_array) - 1; i >= 0; i--) {
     quad = vec_get(quad_array, i);
     switch (quad->op) {
     case plus_op:
-      quad->arg1->reg_arg = find_free_reg();
-      fprintf(out, "li %s, %d\n", reg_name(quad->arg1->reg_arg),
-              quad->arg1->value.int_value);
 
-      quad->arg2->reg_arg = find_free_reg();
-      fprintf(out, "li %s, %d\n", reg_name(quad->arg2->reg_arg),
-              quad->arg2->value.int_value);
+      quad->arg1->reg_arg = load_reg_for_type(out, quad->arg1);
+      quad->arg2->reg_arg = load_reg_for_type(out, quad->arg2);
 
       quad->arg3->reg_arg = find_free_reg();
       fprintf(out, "add %s, %s, %s\n", reg_name(quad->arg3->reg_arg),
-              reg_name(quad->arg1->reg_arg), reg_name(quad->arg2->reg_arg));
-
-      free_reg(quad->arg1->reg_arg);
-      free_reg(quad->arg2->reg_arg);
-
-      break;
-
-    case minus_op:
-      quad->arg1->reg_arg = find_free_reg();
-      fprintf(out, "li %s, %d\n", reg_name(quad->arg1->reg_arg),
-              quad->arg1->value.int_value);
-
-      quad->arg2->reg_arg = find_free_reg();
-      fprintf(out, "li %s, %d\n", reg_name(quad->arg2->reg_arg),
-              quad->arg2->value.int_value);
-
-      quad->arg3->reg_arg = find_free_reg();
-      fprintf(out, "sub %s, %s, %s\n", reg_name(quad->arg3->reg_arg),
-              reg_name(quad->arg1->reg_arg), reg_name(quad->arg2->reg_arg));
-
-      free_reg(quad->arg1->reg_arg);
-      free_reg(quad->arg2->reg_arg);
-
-      break;
-
-    case mult_op:
-      quad->arg1->reg_arg = find_free_reg();
-      fprintf(out, "li %s, %d\n", reg_name(quad->arg1->reg_arg),
-              quad->arg1->value.int_value);
-
-      quad->arg2->reg_arg = find_free_reg();
-      fprintf(out, "li %s, %d\n", reg_name(quad->arg2->reg_arg),
-              quad->arg2->value.int_value);
-
-      quad->arg3->reg_arg = find_free_reg();
-      fprintf(out, "mul %s, %s, %s\n", reg_name(quad->arg3->reg_arg),
-              reg_name(quad->arg1->reg_arg), reg_name(quad->arg2->reg_arg));
-
-      free_reg(quad->arg1->reg_arg);
-      free_reg(quad->arg2->reg_arg);
-
-      break;
-
-    case div_op:
-      quad->arg1->reg_arg = find_free_reg();
-      fprintf(out, "li %s, %d\n", reg_name(quad->arg1->reg_arg),
-              quad->arg1->value.int_value);
-
-      quad->arg2->reg_arg = find_free_reg();
-      fprintf(out, "li %s, %d\n", reg_name(quad->arg2->reg_arg),
-              quad->arg2->value.int_value);
-
-      quad->arg3->reg_arg = find_free_reg();
-      fprintf(out, "div %s, %s, %s\n", reg_name(quad->arg3->reg_arg),
               reg_name(quad->arg1->reg_arg), reg_name(quad->arg2->reg_arg));
 
       free_reg(quad->arg1->reg_arg);

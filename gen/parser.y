@@ -93,14 +93,14 @@ program
 
 instructions
 : instructions ';' instruction
-{ $$ = quad_new(0, instr_op, $1->arg1, $3->arg1, quadarg_new_reg()); }
+{ $$ = quad_new(0, instr_op, $1->arg3, $3->arg3, quadarg_new_reg()); }
 | instruction
 { $$ = $1; }
 ;
 
 instruction
 : ID '=' concat
-{ $$ = quad_new(0, assn_instr_op, quadarg_new_id($1), $3->arg1, $3->arg2);}
+{ $$ = quad_new(0, assn_instr_op, quadarg_new_id($1), $3->arg3, quadarg_new_reg());}
 | ID '[' op_int ']' '=' concat
 { struct quad *marker = quad_new(0, array_instr_op, quadarg_new_id($1), $3->arg3, quadarg_new_reg());
   $$ = quad_new(0, assn_array_instr_op, marker->arg3, $6->arg3, quadarg_new_reg()); }
