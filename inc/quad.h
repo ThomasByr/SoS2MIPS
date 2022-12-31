@@ -90,7 +90,6 @@ struct quadarg {
     char *str_value;
     char **array_str_value;
     struct symnode *id_value;
-    struct quad *quad_value;
   } value;
   enum quadargtype type;
   enum reg reg_arg;
@@ -103,6 +102,7 @@ struct quad {
   struct quadarg *arg3;
 
   int lineno;
+  int index;
 };
 
 /**
@@ -147,6 +147,7 @@ struct quadarg *quadarg_new_dbl(double value);
 struct quadarg *quadarg_new_id(char *value);
 struct quadarg *quadarg_new_str(char *value);
 struct quadarg *quadarg_new_array_str(char **value);
+struct quadarg *quadarg_new_reg(void);
 
 /**
  * @brief Get a new temp (current function name as prefix)

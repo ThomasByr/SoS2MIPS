@@ -27,6 +27,14 @@ static const char reg_names[][4] = {
 
 bool reg_use[32] = {false};
 
+void reg_display(void) {
+  int i;
+  for (i = reg_t0; i <= reg_t7; i++) {
+    printf("%d ", reg_use[i]);
+  }
+  printf("\n");
+}
+
 const char *reg_name(enum reg reg) { return reg_names[reg]; }
 
 const char *sys_call_name(enum sys_call sys_call) {
@@ -39,6 +47,7 @@ const char *sys_call_name(enum sys_call sys_call) {
  * @return enum reg
  */
 enum reg find_free_reg(void) {
+
   int i;
   for (i = reg_t0; i <= reg_t7; i++) {
     if (!reg_use[i]) {
@@ -85,7 +94,9 @@ void generate_asm(void) {
 
       free_reg(quad->arg1->reg_arg);
       free_reg(quad->arg2->reg_arg);
+
       break;
+
     case minus_op:
       quad->arg1->reg_arg = find_free_reg();
       fprintf(out, "li %s, %d\n", reg_name(quad->arg1->reg_arg),
@@ -101,7 +112,9 @@ void generate_asm(void) {
 
       free_reg(quad->arg1->reg_arg);
       free_reg(quad->arg2->reg_arg);
+
       break;
+
     case mult_op:
       quad->arg1->reg_arg = find_free_reg();
       fprintf(out, "li %s, %d\n", reg_name(quad->arg1->reg_arg),
@@ -117,7 +130,9 @@ void generate_asm(void) {
 
       free_reg(quad->arg1->reg_arg);
       free_reg(quad->arg2->reg_arg);
+
       break;
+
     case div_op:
       quad->arg1->reg_arg = find_free_reg();
       fprintf(out, "li %s, %d\n", reg_name(quad->arg1->reg_arg),
@@ -133,6 +148,7 @@ void generate_asm(void) {
 
       free_reg(quad->arg1->reg_arg);
       free_reg(quad->arg2->reg_arg);
+
       break;
 
     default:
@@ -141,10 +157,3 @@ void generate_asm(void) {
   }
   fclose(out);
 }
-
-/*
-  if (1+2 == 3 && 1+3==4)
-
-
-
-*/

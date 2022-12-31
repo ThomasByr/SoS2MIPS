@@ -7,7 +7,7 @@
 
 #define DEFAULT_QUAD_ARRAY_SIZE 1 << 12
 
-int next_quad_index, quad_array_size;
+int quad_array_index, quad_array_size;
 vec_t quad_array;
 
 // number of global temp variables
@@ -154,6 +154,7 @@ struct quad *quad_new(int lineno, enum quadop op, struct quadarg *arg1,
   quad->arg3 = arg3;
   quad->lineno = lineno;
 
+  quad->index = quad_array_index;
   quad_array = quadarray_add(quad_array, quad);
 
   return quad;
@@ -274,9 +275,15 @@ void quad_patch(struct quad *q, int arg_index, struct quadarg *new_quadarg) {
   }
 }
 
-vec_t quadarray_new() { return vec_new(); }
+vec_t quadarray_new() {
+
+  quad_array_index = 0;
+  return vec_new();
+}
 
 vec_t quadarray_add(vec_t quad_subarray, struct quad *quad) {
+
+  quad_array_index++;
   vec_push(quad_subarray, quad);
   return quad_subarray;
 }
@@ -317,6 +324,12 @@ struct quadarg *quadarg_new_array_str(char **value) {
   struct quadarg *quadarg = calloc(1, sizeof(struct quadarg));
   quadarg->type = array_str_arg;
   quadarg->value.array_str_value = value;
+  return quadarg;
+}
+
+struct quadarg *quadarg_new_reg(void) {
+  struct quadarg *quadarg = calloc(1, sizeof(struct quadarg));
+  quadarg->type = no_arg_type;
   return quadarg;
 }
 
