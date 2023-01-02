@@ -1,2 +1,2 @@
 echo "Hello, World!\n";
-exit
+exit 42

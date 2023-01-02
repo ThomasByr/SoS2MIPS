@@ -1,5 +1,6 @@
 #pragma once
 
+#include "protocol.h"
 #include "vec.h"
 
 /**
@@ -38,6 +39,8 @@ struct symnode {
                          // (irrelevant for the string table)
   int var_addr;          // assembly index for functions
                          // irrelevant for string constants
+  enum reg reg_temp;     // register for the result of assignment
+
   enum nodetype node_type; // the thing that the identifier identifies
                            // (irrelevant for the string table)
   enum memaddrtype mem_addr_type;
