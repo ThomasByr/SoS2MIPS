@@ -1,3 +1,2 @@
-new_phrase="" ;
-/* test */
-echo "Hello, World!\n"
+echo "Hello, World!\n";
+exit 42

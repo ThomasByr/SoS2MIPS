@@ -33,17 +33,17 @@ static const char reg_names[][4] = {
 bool reg_use[32] = {false};
 
 void reg_display(void) {
-  int i;
-  for (i = reg_t0; i <= reg_t7; i++) {
-    printf("%d ", reg_use[i]);
-  }
-  printf("\n");
+    int i;
+    for (i = reg_t0; i <= reg_t7; i++) {
+        printf("%d ", reg_use[i]);
+    }
+    printf("\n");
 }
 
 const char *reg_name(enum reg reg) { return reg_names[reg]; }
 
 const char *sys_call_name(enum sys_call sys_call) {
-  return sys_call_names[sys_call];
+    return sys_call_names[sys_call];
 }
 
 /**
@@ -53,14 +53,14 @@ const char *sys_call_name(enum sys_call sys_call) {
  */
 enum reg find_free_reg(void) {
 
-  int i;
-  for (i = reg_t0; i <= reg_t7; i++) {
-    if (!reg_use[i]) {
-      reg_use[i] = true;
-      return i;
+    int i;
+    for (i = reg_t0; i <= reg_t7; i++) {
+        if (!reg_use[i]) {
+            reg_use[i] = true;
+            return i;
+        }
     }
-  }
-  panic("no free registers");
+    panic("no free registers");
 }
 
 /**
@@ -76,200 +76,219 @@ void free_reg(enum reg reg) { reg_use[reg] = false; }
  */
 void generate_asm(void) {
 
-  FILE *out = fopen(output, "w");
-  if (out == NULL) panic("fopen");
+    FILE *out = fopen(output, "w");
+    if (out == NULL)
+        panic("fopen");
 
-  size_t i;
-  struct quad *quad;
-  // char substring[BUFSIZ];
-  // char *strstr_string = NULL;
-  // size_t str_count = 0;
-  int msg_count = 0;
+    size_t i;
+    struct quad *quad;
+    // char substring[BUFSIZ];
+    // char *strstr_string = NULL;
+    // size_t str_count = 0;
+    int msg_count = 0;
 
-  fprintf(out, ".data\n\n");
-  fprintf(out, ".text\n");
+    fprintf(out, ".data\n\n");
+    fprintf(out, ".text\n");
 
-  for (i = 0; i < vec_size(quad_array); i++) {
-    quad = vec_get(quad_array, i);
-    switch (quad->op) {
+    for (i = 0; i < vec_size(quad_array); i++) {
+        quad = vec_get(quad_array, i);
+        switch (quad->op) {
 
-    case assn_int_to_var_op:
+        case assn_int_to_var_op:
 
-      quad->arg3->type = int_arg;
-      quad->arg3->reg_arg = find_free_reg();
-      fprintf(out, "li %s, %d\n", reg_name(quad->arg3->reg_arg),
-              quad->arg1->value.int_value);
+            quad->arg3->type = int_arg;
+            quad->arg3->reg_arg = find_free_reg();
+            fprintf(out, "li %s, %d\n", reg_name(quad->arg3->reg_arg),
+                    quad->arg1->value.int_value);
 
-      break;
+            break;
 
-    case assn_arg_to_var_op:
-      break;
+        case assn_arg_to_var_op:
+            break;
 
-    case assn_string_to_var_op:
+        case assn_string_to_var_op:
 
-      quad->arg3->type = str_arg;
-      quad->arg3->reg_arg = find_free_reg();
-      fprintf(out, "msg%d: .asciiz \"%s\"\n", msg_count,
-              quad->arg1->value.str_value);
+            quad->arg3->type = str_arg;
+            quad->arg3->reg_arg = find_free_reg();
+            fprintf(out, "msg%d: .asciiz \"%s\"\n", msg_count,
+                    quad->arg1->value.str_value);
 
-      break;
+            break;
 
-    case plus_op:
+        case plus_op:
 
-      // sum int rule
-      if (quad->arg1->type == int_arg && quad->arg2->type == int_arg) {
+            // sum int rule
+            if (quad->arg1->type == int_arg && quad->arg2->type == int_arg) {
 
-        quad->arg3->reg_arg = find_free_reg();
-        fprintf(out, "add %s, %s, %s\n", reg_name(quad->arg3->reg_arg),
-                reg_name(quad->arg1->reg_arg), reg_name(quad->arg2->reg_arg));
+                quad->arg3->reg_arg = find_free_reg();
+                fprintf(out, "add %s, %s, %s\n", reg_name(quad->arg3->reg_arg),
+                        reg_name(quad->arg1->reg_arg),
+                        reg_name(quad->arg2->reg_arg));
 
-        free_reg(quad->arg1->reg_arg);
-        free_reg(quad->arg2->reg_arg);
-      }
+                free_reg(quad->arg1->reg_arg);
+                free_reg(quad->arg2->reg_arg);
+            }
 
-      // plus_minus integer rule
-      else if (quad->arg1->type == int_arg && quad->arg2 == NULL) {
+            // plus_minus integer rule
+            else if (quad->arg1->type == int_arg && quad->arg2 == NULL) {
 
-        quad->arg1->reg_arg = find_free_reg();
-        fprintf(out, "li %s, %d\n", reg_name(quad->arg1->reg_arg),
-                quad->arg1->value.int_value);
-      }
+                quad->arg1->reg_arg = find_free_reg();
+                fprintf(out, "li %s, %d\n", reg_name(quad->arg1->reg_arg),
+                        quad->arg1->value.int_value);
+            }
 
-      // plus_minus '$' integer rule
-      else if (quad->arg1->type == int_arg && quad->arg2 == ARG) {
-      }
+            // plus_minus '$' integer rule
+            else if (quad->arg1->type == int_arg && quad->arg2 == ARG) {
+            }
 
-      //  plus_minus '$' '{' ID '}' rule
-      else if (quad->arg1->type == id_arg && quad->arg2 == NULL) {
-      }
+            //  plus_minus '$' '{' ID '}' rule
+            else if (quad->arg1->type == id_arg && quad->arg2 == NULL) {
+            }
 
-      // plus_minus '$' '{' ID '[' op_int ']' '}' rule
-      else if (quad->arg1->type == id_arg && quad->arg2 == ARG) {
-      }
+            // plus_minus '$' '{' ID '[' op_int ']' '}' rule
+            else if (quad->arg1->type == id_arg && quad->arg2 == ARG) {
+            }
 
-      break;
+            break;
 
-    case minus_op:
+        case minus_op:
 
-      // sum int rule
-      if (quad->arg1->type == int_arg && quad->arg2->type == int_arg) {
+            // sum int rule
+            if (quad->arg1->type == int_arg && quad->arg2->type == int_arg) {
 
-        quad->arg3->reg_arg = find_free_reg();
-        fprintf(out, "sub %s, %s, %s\n", reg_name(quad->arg3->reg_arg),
-                reg_name(quad->arg1->reg_arg), reg_name(quad->arg2->reg_arg));
+                quad->arg3->reg_arg = find_free_reg();
+                fprintf(out, "sub %s, %s, %s\n", reg_name(quad->arg3->reg_arg),
+                        reg_name(quad->arg1->reg_arg),
+                        reg_name(quad->arg2->reg_arg));
 
-        free_reg(quad->arg1->reg_arg);
-        free_reg(quad->arg2->reg_arg);
-      }
+                free_reg(quad->arg1->reg_arg);
+                free_reg(quad->arg2->reg_arg);
+            }
 
-      // plus_minus integer rule
-      else if (quad->arg1->type == int_arg && quad->arg2 == NULL) {
+            // plus_minus integer rule
+            else if (quad->arg1->type == int_arg && quad->arg2 == NULL) {
 
-        quad->arg1->reg_arg = find_free_reg();
-        fprintf(out, "li %s, %d\n", reg_name(quad->arg1->reg_arg),
-                quad->arg1->value.int_value);
-      }
+                quad->arg1->reg_arg = find_free_reg();
+                fprintf(out, "li %s, %d\n", reg_name(quad->arg1->reg_arg),
+                        quad->arg1->value.int_value);
+            }
 
-      // plus_minus '$' integer rule
-      else if (quad->arg1->type == int_arg && quad->arg2 == ARG) {
-      }
+            // plus_minus '$' integer rule
+            else if (quad->arg1->type == int_arg && quad->arg2 == ARG) {
+            }
 
-      //  plus_minus '$' '{' ID '}' rule
-      else if (quad->arg1->type == id_arg && quad->arg2 == NULL) {
-      }
+            //  plus_minus '$' '{' ID '}' rule
+            else if (quad->arg1->type == id_arg && quad->arg2 == NULL) {
+            }
 
-      // plus_minus '$' '{' ID '[' op_int ']' '}' rule
-      else if (quad->arg1->type == id_arg && quad->arg2 == ARG) {
-      }
+            // plus_minus '$' '{' ID '[' op_int ']' '}' rule
+            else if (quad->arg1->type == id_arg && quad->arg2 == ARG) {
+            }
 
-      break;
+            break;
 
-    case mult_op:
+        case mult_op:
 
-      // prod int rule
-      if (quad->arg1->type == int_arg && quad->arg2->type == int_arg) {
+            // prod int rule
+            if (quad->arg1->type == int_arg && quad->arg2->type == int_arg) {
 
-        quad->arg3->reg_arg = find_free_reg();
-        fprintf(out, "mul %s, %s, %s\n", reg_name(quad->arg3->reg_arg),
-                reg_name(quad->arg1->reg_arg), reg_name(quad->arg2->reg_arg));
+                quad->arg3->reg_arg = find_free_reg();
+                fprintf(out, "mul %s, %s, %s\n", reg_name(quad->arg3->reg_arg),
+                        reg_name(quad->arg1->reg_arg),
+                        reg_name(quad->arg2->reg_arg));
 
-        free_reg(quad->arg1->reg_arg);
-        free_reg(quad->arg2->reg_arg);
-      }
+                free_reg(quad->arg1->reg_arg);
+                free_reg(quad->arg2->reg_arg);
+            }
 
-      break;
+            break;
 
-    case div_op:
+        case div_op:
 
-      // prod int rule
-      if (quad->arg1->type == int_arg && quad->arg2->type == int_arg) {
+            // prod int rule
+            if (quad->arg1->type == int_arg && quad->arg2->type == int_arg) {
 
-        quad->arg3->reg_arg = find_free_reg();
-        fprintf(out, "div %s, %s, %s\n", reg_name(quad->arg3->reg_arg),
-                reg_name(quad->arg1->reg_arg), reg_name(quad->arg2->reg_arg));
+                quad->arg3->reg_arg = find_free_reg();
+                fprintf(out, "div %s, %s, %s\n", reg_name(quad->arg3->reg_arg),
+                        reg_name(quad->arg1->reg_arg),
+                        reg_name(quad->arg2->reg_arg));
 
-        free_reg(quad->arg1->reg_arg);
-        free_reg(quad->arg2->reg_arg);
-      }
+                free_reg(quad->arg1->reg_arg);
+                free_reg(quad->arg2->reg_arg);
+            }
 
-      break;
+            break;
 
-    case mod_op:
+        case mod_op:
 
-      if (quad->arg1->type == int_arg && quad->arg2->type == int_arg) {
+            if (quad->arg1->type == int_arg && quad->arg2->type == int_arg) {
 
-        fprintf(out, "div %s, %s\n", reg_name(quad->arg1->reg_arg),
-                reg_name(quad->arg2->reg_arg));
+                fprintf(out, "div %s, %s\n", reg_name(quad->arg1->reg_arg),
+                        reg_name(quad->arg2->reg_arg));
 
-        quad->arg3->reg_arg = find_free_reg();
-        fprintf(out, "mfhi %s\n", reg_name(quad->arg3->reg_arg));
+                quad->arg3->reg_arg = find_free_reg();
+                fprintf(out, "mfhi %s\n", reg_name(quad->arg3->reg_arg));
 
-        free_reg(quad->arg1->reg_arg);
-        free_reg(quad->arg2->reg_arg);
-      }
+                free_reg(quad->arg1->reg_arg);
+                free_reg(quad->arg2->reg_arg);
+            }
 
-      break;
+            break;
 
-    case echo_instr_op:
+        case echo_instr_op:
 
-      // fseek(out, 0, SEEK_SET);
+            // fseek(out, 0, SEEK_SET);
 
-      // str_count = 0;
-      // while (fgets(substring, BUFSIZ, out) != NULL) {
-      //   if ((strstr_string = strstr(substring, ".text")) != NULL) break;
-      //   str_count++;
-      // }
+            // str_count = 0;
+            // while (fgets(substring, BUFSIZ, out) != NULL) {
+            //   if ((strstr_string = strstr(substring, ".text")) != NULL)
+            //   break; str_count++;
+            // }
 
-      // fseek(out, str_count * BUFSIZ + (size_t)(substring - strstr_string) -
-      // 1,
-      //       SEEK_SET);
-      // fprintf(out, "\n\nmsg%d: .asciiz \"%s\"\n\n", msg_count,
-      //         quad->arg1->value.str_value);
+            // fseek(out, str_count * BUFSIZ + (size_t)(substring -
+            // strstr_string) - 1,
+            //       SEEK_SET);
+            // fprintf(out, "\n\nmsg%d: .asciiz \"%s\"\n\n", msg_count,
+            //         quad->arg1->value.str_value);
 
-      // fseek(out, 0, SEEK_END);
+            // fseek(out, 0, SEEK_END);
 
-      if (quad->arg1->type == int_arg) {
+            if (quad->arg1->type == int_arg) {
 
-        fprintf(out, "la %s, %s\n", reg_name(reg_a0),
-                reg_name(quad->arg1->reg_arg));
-        free_reg(quad->arg1->reg_arg);
-        fprintf(out, "li $v0, %d\n", sc_print_int);
+                fprintf(out, "la %s, %s\n", reg_name(reg_a0),
+                        reg_name(quad->arg1->reg_arg));
+                free_reg(quad->arg1->reg_arg);
+                fprintf(out, "li $v0, %d\n", sc_print_int);
 
-      } else if (quad->arg1->type == str_arg) {
+            } else if (quad->arg1->type == str_arg) {
 
-        fprintf(out, "la %s, msg%d\n", reg_name(reg_a0), msg_count);
-        fprintf(out, "li $v0, %d\n", sc_print_string);
-        msg_count++;
-      }
+                fprintf(out, "la %s, msg%d\n", reg_name(reg_a0), msg_count);
+                fprintf(out, "li $v0, %d\n", sc_print_string);
+                msg_count++;
+            }
 
-      fprintf(out, "syscall\n");
+            fprintf(out, "syscall\n");
 
-      break;
+            break;
 
-    default:
-      break;
+        case exit_void_op:
+
+            fprintf(out, "li $v0, %d\n", sc_exit);
+            fprintf(out, "syscall\n");
+
+            break;
+
+        case exit_int_op:
+
+            fprintf(out, "li $v0, %d\n", sc_exit);
+            fprintf(out, "move $a0, %s\n", reg_name(quad->arg1->reg_arg));
+            fprintf(out, "syscall\n");
+
+            break;
+        default:
+            break;
+        }
     }
-  }
 
-  fclose(out);
+    fclose(out);
 }

@@ -123,8 +123,8 @@ instruction
 { $$ = quad_new(0, until_instr_op, $2->arg3, $4->arg3, quadarg_new_reg()); }
 | CASE op IN cases ESAC
 { $$ = quad_new(0, case_instr_op, $2->arg3, $4->arg3, quadarg_new_reg()); }
-| EKKO string
-{ printf("\t\t\t\ttest 2\n"); $$ = quad_new(0, echo_instr_op, quadarg_new_str($2), NULL, quadarg_new_reg()); }
+| EKKO ops
+{ $$ = quad_new(0, echo_instr_op, $2->arg1, NULL, quadarg_new_reg()); }
 | READ  ID 
 { $$ = quad_new(0, read_instr_op, quadarg_new_id($2), NULL, quadarg_new_reg()); }
 | READ  ID '[' op_int ']'
@@ -264,7 +264,7 @@ op
 | '$' '?'
 { $$ = quad_new(0, assn_status_to_var_op, NULL, NULL, quadarg_new_reg()); }
 | string
-{ printf("\t\t\t\ttest 1\n"); $$ = quad_new(0, assn_string_to_var_op, quadarg_new_str($1), NULL, quadarg_new_reg()); }
+{ $$ = quad_new(0, assn_string_to_var_op, quadarg_new_str($1), NULL, quadarg_new_reg()); }
 | '$' '(' expr sum_int ')'
 { $$ = quad_new(0, assn_expr_value_to_var_op, $4->arg1, $4->arg2, quadarg_new_reg()); }
 | '$' '(' cfun ')' 

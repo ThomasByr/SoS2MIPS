@@ -61,6 +61,7 @@ white [ \t]+
     BEGIN(INITIAL);
     yytext[--yyleng] = '\0';
     savedText = strdup(yytext);
+    yylval = (YYSTYPE){ .string = savedText };
     printf("stringl: %s\n", savedText);
     return string;
 }
