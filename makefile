@@ -33,9 +33,9 @@ OBJECTS      = $(filter-out $(LEXOBJ) $(YACCOBJ), $(OBJECTS0))
 PATH_TO_EXE  = $(BINDIR)/$(TARGET)
 LAUNCH_CMD   = $(PATH_TO_EXE) -i ./examples/hello_world.sos
 
-all : debug
+all : clean debug
 
-debug: CFLAGS += -Og -DDEBUG -g -ggdb
+debug: CFLAGS += -Og -DDEBUG -g -ggdb -DYYDEBUG
 debug: YFLAGS += -v
 debug: $(PATH_TO_EXE)
 	@echo "\033[93mRunning in debug mode!\033[0m"

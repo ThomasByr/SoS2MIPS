@@ -223,7 +223,8 @@ void symhashtable_display(struct symhashtable *hashtab) {
 
 void symtable_display(struct symtable *symtab) {
   struct symhashtable *hashtab;
-  for (hashtab = symtab->inner_scope; hashtab != NULL; hashtab = hashtab->outer_scope) {
+  for (hashtab = symtab->inner_scope; hashtab != NULL;
+       hashtab = hashtab->outer_scope) {
     info("Table at level %d contains:", hashtab->level);
     symhashtable_display(hashtab);
   }
@@ -233,7 +234,8 @@ vec_t symtable_vec(struct symtable *symtab) {
   struct symhashtable *hashtab;
   vec_t vec = vec_new();
 
-  for (hashtab = symtab->inner_scope; hashtab != NULL; hashtab = hashtab->outer_scope) {
+  for (hashtab = symtab->inner_scope; hashtab != NULL;
+       hashtab = hashtab->outer_scope) {
     int i;
     for (i = 0; i < hashtab->size; i++) {
       struct symnode *node;

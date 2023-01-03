@@ -1,0 +1,3 @@
+i=$( expr 1*3);
+j=$( expr 1%2);
+exit
