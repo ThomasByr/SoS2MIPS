@@ -56,6 +56,7 @@ The program takes command line arguments from (`..` indicating no short option, 
 | `-o, --out` `<>`    | path to output file                      | ❌         | `a.s`   |
 | `.., --tos`         | display the Symbol Table on running time | ❌         |         |
 | `.., --verbose`     | be very noisy                            | ❌         |         |
+| `.., --no-exe`      | do not execute output file               | ❌         |         |
 | `-O, --optlvl` `<>` | set optimization level (from `0` or `1`) | ❌         | `0`     |
 
 A legal launching instruction could be :
