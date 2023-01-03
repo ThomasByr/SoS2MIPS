@@ -60,8 +60,8 @@ void astack_push_text(astack_t stack, const char *restrict fmt, ...) {
 void astack_fprintf(astack_t stack, FILE *stream) {
   char *el;
   fprintf(stream, "\n.data\n");
-  vec_foreach(stack->data, i, el) {fprintf(stream, "%s", el);}
-  fprintf(stream, "\n.text\n");
-  vec_foreach(stack->text, i, el) {fprintf(stream, "%s", el);}
+  vec_foreach(stack->data, i, el) {fprintf(stream, "%s\n", el);}
+  fprintf(stream, "\n.text\n.globl main\n\nmain:\n");
+  vec_foreach(stack->text, i, el) {fprintf(stream, "%s\n", el);}
 
 }
