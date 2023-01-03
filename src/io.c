@@ -23,6 +23,7 @@ static noreturn void display_help(const char *restrict fmt, ...) {
       "  -o, --out\t\tSpecify the output file\n"
       "  .., --tos\t\tDisplay the Symbol Table on runtime\n"
       "  .., --verbose\t\tDisplay verbose information on runtime\n"
+      "  .., --no-exe\t\tDo not execute output file\n"
       "  -O, --optlvl\t\tSet the optimization level\n"
       "the input and output files can be non-option arguments\n"
       "but are taken in order of appearance\n";
