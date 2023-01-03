@@ -182,7 +182,7 @@ struct symnode *symtable_lookup(struct symtable *symtab, char *name,
   for (node = NULL, hashtab = symtab->inner_scope;
        node == NULL && hashtab != NULL; hashtab = hashtab->outer_scope) {
     node = symhashtable_lookup(hashtab, name, NOHASHSLOT);
-    *level = hashtab->level;
+    if (level != NULL) *level = hashtab->level;
   }
   return node;
 }

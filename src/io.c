@@ -86,6 +86,7 @@ void cmd_args_init(struct cmd_args *args) {
 
   args->stdisplay = false;
   args->verbose = false;
+  args->no_exe = false;
 
   args->opt_lvl = 0;
 
@@ -95,6 +96,7 @@ void cmd_args_init(struct cmd_args *args) {
 void parse_args(int argc, char *argv[], struct cmd_args *args) {
 #define TOS_OPT 1000
 #define VERB_OPT 2000
+#define NOEXE_OPT 3000
 
   static const struct option long_options[] = {
       {"help", no_argument, NULL, 'h'},
@@ -104,6 +106,7 @@ void parse_args(int argc, char *argv[], struct cmd_args *args) {
       {"out", required_argument, NULL, 'o'},
       {"tos", no_argument, NULL, TOS_OPT},
       {"verbose", no_argument, NULL, VERB_OPT},
+      {"no-exe", no_argument, NULL, NOEXE_OPT},
       {"optlvl", required_argument, NULL, 'O'},
       {NULL, 0, NULL, 0},
   };
@@ -150,6 +153,10 @@ void parse_args(int argc, char *argv[], struct cmd_args *args) {
       args->verbose = true;
       break;
 
+    case NOEXE_OPT:
+      args->no_exe = true;
+      break;
+
     case 'O':
       args->opt_lvl = strtoi(optarg);
       break;
@@ -194,6 +201,9 @@ void check_args(const struct cmd_args *args) {
   if (args->opt_lvl < 0 || args->opt_lvl > 1) {
     display_help("invalid optimization level");
   }
+  if (args->no_exe && args->dispose_on_exit) {
+    display_help("can't run in no-exe mode without output file");
+  }
 }
 
 void print_args(const struct cmd_args *args) {
@@ -202,5 +212,6 @@ void print_args(const struct cmd_args *args) {
   debug("dispose_on_exit: %s", args->dispose_on_exit ? "true" : "false");
   debug("stdisplay: %s", args->stdisplay ? "true" : "false");
   debug("verbose: %s", args->verbose ? "true" : "false");
+  debug("no_exe: %s", args->no_exe ? "true" : "false");
   debug("opt_lvl: %d", args->opt_lvl);
 }

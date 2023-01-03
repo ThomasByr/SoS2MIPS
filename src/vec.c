@@ -5,6 +5,8 @@
 
 #include "vec.h"
 
+static const int grow_factor = 2;
+
 struct vec_s {
   void **data;
   size_t size;
@@ -80,7 +82,7 @@ void vec_set(vec_t vec, size_t index, void *data) {
 void vec_push(vec_t vec, void *data) {
   if ((double)vec->size >= (double)vec->capacity * 0.8) {
     TCHK(pthread_mutex_lock(vec->lock));
-    vec->capacity *= 2;
+    vec->capacity *= grow_factor;
     vec->data = realloc(vec->data, sizeof(void *) * vec->capacity);
     TCHK(pthread_mutex_unlock(vec->lock));
   }
@@ -105,7 +107,7 @@ void vec_insert(vec_t vec, size_t index, void *data) {
   }
   if ((double)vec->size >= (double)vec->capacity * 0.8) {
     TCHK(pthread_mutex_lock(vec->lock));
-    vec->capacity *= 2;
+    vec->capacity *= grow_factor;
     vec->data = realloc(vec->data, sizeof(void *) * vec->capacity);
     TCHK(pthread_mutex_unlock(vec->lock));
   }

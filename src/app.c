@@ -82,8 +82,10 @@ int run_app(const struct cmd_args *args) {
   id_name_table = symtable_new();
   quad_array = vec_new();
 
+#ifdef YYDEBUG
   extern int yydebug;
   yydebug = 1;
+#endif
 
   // launch yyparse
   if (yyparse() != 0) {
@@ -98,20 +100,20 @@ int run_app(const struct cmd_args *args) {
   generate_asm();
 
   // launch qtspim
-  // switch (threadpool_add(pool, launch_qtspim, args->output, 0)) {
-  // case 0:
-  //   break;
-  // case threadpool_invalid:
-  //   panic("invalid threadpool (threadpool seems to be NULL)");
-  // case threadpool_lock_failure:
-  //   panic("lock failure on threadpool");
-  // case threadpool_queue_full:
-  //   panic("queue is full");
-  // case threadpool_shutdown:
-  //   panic("threadpool is shutting down");
-  // default:
-  //   panic("unknown error on threadpool");
-  // }
+  switch (threadpool_add(pool, launch_qtspim, args->output, 0)) {
+  case 0:
+    break;
+  case threadpool_invalid:
+    panic("invalid threadpool (threadpool seems to be NULL)");
+  case threadpool_lock_failure:
+    panic("lock failure on threadpool");
+  case threadpool_queue_full:
+    panic("queue is full");
+  case threadpool_shutdown:
+    panic("threadpool is shutting down");
+  default:
+    panic("unknown error on threadpool");
+  }
 
   if (args->dispose_on_exit) {
     switch (threadpool_add(pool, discard_file, args->output, 0)) {

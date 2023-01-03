@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <pthread.h>
+#include <stdarg.h>
 #include <stdlib.h>
 
 #define __VERSION__ "1.2.2"
@@ -153,6 +154,17 @@ int strtoi(const char *restrict nptr);
  * @param fmt  formated message to print
  */
 void snprintf_s(char *restrict str, size_t size, const char *restrict fmt, ...);
+
+/**
+ * @brief Safe call to vsnprintf
+ *
+ * @param str  string to write to
+ * @param size size of the string
+ * @param fmt  formated message to print
+ * @param ap   va_list of arguments
+ */
+void vsnprintf_s(char *restrict str, size_t size, const char *restrict fmt,
+                 va_list ap);
 
 /**
  * @brief Safe call to memcpy

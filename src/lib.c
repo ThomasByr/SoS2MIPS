@@ -72,6 +72,13 @@ void snprintf_s(char *restrict str, size_t size, const char *restrict fmt,
   if ((size_t)n >= size) panic("format string too long");
 }
 
+void vsnprintf_s(char *restrict str, size_t size, const char *restrict fmt,
+                 va_list ap) {
+  int n = vsnprintf(str, size, fmt, ap);
+  if (n < 0) panic("vsnprintf failure");
+  if ((size_t)n >= size) panic("format string too long");
+}
+
 void *memcpy_s(void *restrict dst0, const void *restrict src0, size_t length) {
   typedef int word; // "word" used for optimal copy speed
 

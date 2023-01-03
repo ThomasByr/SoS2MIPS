@@ -11,6 +11,7 @@ struct cmd_args {
 
   bool stdisplay;
   bool verbose;
+  bool no_exe;
 
   int opt_lvl;
 };
