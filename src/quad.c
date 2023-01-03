@@ -33,6 +33,7 @@ char *quad_op_string[] = {
     "assn_float_from_arraysub_op",
     "assn_string_to_var_op",
     "assn_arg_to_var_op",
+    "assn_id_to_var_op",
     "assn_all_arg_to_var_op",
     "assn_status_to_var_op",
     "assn_expr_value_to_var_op",
@@ -317,6 +318,10 @@ struct quadarg *quadarg_new_id(char *value) {
   struct quadarg *quadarg = calloc(1, sizeof(struct quadarg));
   quadarg->type = id_arg;
   quadarg->value.id_value = symtable_insert(id_name_table, value);
+  quadarg->value.id_value->node_type = val_node;
+  quadarg->value.id_value->var_type = inttype;
+  quadarg->value.id_value->mem_addr_type = off_fp;
+  quadarg->value.id_value->var_addr = 0;
   return quadarg;
 }
 

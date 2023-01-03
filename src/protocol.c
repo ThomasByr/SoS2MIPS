@@ -84,10 +84,14 @@ void generate_asm(FILE *out) {
   // char *strstr_string = NULL;
   // size_t str_count = 0;
   int msg_count = 0;
+  // int addr_count = 1;
+  // int offset = 0x1000;
   astack_t stack = astack_new(2, 10); // random preallocation
 
   // fprintf(out, ".data\n\n");
   // fprintf(out, ".text\n");
+
+  struct symnode *node;
 
   for (i = 0; i < vec_size(quad_array); i++) {
     quad = vec_get(quad_array, i);
@@ -112,6 +116,20 @@ void generate_asm(FILE *out) {
       astack_push_data(stack, "msg%d: .asciiz \"%s\"", msg_count,
                        quad->arg1->value.str_value);
 
+      break;
+
+    case assn_id_to_var_op:
+
+      if (quad->arg2 == NULL) {
+        quad->arg3->type = id_arg;
+        quad->arg3->reg_arg = find_free_reg();
+        node = quad->arg1->value.id_value;
+        if (node->var_addr == 0) {
+          panic("variable not declared");
+        }
+        astack_push_text(stack, "lw %s, %s", reg_name(quad->arg3->reg_arg),
+                         node->name);
+      }
       break;
 
     case plus_op:
@@ -236,25 +254,9 @@ void generate_asm(FILE *out) {
 
     case echo_instr_op:
 
-      // fseek(out, 0, SEEK_SET);
-
-      // str_count = 0;
-      // while (fgets(substring, BUFSIZ, out) != NULL) {
-      //   if ((strstr_string = strstr(substring, ".text")) != NULL)
-      //   break; str_count++;
-      // }
-
-      // fseek(out, str_count * BUFSIZ + (size_t)(substring -
-      // strstr_string) - 1,
-      //       SEEK_SET);
-      // astack_push_data(stack, "msg%d: .asciiz \"%s\"", msg_count,
-      //                  quad->arg1->value.str_value);
-
-      // fseek(out, 0, SEEK_END);
-
       if (quad->arg1->type == int_arg) {
 
-        astack_push_text(stack, "la %s, %s", reg_name(reg_a0),
+        astack_push_text(stack, "move %s, %s", reg_name(reg_a0),
                          reg_name(quad->arg1->reg_arg));
         free_reg(quad->arg1->reg_arg);
         astack_push_text(stack, "li $v0, %d", sc_print_int);
@@ -264,6 +266,12 @@ void generate_asm(FILE *out) {
         astack_push_text(stack, "la %s, msg%d", reg_name(reg_a0), msg_count);
         astack_push_text(stack, "li $v0, %d", sc_print_string);
         msg_count++;
+
+      } else if (quad->arg1->type == id_arg) {
+
+        astack_push_text(stack, "move %s, %s", reg_name(reg_a0),
+                         reg_name(quad->arg1->reg_arg));
+        astack_push_text(stack, "li $v0, %d", sc_print_int);
       }
 
       astack_push_text(stack, "syscall");
@@ -284,6 +292,27 @@ void generate_asm(FILE *out) {
       astack_push_text(stack, "syscall");
 
       break;
+
+    case assn_instr_op:
+
+      node = quad->arg1->value.id_value;
+      if (node->var_addr == 0) {
+        astack_push_data(stack, "%s: .word 0", node->name);
+        node->var_addr = 1;
+      }
+      astack_push_text(stack, "sw %s, %s", reg_name(quad->arg2->reg_arg),
+                       node->name);
+      free_reg(quad->arg2->reg_arg);
+
+      break;
+
+    case assn_expr_value_to_var_op:
+
+      quad->arg3->type = int_arg;
+      quad->arg3->reg_arg = quad->arg1->reg_arg;
+
+      break;
+
     default:
       break;
     }

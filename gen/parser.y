@@ -124,7 +124,7 @@ instruction
 | CASE op IN cases ESAC
 { $$ = quad_new(0, case_instr_op, $2->arg3, $4->arg3, quadarg_new_reg()); }
 | EKKO ops
-{ $$ = quad_new(0, echo_instr_op, $2->arg1, NULL, quadarg_new_reg()); }
+{ $$ = quad_new(0, echo_instr_op, $2->arg3, NULL, quadarg_new_reg()); }
 | READ  ID 
 { $$ = quad_new(0, read_instr_op, quadarg_new_id($2), NULL, quadarg_new_reg()); }
 | READ  ID '[' op_int ']'
@@ -254,9 +254,9 @@ test_instr
 
 op
 : '$' '{' ID '}'
-{ $$ = quad_new(0, assn_arg_to_var_op, quadarg_new_id($3), NULL, quadarg_new_reg()); }
+{ $$ = quad_new(0, assn_id_to_var_op, quadarg_new_id($3), NULL, quadarg_new_reg()); }
 | '$' '{' ID '[' op_int ']' '}'
-{ $$ = quad_new(0, assn_arg_to_var_op, quadarg_new_id($3), $5->arg3, quadarg_new_reg()); }
+{ $$ = quad_new(0, assn_id_to_var_op, quadarg_new_id($3), $5->arg3, quadarg_new_reg()); }
 | '$' integer
 { $$ = quad_new(0, assn_arg_to_var_op, quadarg_new_int($2), NULL, quadarg_new_reg()); }
 | '$' '*'
@@ -266,7 +266,7 @@ op
 | string
 { $$ = quad_new(0, assn_string_to_var_op, quadarg_new_str($1), NULL, quadarg_new_reg()); }
 | '$' '(' expr sum_int ')'
-{ $$ = quad_new(0, assn_expr_value_to_var_op, $4->arg1, $4->arg2, quadarg_new_reg()); }
+{ $$ = quad_new(0, assn_expr_value_to_var_op, $4->arg3, NULL, quadarg_new_reg()); }
 | '$' '(' cfun ')' 
 { $$ = quad_new(0, assn_cfun_to_var_op, $3->arg3, NULL, quadarg_new_reg()); }
 | integer 
@@ -311,9 +311,9 @@ prod_int
 
 op_int
 : '$' '{' ID '}' 
-{ $$ = quad_new(0, assn_arg_to_var_op, quadarg_new_id($3), NULL, quadarg_new_reg()); }
+{ $$ = quad_new(0, assn_id_to_var_op, quadarg_new_id($3), NULL, quadarg_new_reg()); }
 | '$' '{' ID '[' op_int ']' '}' 
-{ $$ = quad_new(0, assn_arg_to_var_op, quadarg_new_id($3), $5->arg3, quadarg_new_reg()); }
+{ $$ = quad_new(0, assn_id_to_var_op, quadarg_new_id($3), $5->arg3, quadarg_new_reg()); }
 | '$' integer 
 { $$ = quad_new(0, assn_arg_to_var_op, quadarg_new_int($2), NULL, quadarg_new_reg()); }
 | plus_minus '$' '{' ID '}' 
