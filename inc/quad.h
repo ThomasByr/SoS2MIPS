@@ -80,6 +80,7 @@ enum quadargtype {
   dbl_arg,
   str_arg,
   array_str_arg,
+  int_array_arg,
   id_arg,
   quad_arg,
 };

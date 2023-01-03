@@ -1,7 +1,8 @@
-i=$( expr 6*3);
-ii=$( expr 1%2);
-echo "i = ";
-echo ${i};
-echo "\nii = ";
-echo ${ii};
+declare array[10];
+array[5]=42;
+array[1]=1;
+echo "Array[5] : ";
+echo ${array[5]};
+echo "\nArray[1] : ";
+echo ${array[1]};
 exit

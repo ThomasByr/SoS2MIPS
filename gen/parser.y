@@ -95,52 +95,51 @@ program
 
 instructions
 : instructions ';' instruction
-{ $$ = quad_new(0, instr_op, $1->arg3, $3->arg3, quadarg_new_reg()); }
+{ $$ = quad_new(0, instr_op, NULL, NULL, NULL); }
 | instruction
 { $$ = $1; }
 ;
 
 instruction
 : ID '=' concat
-{ $$ = quad_new(0, assn_instr_op, quadarg_new_id($1), $3->arg3, quadarg_new_reg()); }
+{ $$ = quad_new(0, assn_instr_op, quadarg_new_id($1), $3->arg3, NULL); }
 | ID '[' op_int ']' '=' concat
-{ struct quad *marker = quad_new(0, array_instr_op, quadarg_new_id($1), $3->arg3, quadarg_new_reg());
-  $$ = quad_new(0, assn_array_instr_op, marker->arg3, $6->arg3, quadarg_new_reg()); }
+{ $$ = quad_new(0, assn_array_instr_op, quadarg_new_id($1), $3->arg3, $6->arg3); }
 | declare ID '[' integer ']'
-{ $$ = quad_new(0, declare_array_instr_op, quadarg_new_id($2), quadarg_new_int($4), quadarg_new_reg()); }
+{ $$ = quad_new(0, declare_array_instr_op, quadarg_new_id($2), quadarg_new_int($4), NULL); }
 | IF testing THEN instructions maybe_else instructions FI
-{ struct quad *marker1 = quad_new(0, test_instr_op, $2->arg3, $4->arg3, quadarg_new_reg());
-  struct quad *marker2 = quad_new(0, maybe_else_instr_op, $5->arg3, $6->arg3, quadarg_new_reg());
-  $$ = quad_new(0, if_instr_op, marker1->arg3, marker2->arg3, quadarg_new_reg()); }
+{ struct quad *marker1 = quad_new(0, test_instr_op, $2->arg3, $4->arg3, NULL);
+  struct quad *marker2 = quad_new(0, maybe_else_instr_op, $5->arg3, $6->arg3, NULL);
+  $$ = quad_new(0, if_instr_op, marker1->arg3, marker2->arg3, NULL); }
 | FOR ID DO instructions DONE
-{ $$ = quad_new(0, for_instr_op, quadarg_new_id($2), $4->arg3, quadarg_new_reg()); }
+{ $$ = quad_new(0, for_instr_op, quadarg_new_id($2), $4->arg3, NULL); }
 | FOR ID IN ops DO instructions DONE
-{ struct quad *marker = quad_new(0, in_instr_op, quadarg_new_id($2), $4->arg3, quadarg_new_reg());
-  $$ = quad_new(0, for_instr_op, marker->arg3, $6->arg3, quadarg_new_reg()); }
+{ struct quad *marker = quad_new(0, in_instr_op, quadarg_new_id($2), $4->arg3, NULL);
+  $$ = quad_new(0, for_instr_op, marker->arg3, $6->arg3, NULL); }
 | WHILE testing DO instructions DONE
-{ $$ = quad_new(0, while_instr_op, $2->arg3, $4->arg3, quadarg_new_reg()); }
+{ $$ = quad_new(0, while_instr_op, $2->arg3, $4->arg3, NULL); }
 | UNTIL testing DO instructions DONE
-{ $$ = quad_new(0, until_instr_op, $2->arg3, $4->arg3, quadarg_new_reg()); }
+{ $$ = quad_new(0, until_instr_op, $2->arg3, $4->arg3, NULL); }
 | CASE op IN cases ESAC
-{ $$ = quad_new(0, case_instr_op, $2->arg3, $4->arg3, quadarg_new_reg()); }
+{ $$ = quad_new(0, case_instr_op, $2->arg3, $4->arg3, NULL); }
 | EKKO ops
-{ $$ = quad_new(0, echo_instr_op, $2->arg3, NULL, quadarg_new_reg()); }
+{ $$ = quad_new(0, echo_instr_op, $2->arg3, NULL, NULL); }
 | READ  ID 
-{ $$ = quad_new(0, read_instr_op, quadarg_new_id($2), NULL, quadarg_new_reg()); }
+{ $$ = quad_new(0, read_instr_op, quadarg_new_id($2), NULL, NULL); }
 | READ  ID '[' op_int ']'
-{ $$ = quad_new(0, read_array_instr_op, quadarg_new_id($2), $4->arg3, quadarg_new_reg()); }
+{ $$ = quad_new(0, read_array_instr_op, quadarg_new_id($2), $4->arg3, NULL); }
 | dfun
 { $$ = $1; }
 | cfun
 { $$ = $1; }
 | RETURN 
-{ $$ = quad_new(0, return_void_op, NULL, NULL, quadarg_new_reg()); }
+{ $$ = quad_new(0, return_void_op, NULL, NULL, NULL); }
 | RETURN op_int
-{ $$ = quad_new(0, return_int_op, $2->arg3, NULL, quadarg_new_reg()); }
+{ $$ = quad_new(0, return_int_op, $2->arg3, NULL, NULL); }
 | EXIT 
-{ $$ = quad_new(0, exit_void_op, NULL, NULL, quadarg_new_reg()); }
+{ $$ = quad_new(0, exit_void_op, NULL, NULL, NULL); }
 | EXIT op_int
-{ $$ = quad_new(0, exit_int_op, $2->arg3, NULL, quadarg_new_reg()); }
+{ $$ = quad_new(0, exit_int_op, $2->arg3, NULL, NULL); }
 ;
 
 maybe_else
