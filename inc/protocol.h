@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdio.h>
+
 enum sys_call {
   sc_print_int = 1,    // $a0 = integer
   sc_print_float = 2,  // $f12 = float ($a0...$a3)
@@ -70,4 +72,4 @@ enum reg {
 
 // Iterate through the quad_array and generates assembly for each quad,
 // filling out the quad_assembly_lines array accordingly
-void generate_asm(void);
+void generate_asm(FILE *out);
