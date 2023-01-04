@@ -1,5 +1,6 @@
 #include <pthread.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "lib.h"
 #include "m.h"
@@ -115,10 +116,24 @@ void vec_test_4(void) {
   vec_free(v);
 }
 
+void vec_test_5(void) {
+  vec_t v = vec_from("long string a", "long string b", "long string c", NULL);
+
+  assert_eq(vec_size(v), 3);
+  assert_eq(vec_capacity(v), 3);
+
+  assert_eq(strcmp(vec_get(v, 0), "long string a"), 0);
+  assert_eq(strcmp(vec_get(v, 1), "long string b"), 0);
+  assert_eq(strcmp(vec_get(v, 2), "long string c"), 0);
+
+  vec_free(v);
+}
+
 void vec_test(void) {
   test_case(vec_test_0);
   test_case(vec_test_1);
   test_case(vec_test_2);
   test_case(vec_test_3);
   test_case(vec_test_4);
+  test_case(vec_test_5);
 }
