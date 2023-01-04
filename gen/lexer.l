@@ -109,7 +109,7 @@ int keywordLookup(char *s)
     };
     typedef struct keywordTokenPair KeywordTokenPair;
 
-    const int KEYWORD_COUNT = 34;
+    const int KEYWORD_COUNT = 32;
 
     static KeywordTokenPair keywordTokenPairs[] =
         {
@@ -132,18 +132,16 @@ int keywordLookup(char *s)
             {"return", RETURN},
             {"exit", EXIT},
             {"test", test},
-            {"-o", or},
-            {"-a", and},
-            {"==", eq},
-            {"-eq", eq},
-            {"!=", neq},
-            {"-ne", neq},
-            {"-gt", gt},
-            {"-ge", ge},
-            {"-lt", lt},
-            {"-le", le},
-            {"-n", nnull},
-            {"-z", null},
+            {"o", or},
+            {"a", and},
+            {"eq", eq},
+            {"ne", neq},
+            {"gt", gt},
+            {"ge", ge},
+            {"lt", lt},
+            {"le", le},
+            {"n", nnull},
+            {"z", null},
             {"expr", expr},
             {"local", local},
             {NULL , ID}

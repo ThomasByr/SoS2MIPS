@@ -10,16 +10,26 @@
 #define MSG_SIZE 1 << 7
 
 struct astack_s {
-  vec_t data;  // data section
-  dict_t text; // text section (dict_t of vec_t)
+  vec_t data;         // data section
+  vec_t text;         // text section
+  vec_t name;         // name of the block
+  dict_t text_blocks; // text section blocks
 };
 
 astack_t _astack_new_args(struct astack_args_s args) {
   astack_t stack = malloc(sizeof(struct astack_s));
   stack->data = vec_new(args._data_size ? args._data_size : 1);
-  stack->text = dict_new(1);
-  dict_push(stack->text, "main",
-            vec_new(args._text_size ? args._text_size : 1));
+  stack->text = vec_new(args._text_size ? args._text_size : 1);
+  stack->name = vec_new(args._text_size ? args._text_size : 1);
+  stack->text_blocks = dict_new(1);
+
+  vec_t main = vec_new();
+  vec_push(stack->text, main);
+
+  char *main_name = malloc(sizeof(char) * 5);
+  strlcpy(main_name, "main", 5);
+  dict_push(stack->text_blocks, main_name, (void *)1);
+  vec_push(stack->name, main_name);
   return stack;
 }
 
@@ -32,21 +42,29 @@ void astack_free(astack_t stack) {
   char *el;
   vec_foreach(stack->data, i, el) { free(el); }
 
-  dict_itr_t itr = dict_itr_new(stack->text);
+  dict_itr_t itr = dict_itr_new(stack->text_blocks);
   while (dict_itr_has_next(itr)) {
-    vec_t v = (vec_t)dict_itr_value(itr);
-    vec_foreach(v, i, el) { free(el); }
-    vec_free(v);
+    char *key = (char *)dict_itr_key(itr);
+    free(key);
     dict_itr_next(itr);
   }
 
   // free vectors
   vec_free(stack->data);
   dict_itr_free(itr);
-  dict_free(stack->text);
+  dict_free(stack->text_blocks);
 
   // free stack
   free(stack);
+
+  // free vectors of vectors
+  vec_t v;
+  vec_foreach(stack->text, i, v) {
+    vec_foreach(v, j, el) { free(el); }
+    vec_free(v);
+  }
+  vec_free(stack->name);
+  vec_free(stack->text);
 }
 
 void astack_push_data(astack_t stack, const char *restrict fmt, ...) {
@@ -69,18 +87,18 @@ void astack_push_text(astack_t stack, const char *restrict block,
   // get block
   vec_t v;
   ASSERT(block != NULL); // shouldn't be for debugging purposes
-  if (block == NULL) {
-    v = (vec_t)dict_get(stack->text, "main");
+  size_t n = dict_get(stack->text_blocks, (void *)block);
+  size_t size = vec_size(stack->text);
+  if (n == 0) {
+    v = vec_new();
+    dict_push(stack->text_blocks, (void *)block, (void *)(size + 2));
+    vec_push(stack->text, v);
+    vec_push(stack->name, (void *)block);
   } else {
-    v = (vec_t)dict_get(stack->text, (char *)block);
-    if (v == NULL) {
-      v = vec_new();
-      int n = dict_push(stack->text, (char *)block, v);
-      ASSERT(n == 1);
-    }
+    v = vec_get(stack->text, n - 1);
   }
+  ASSERT(v != NULL);
 
-  // push instruction
   va_list args;
   va_start(args, fmt);
   vsnprintf_s(buf, MSG_SIZE, fmt, args);
@@ -95,13 +113,10 @@ void astack_fprintf(astack_t stack, FILE *stream) {
   vec_foreach(stack->data, i, el) { fprintf(stream, "%s\n", el); }
   fprintf(stream, "\n.text\n.globl main\n");
 
-  dict_itr_t itr = dict_itr_new(stack->text);
-  while (dict_itr_has_next(itr)) {
-    const char *key = (char *)dict_itr_key(itr);
-    fprintf(stream, "\n%s:\n", key);
-    vec_t v = (vec_t)dict_itr_value(itr);
-    vec_foreach(v, i, el) { fprintf(stream, "%s\n", el); }
-    dict_itr_next(itr);
+  vec_t v;
+  vec_foreach(stack->text, i, v) {
+    char *name = vec_get(stack->name, i);
+    fprintf(stream, "\n%s:\n", name);
+    vec_foreach(v, j, el) { fprintf(stream, "%s\n", el); }
   }
-  dict_itr_free(itr);
 }
