@@ -52,10 +52,12 @@ void astack_free(astack_t stack) {
 void astack_push_data(astack_t stack, const char *restrict fmt, ...) {
   char *buf = malloc(MSG_SIZE);
   if (buf == NULL) panic("malloc failed");
+
   va_list args;
   va_start(args, fmt);
   vsnprintf_s(buf, MSG_SIZE, fmt, args);
   va_end(args);
+
   vec_push(stack->data, buf);
 }
 

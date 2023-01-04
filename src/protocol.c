@@ -342,6 +342,7 @@ void generate_asm(FILE *out) {
       buf[strlen(buf)] = '\0';
 
       astack_push_data(stack, buf);
+      free(buf);
 
       break;
 
