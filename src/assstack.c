@@ -54,9 +54,6 @@ void astack_free(astack_t stack) {
   dict_itr_free(itr);
   dict_free(stack->text_blocks);
 
-  // free stack
-  free(stack);
-
   // free vectors of vectors
   vec_t v;
   vec_foreach(stack->text, i, v) {
@@ -65,6 +62,9 @@ void astack_free(astack_t stack) {
   }
   vec_free(stack->name);
   vec_free(stack->text);
+
+  // free stack
+  free(stack);
 }
 
 void astack_push_data(astack_t stack, const char *restrict fmt, ...) {
@@ -91,7 +91,7 @@ void astack_push_text(astack_t stack, const char *restrict block,
   size_t size = vec_size(stack->text);
   if (n == 0) {
     v = vec_new();
-    dict_push(stack->text_blocks, (void *)block, (void *)(size + 2));
+    dict_push(stack->text_blocks, (void *)block, (void *)(size + 1ul));
     vec_push(stack->text, v);
     vec_push(stack->name, (void *)block);
   } else {
