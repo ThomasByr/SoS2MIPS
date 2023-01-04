@@ -13,7 +13,7 @@ enum sys_call {
   sc_read_double = 7, // -> $f0 = double ($v0)
   sc_read_string = 8, // $a0 = string address, $a1 = max length
 
-  sc_sbrk = 9, // $a0 = address -> $v0 = address
+  sc_sbrk = 9, // $a0 = length -> $v0 = address
 
   sc_exit = 10,
 

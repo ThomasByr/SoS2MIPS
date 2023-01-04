@@ -98,6 +98,9 @@ int run_app(const struct cmd_args *args) {
 
   generate_asm(yyout);
 
+  CHK(fclose(yyin));
+  CHK(fclose(yyout));
+
   // launch qtspim
   if (!args->no_exe) {
     switch (threadpool_add(pool, launch_qtspim, args->output, 0)) {
@@ -146,9 +149,6 @@ int run_app(const struct cmd_args *args) {
   default:
     panic("unknown error on threadpool");
   }
-
-  CHK(fclose(yyin));
-  CHK(fclose(yyout));
 
   return status;
 }

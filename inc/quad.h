@@ -10,6 +10,7 @@ enum quadop {
   assn_float_from_arraysub_op,
   assn_string_to_var_op,
   assn_arg_to_var_op,
+  assn_id_to_var_op,
   assn_all_arg_to_var_op,
   assn_status_to_var_op,
   assn_expr_value_to_var_op,
@@ -79,6 +80,7 @@ enum quadargtype {
   dbl_arg,
   str_arg,
   array_str_arg,
+  int_array_arg,
   id_arg,
   quad_arg,
 };
