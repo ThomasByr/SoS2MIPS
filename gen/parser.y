@@ -107,10 +107,10 @@ instruction
 { $$ = quad_new(0, assn_array_instr_op, quadarg_new_id($1), $3->arg3, $6->arg3); }
 | declare ID '[' integer ']'
 { $$ = quad_new(0, declare_array_instr_op, quadarg_new_id($2), quadarg_new_int($4), NULL); }
+| IF testing THEN instructions FI
+{ $$ = quad_new(0, if_instr_op, $2->arg3, NULL, NULL); }
 | IF testing THEN instructions maybe_else instructions FI
-{ struct quad *marker1 = quad_new(0, test_instr_op, $2->arg3, $4->arg3, NULL);
-  struct quad *marker2 = quad_new(0, maybe_else_instr_op, $5->arg3, $6->arg3, NULL);
-  $$ = quad_new(0, if_instr_op, marker1->arg3, marker2->arg3, NULL); }
+{ $$ = quad_new(0, if_instr_op, $2->arg3, $5->arg3, NULL); }
 | FOR ID DO instructions DONE
 { $$ = quad_new(0, for_instr_op, quadarg_new_id($2), $4->arg3, NULL); }
 | FOR ID IN ops DO instructions DONE
@@ -148,8 +148,6 @@ maybe_else
   $$ = quad_new(0, elif_op, marker->arg3, $4->arg3, quadarg_new_reg()); }
 | ELSE instructions
 { $$ = quad_new(0, else_op, $2->arg3, NULL, quadarg_new_reg()); }
-| %empty
-{ $$ = quad_new(0, empty_op, NULL, NULL, quadarg_new_reg()); }
 ;
 
 cases

@@ -1,0 +1,4 @@
+if test 1 eq 1 then 
+echo "true\n"
+fi;
+exit 3

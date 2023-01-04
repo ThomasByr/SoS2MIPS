@@ -86,6 +86,8 @@ void generate_asm(FILE *out) {
   astack_t stack = astack_new(2, 10); // random preallocation
   char *buf;
   struct symnode *node;
+  unsigned int jmp_count = 0;
+  char *jmp_name_yes, *jmp_name_no;
 
 #define asblock ((const char *)vec_last(blocks)) // current block
 
@@ -259,6 +261,178 @@ void generate_asm(FILE *out) {
         free_reg(quad->arg1->reg_arg);
         free_reg(quad->arg2->reg_arg);
       }
+
+      break;
+
+    case eq_op:
+
+      if ((quad->arg1->type == quad->arg2->type) &&
+          quad->arg1->type != str_arg) {
+
+        quad->arg3->reg_arg = find_free_reg();
+
+        astack_push_text(
+            stack, asblock, "seq %s, %s, %s", reg_name(quad->arg3->reg_arg),
+            reg_name(quad->arg1->reg_arg), reg_name(quad->arg2->reg_arg));
+
+        free_reg(quad->arg1->reg_arg);
+        free_reg(quad->arg2->reg_arg);
+      }
+
+      break;
+
+    case neq_op:
+
+      if ((quad->arg1->type == quad->arg2->type) &&
+          quad->arg1->type != str_arg) {
+
+        quad->arg3->reg_arg = find_free_reg();
+
+        astack_push_text(
+            stack, asblock, "sne %s, %s, %s", reg_name(quad->arg3->reg_arg),
+            reg_name(quad->arg1->reg_arg), reg_name(quad->arg2->reg_arg));
+
+        free_reg(quad->arg1->reg_arg);
+        free_reg(quad->arg2->reg_arg);
+      }
+
+      break;
+
+    case lt_op:
+
+      if ((quad->arg1->type == quad->arg2->type) &&
+          quad->arg1->type != str_arg) {
+
+        quad->arg3->reg_arg = find_free_reg();
+
+        astack_push_text(
+            stack, asblock, "slt %s, %s, %s", reg_name(quad->arg3->reg_arg),
+            reg_name(quad->arg1->reg_arg), reg_name(quad->arg2->reg_arg));
+
+        free_reg(quad->arg1->reg_arg);
+        free_reg(quad->arg2->reg_arg);
+      }
+
+      break;
+
+    case gt_op:
+
+      if ((quad->arg1->type == quad->arg2->type) &&
+          quad->arg1->type != str_arg) {
+
+        quad->arg3->reg_arg = find_free_reg();
+
+        astack_push_text(
+            stack, asblock, "sgt %s, %s, %s", reg_name(quad->arg3->reg_arg),
+            reg_name(quad->arg1->reg_arg), reg_name(quad->arg2->reg_arg));
+
+        free_reg(quad->arg1->reg_arg);
+        free_reg(quad->arg2->reg_arg);
+      }
+
+      break;
+
+    case le_op:
+
+      if ((quad->arg1->type == quad->arg2->type) &&
+          quad->arg1->type != str_arg) {
+
+        quad->arg3->reg_arg = find_free_reg();
+
+        astack_push_text(
+            stack, asblock, "sle %s, %s, %s", reg_name(quad->arg3->reg_arg),
+            reg_name(quad->arg1->reg_arg), reg_name(quad->arg2->reg_arg));
+
+        free_reg(quad->arg1->reg_arg);
+        free_reg(quad->arg2->reg_arg);
+      }
+
+      break;
+
+    case ge_op:
+
+      if ((quad->arg1->type == quad->arg2->type) &&
+          quad->arg1->type != str_arg) {
+
+        quad->arg3->reg_arg = find_free_reg();
+
+        astack_push_text(
+            stack, asblock, "sge %s, %s, %s", reg_name(quad->arg3->reg_arg),
+            reg_name(quad->arg1->reg_arg), reg_name(quad->arg2->reg_arg));
+
+        free_reg(quad->arg1->reg_arg);
+        free_reg(quad->arg2->reg_arg);
+      }
+
+      break;
+
+    case not_op:
+
+      quad->arg2->reg_arg = find_free_reg();
+      astack_push_text(stack, asblock, "not %s, %s",
+                       reg_name(quad->arg2->reg_arg),
+                       reg_name(quad->arg1->reg_arg));
+
+      free_reg(quad->arg1->reg_arg);
+
+      break;
+
+    case and_op:
+
+      quad->arg3->reg_arg = find_free_reg();
+      astack_push_text(
+          stack, asblock, "and %s, %s, %s", reg_name(quad->arg3->reg_arg),
+          reg_name(quad->arg1->reg_arg), reg_name(quad->arg2->reg_arg));
+
+      free_reg(quad->arg1->reg_arg);
+      free_reg(quad->arg2->reg_arg);
+
+      break;
+
+    case or_op:
+
+      quad->arg3->reg_arg = find_free_reg();
+      astack_push_text(
+          stack, asblock, "or %s, %s, %s", reg_name(quad->arg3->reg_arg),
+          reg_name(quad->arg1->reg_arg), reg_name(quad->arg2->reg_arg));
+
+      free_reg(quad->arg1->reg_arg);
+      free_reg(quad->arg2->reg_arg);
+
+      break;
+
+    case test_op:
+
+      jmp_name_yes = malloc(100);
+      snprintf_s(jmp_name_yes, 100, "instr%d", jmp_count);
+      jmp_count++;
+
+      astack_push_text(stack, asblock, "beq %s, 1, %s",
+                       reg_name(quad->arg1->reg_arg), jmp_name_yes);
+
+      quad->arg3->reg_arg = quad->arg1->reg_arg;
+
+      jmp_name_no = malloc(100);
+      snprintf_s(jmp_name_no, 100, "instr%d", jmp_count);
+      jmp_count++;
+
+      astack_push_text(stack, asblock, "j %s", jmp_name_no);
+
+      vec_push(blocks, jmp_name_no);
+      vec_push(blocks, jmp_name_yes);
+
+      break;
+
+    case if_instr_op:
+
+      jmp_name_yes = vec_last(blocks);
+      vec_pop(blocks);
+
+      if (quad->arg2 != NULL) {
+        // TODO: check for else block
+      }
+
+      // free(jmp_name_yes);
 
       break;
 
