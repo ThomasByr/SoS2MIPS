@@ -145,6 +145,17 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 - `quad` is a struct with a `type` and a `value`
 - do I go along the AST route? send help
 
+**v1.3** memory
+
+- implemented `.data` segment
+- assembly instructions stack
+- now we compile
+- `--no-exe` flag to not run the compiled assembly file
+
+**v1.4** the end is near
+
+- more to assembly instructions stack for `j` and `jal`
+
 </details>
 
 ## 🐛 Bugs & TODO
@@ -160,22 +171,22 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
       (throw `.h` to [inc](inc/) folder and `.c` to [src](src/) folder ; then add files to wildcard) [v0.2.1]
 - [x] make sure qtspim is properly working
       (dump in some [example files](vm/qtspim/helloworld.s)) [v0.1.1]
-- [ ] create grammar
-      (that's a big fish, please send help)
+- [x] create grammar
+      (that's a big fish, please send help) [v1.1]
 - [ ] improve error messages on `yylex` and `yyparse`
       (point the current line and make a suggestion)
 - [ ] standard console i/o
-      (`echo` and `read`)
+      (`echo` and `read`) [`echo` v1.3 - pending]
 - [ ] primitive types
       (`int`, `float`, `char` -> dynamic types)
-- [ ] variable declaration
-      (support scope : all variables are global by default [?](https://www.gnu.org/software/emacs/manual/html_node/elisp/Local-Variables.html), unless `local` is used)
+- [x] variable declaration
+      (support scope : all variables are global by default [?](https://www.gnu.org/software/emacs/manual/html_node/elisp/Local-Variables.html), unless `local` is used) [v1.3]
 - [ ] function declaration
       (no keywords, no arguments : `funname() { ... }`)
 - [ ] first order keywords
       (`if` `then` `for` `do` `done` `in` `while` `until` `case` `esac` `echo` `read` `return` `exit` `local` `elif` `else` `fi` `declare` `test` `expr`)
-- [ ] comments
-      (with `#` from `'#'` until `'\n'`)
+- [x] comments
+      (with `/**/` from `/*` until `*/`) [v1.2]
 - [ ] optimization level 1.0
       (evaluate constant expression at compile time)
 - [ ] optimization level 1.1
