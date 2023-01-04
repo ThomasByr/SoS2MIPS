@@ -42,6 +42,11 @@ dict_t _dict_new(int hash_content);
 
 dict_t _dict_new_args(dict_args_t args);
 
+/**
+ * @brief new dictionary
+ * set hash_content to 1 if keys are strings
+ *
+ */
 #define dict_new(...) _dict_new_args((dict_args_t){__VA_ARGS__})
 
 /**

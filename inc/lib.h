@@ -3,9 +3,10 @@
 #include <assert.h>
 #include <errno.h>
 #include <pthread.h>
+#include <stdarg.h>
 #include <stdlib.h>
 
-#define __VERSION__ "1.1.2"
+#define __VERSION__ "1.2.2"
 #define __AUTHORS__ "ThomasByr & ThomasD & EthanH & MathieuM"
 
 #define RST "\x1b[m\x1b[0m"
@@ -34,8 +35,6 @@ extern int errno;
  * (i.e. did not return -1)
  *
  * @param op operation to check
- * @param ... additional format string and arguments to display if the
- * operation failed
  * @return does not return if the operation failed
  */
 #define CHK(op)                                                           \
@@ -46,7 +45,7 @@ extern int errno;
       fprintf(stderr, #op);                                               \
       fprintf(stderr, "\n");                                              \
       if (errno) {                                                        \
-        perror("     ->");                                                \
+        perror(FG_RED "     -> " RST);                                    \
         fprintf(stderr, "\n");                                            \
       }                                                                   \
       abort();                                                            \
@@ -58,8 +57,6 @@ extern int errno;
  * (i.e. did not return > 0)
  *
  * @param op operation to check
- * @param ... additional format string and arguments to display if the
- * operation failed
  * @return does not return if the operation failed
  */
 #define TCHK(op)                                                          \
@@ -69,7 +66,7 @@ extern int errno;
               pthread_self(), __FILE__, __LINE__);                        \
       fprintf(stderr, #op);                                               \
       fprintf(stderr, "\n");                                              \
-      perror("     ->");                                                  \
+      perror(FG_RED "     -> " RST);                                      \
       fprintf(stderr, "\n");                                              \
       abort();                                                            \
     }                                                                     \
@@ -89,7 +86,7 @@ extern int errno;
     fprintf(stderr, fmt, ##__VA_ARGS__);                                \
     fprintf(stderr, "\n");                                              \
     if (errno) {                                                        \
-      perror("     ->");                                                \
+      perror(FG_RED "     -> " RST);                                    \
       fprintf(stderr, "\n");                                            \
     }                                                                   \
     abort();                                                            \
@@ -157,6 +154,17 @@ int strtoi(const char *restrict nptr);
  * @param fmt  formated message to print
  */
 void snprintf_s(char *restrict str, size_t size, const char *restrict fmt, ...);
+
+/**
+ * @brief Safe call to vsnprintf
+ *
+ * @param str  string to write to
+ * @param size size of the string
+ * @param fmt  formated message to print
+ * @param ap   va_list of arguments
+ */
+void vsnprintf_s(char *restrict str, size_t size, const char *restrict fmt,
+                 va_list ap);
 
 /**
  * @brief Safe call to memcpy
