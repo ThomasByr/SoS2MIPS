@@ -423,13 +423,23 @@ void generate_asm(FILE *out) {
 
       break;
 
+    case elif_op:
+
+      break;
+
+    case else_op:
+
+      break;
+
     case if_instr_op:
 
-      jmp_name_yes = vec_last(blocks);
-      vec_pop(blocks);
+      if (quad->arg2 == NULL) {
 
-      if (quad->arg2 != NULL) {
-        // TODO: check for else block
+        jmp_name_yes = vec_last(blocks);
+        vec_pop(blocks);
+      } else {
+
+        // TODO: for else part
       }
 
       // free(jmp_name_yes);
