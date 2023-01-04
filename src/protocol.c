@@ -429,20 +429,30 @@ void generate_asm(FILE *out) {
 
     case else_op:
 
+      jmp_name_no = malloc(100);
+      snprintf_s(jmp_name_no, 100, "instr%d", jmp_count - 1);
+
+      jmp_name_yes = malloc(100);
+      snprintf_s(jmp_name_yes, 100, "instr%d", jmp_count);
+      jmp_count++;
+
+      astack_push_text(stack, asblock, "\n%s:", jmp_name_yes);
+
+      astack_push_text(stack, asblock, "j %s", jmp_name_no);
+
+      vec_push(blocks, jmp_name_yes);
+
       break;
 
     case if_instr_op:
 
-      if (quad->arg2 == NULL) {
+      jmp_name_yes = vec_last(blocks);
+      vec_pop(blocks);
 
+      if (quad->arg2 != NULL) {
         jmp_name_yes = vec_last(blocks);
         vec_pop(blocks);
-      } else {
-
-        // TODO: for else part
       }
-
-      // free(jmp_name_yes);
 
       break;
 
