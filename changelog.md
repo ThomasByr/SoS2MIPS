@@ -42,3 +42,14 @@
 - implemented `symtable` (not based on `dict` - might change that later)
 - `quad` is a struct with a `type` and a `value`
 - do I go along the AST route? send help
+
+**v1.3** memory
+
+- implemented `.data` segment
+- assembly instructions stack
+- now we compile
+- `--no-exe` flag to not run the compiled assembly file
+
+**v1.4** the end is near
+
+- more to assembly instructions stack for `j` and `jal`
