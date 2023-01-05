@@ -70,6 +70,8 @@ enum reg {
   reg_ra = 31, // return address
 };
 
+const char *reg_name(enum reg reg);
+
 // Iterate through the quad_array and generates assembly for each quad,
 // filling out the quad_assembly_lines array accordingly
 void generate_asm(FILE *out);

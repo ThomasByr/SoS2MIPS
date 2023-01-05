@@ -40,6 +40,7 @@ enum quadop {
   testing_op,
   elif_op,
   else_op,
+  else_end_op,
   empty_op,
   filter_instr,
   cases_op,

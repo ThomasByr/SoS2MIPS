@@ -404,18 +404,15 @@ void generate_asm(FILE *out) {
     case test_op:
 
       jmp_name_yes = malloc(100);
-      snprintf_s(jmp_name_yes, 100, "instr%d", jmp_count);
+      snprintf(jmp_name_yes, 100, "instr%d", jmp_count);
       jmp_count++;
-
       astack_push_text(stack, asblock, "beq %s, 1, %s",
                        reg_name(quad->arg1->reg_arg), jmp_name_yes);
-
       quad->arg3->reg_arg = quad->arg1->reg_arg;
 
       jmp_name_no = malloc(100);
-      snprintf_s(jmp_name_no, 100, "instr%d", jmp_count);
+      snprintf(jmp_name_no, 100, "instr%d", ++jmp_count);
       jmp_count++;
-
       astack_push_text(stack, asblock, "j %s", jmp_name_no);
 
       vec_push(blocks, jmp_name_no);
@@ -429,18 +426,16 @@ void generate_asm(FILE *out) {
 
     case else_op:
 
-      jmp_name_no = malloc(100);
-      snprintf_s(jmp_name_no, 100, "instr%d", jmp_count - 1);
-
       jmp_name_yes = malloc(100);
-      snprintf_s(jmp_name_yes, 100, "instr%d", jmp_count);
-      jmp_count++;
+      snprintf(jmp_name_yes, 100, "instr%d", jmp_count);
 
-      astack_push_text(stack, asblock, "\n%s:", jmp_name_yes);
-
-      astack_push_text(stack, asblock, "j %s", jmp_name_no);
+      if (vec_last(blocks) == jmp_name_yes)
+        astack_push_text(stack, asblock, "\n%s:", jmp_name_yes);
 
       vec_push(blocks, jmp_name_yes);
+      break;
+
+    case else_end_op:
 
       break;
 
@@ -452,6 +447,10 @@ void generate_asm(FILE *out) {
       if (quad->arg2 != NULL) {
         jmp_name_yes = vec_last(blocks);
         vec_pop(blocks);
+      } else {
+        jmp_name_no = vec_last(blocks);
+        vec_pop(blocks);
+        vec_push(blocks, jmp_name_yes);
       }
 
       break;
@@ -561,5 +560,6 @@ void generate_asm(FILE *out) {
   }
 
   astack_fprintf(stack, out);
+  astack_fprintf(stack, stdout);
   astack_free(stack);
 }

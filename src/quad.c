@@ -1,3 +1,4 @@
+#include "protocol.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -63,6 +64,7 @@ char *quad_op_string[] = {
     "testing_op",
     "elif_op",
     "else_op",
+    "else_end_op",
     "empty_op",
     "filter_instr",
     "cases_op",
@@ -133,6 +135,15 @@ void quadarg_display(struct quadarg *quadarg) {
     break;
   case id_arg:
     printf("id: %s", quadarg->value.id_value->name);
+    break;
+  case str_arg:
+    printf("str: %s", quadarg->value.str_value);
+    break;
+  case no_arg_type:
+    if (quadarg->reg_arg == 0)
+      printf("reg");
+    else
+      printf("reg: %s", reg_name(quadarg->reg_arg));
     break;
   default:
     printf("unknown");
