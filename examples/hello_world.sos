@@ -1,3 +1,4 @@
+echo "value : " 0 "\n";
 declare tab[10];
 tab[0] = 1;
 tab[1] = 2;

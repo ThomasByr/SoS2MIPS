@@ -163,14 +163,30 @@ void quad_vec_init(int size) {
   quad_array = vec_new(size);
 }
 
-struct quad *quad_new(int lineno, enum quadop op, struct quadarg *arg1,
-                      struct quadarg *arg2, struct quadarg *arg3) {
+struct quad *quad_new_from_quadarg(int lineno, enum quadop op,
+                                   struct quadarg *arg1, struct quadarg *arg2,
+                                   struct quadarg *arg3) {
 
   struct quad *quad = malloc(sizeof(struct quad));
+  quad->type = quadarg;
   quad->op = op;
   quad->arg1 = arg1;
   quad->arg2 = arg2;
   quad->arg3 = arg3;
+  quad->lineno = lineno;
+
+  quad->index = quad_array_index;
+  quad_array = quadarray_add(quad_array, quad);
+
+  return quad;
+}
+
+struct quad *quad_new_from_vec(int lineno, enum quadop op, vec_t quadarg_vec) {
+
+  struct quad *quad = malloc(sizeof(struct quad));
+  quad->type = quadarg;
+  quad->op = op;
+  quad->quad_subarray = quadarg_vec;
   quad->lineno = lineno;
 
   quad->index = quad_array_index;
@@ -293,4 +309,14 @@ struct quadarg *quadarg_new_tmp(struct symtable *symtab, enum vartype type) {
 
   temp_count++;
   return quadarg;
+}
+
+vec_t quadarg_array_new() { return vec_new(); }
+
+void quadarg_array_add(vec_t quadarg_array, struct quadarg *quadarg) {
+  vec_push(quadarg_array, quadarg);
+}
+
+struct quadarg *quadarg_array_get(vec_t quadarg_array, int index) {
+  return vec_get(quadarg_array, index);
 }
