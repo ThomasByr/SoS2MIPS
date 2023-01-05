@@ -116,8 +116,7 @@ instruction
 | FOR ID DO instructions DONE
 { $$ = quad_new(0, for_instr_op, quadarg_new_id($2), $4->arg3, NULL); }
 | FOR ID IN ops DO instructions DONE
-{ struct quad *marker = quad_new(0, in_instr_op, quadarg_new_id($2), $4->arg3, NULL);
-  $$ = quad_new(0, for_instr_op, marker->arg3, $6->arg3, NULL); }
+{ $$ = quad_new(0, for_instr_op, quadarg_new_id($2), $4->arg3, $6->arg3); }
 | WHILE testing DO instructions DONE
 { $$ = quad_new(0, while_instr_op, $2->arg3, $4->arg3, NULL); }
 | UNTIL testing DO instructions DONE

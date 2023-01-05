@@ -132,6 +132,7 @@ void generate_asm(FILE *out) {
         if (node->var_addr == 0) {
           panic("variable not declared");
         }
+
         astack_push_text(stack, asblock, "lw %s, %s",
                          reg_name(quad->arg3->reg_arg), node->name);
       } else {
@@ -162,7 +163,7 @@ void generate_asm(FILE *out) {
     case plus_op:
 
       // sum int rule
-      if (quad->arg1->type == int_arg && quad->arg2->type == int_arg) {
+      if (quad->arg1->type != str_arg && quad->arg2->type != str_arg) {
 
         quad->arg3->reg_arg = find_free_reg();
         astack_push_text(
@@ -199,7 +200,7 @@ void generate_asm(FILE *out) {
     case minus_op:
 
       // sum int rule
-      if (quad->arg1->type == int_arg && quad->arg2->type == int_arg) {
+      if (quad->arg1->type != str_arg && quad->arg2->type != str_arg) {
 
         quad->arg3->reg_arg = find_free_reg();
         astack_push_text(
@@ -236,7 +237,7 @@ void generate_asm(FILE *out) {
     case mult_op:
 
       // prod int rule
-      if (quad->arg1->type == int_arg && quad->arg2->type == int_arg) {
+      if (quad->arg1->type != str_arg && quad->arg2->type != str_arg) {
 
         quad->arg3->reg_arg = find_free_reg();
         astack_push_text(
@@ -252,7 +253,7 @@ void generate_asm(FILE *out) {
     case div_op:
 
       // prod int rule
-      if (quad->arg1->type == int_arg && quad->arg2->type == int_arg) {
+      if (quad->arg1->type != str_arg && quad->arg2->type != str_arg) {
 
         quad->arg3->reg_arg = find_free_reg();
         astack_push_text(
@@ -267,7 +268,7 @@ void generate_asm(FILE *out) {
 
     case mod_op:
 
-      if (quad->arg1->type == int_arg && quad->arg2->type == int_arg) {
+      if (quad->arg1->type != str_arg && quad->arg2->type != str_arg) {
 
         astack_push_text(stack, asblock, "div %s, %s",
                          reg_name(quad->arg1->reg_arg),
@@ -285,9 +286,7 @@ void generate_asm(FILE *out) {
 
     case eq_op:
 
-      if ((quad->arg1->type == quad->arg2->type) &&
-          quad->arg1->type != str_arg) {
-
+      if (quad->arg1->type != str_arg && quad->arg2->type != str_arg) {
         quad->arg3->reg_arg = find_free_reg();
 
         astack_push_text(
@@ -302,9 +301,7 @@ void generate_asm(FILE *out) {
 
     case neq_op:
 
-      if ((quad->arg1->type == quad->arg2->type) &&
-          quad->arg1->type != str_arg) {
-
+      if (quad->arg1->type != str_arg && quad->arg2->type != str_arg) {
         quad->arg3->reg_arg = find_free_reg();
 
         astack_push_text(
@@ -319,9 +316,7 @@ void generate_asm(FILE *out) {
 
     case lt_op:
 
-      if ((quad->arg1->type == quad->arg2->type) &&
-          quad->arg1->type != str_arg) {
-
+      if (quad->arg1->type != str_arg && quad->arg2->type != str_arg) {
         quad->arg3->reg_arg = find_free_reg();
 
         astack_push_text(
@@ -336,9 +331,7 @@ void generate_asm(FILE *out) {
 
     case gt_op:
 
-      if ((quad->arg1->type == quad->arg2->type) &&
-          quad->arg1->type != str_arg) {
-
+      if (quad->arg1->type != str_arg && quad->arg2->type != str_arg) {
         quad->arg3->reg_arg = find_free_reg();
 
         astack_push_text(
@@ -353,9 +346,7 @@ void generate_asm(FILE *out) {
 
     case le_op:
 
-      if ((quad->arg1->type == quad->arg2->type) &&
-          quad->arg1->type != str_arg) {
-
+      if (quad->arg1->type != str_arg && quad->arg2->type != str_arg) {
         quad->arg3->reg_arg = find_free_reg();
 
         astack_push_text(
@@ -370,9 +361,7 @@ void generate_asm(FILE *out) {
 
     case ge_op:
 
-      if ((quad->arg1->type == quad->arg2->type) &&
-          quad->arg1->type != str_arg) {
-
+      if (quad->arg1->type != str_arg && quad->arg2->type != str_arg) {
         quad->arg3->reg_arg = find_free_reg();
 
         astack_push_text(
@@ -470,10 +459,14 @@ void generate_asm(FILE *out) {
       vec_pop(blocks);
       break;
 
+    case while_instr_op:
+
+      astack_push_text(stack, asblock, "test");
+      break;
+
     case echo_instr_op:
 
       if (quad->arg1->type == int_arg) {
-
         astack_push_text(stack, asblock, "move %s, %s", reg_name(reg_a0),
                          reg_name(quad->arg1->reg_arg));
         astack_push_text(stack, asblock, "li $v0, %d", sc_print_int);
@@ -482,7 +475,6 @@ void generate_asm(FILE *out) {
         astack_push_text(stack, asblock, "syscall");
 
       } else if (quad->arg1->type == str_arg) {
-
         astack_push_text(stack, asblock, "la %s, msg%d", reg_name(reg_a0),
                          msg_count);
         astack_push_text(stack, asblock, "li $v0, %d", sc_print_string);
@@ -494,7 +486,6 @@ void generate_asm(FILE *out) {
       else if ((quad->arg1->type == id_arg ||
                 quad->arg1->type == int_array_arg) &&
                quad->arg2 != ALL) {
-
         astack_push_text(stack, asblock, "move %s, %s", reg_name(reg_a0),
                          reg_name(quad->arg1->reg_arg));
         astack_push_text(stack, asblock, "li $v0, %d", sc_print_int);
@@ -504,7 +495,6 @@ void generate_asm(FILE *out) {
       }
       // print all the array
       else if (quad->arg2 == ALL) {
-
         reg1 = find_free_reg();
         reg2 = find_free_reg();
         reg3 = find_free_reg();

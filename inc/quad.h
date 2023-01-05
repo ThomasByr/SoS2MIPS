@@ -36,6 +36,7 @@ enum quadop {
   and_op,
   or_op,
   test_op,
+  test_while_op,
   // condition operations
   testing_op,
   elif_op,
@@ -48,7 +49,6 @@ enum quadop {
   // instruction operations
   concat_op,
   assn_instr_op,
-  array_instr_op,
   assn_array_instr_op,
   declare_array_instr_op,
   test_instr_op,
