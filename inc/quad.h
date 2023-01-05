@@ -37,7 +37,6 @@ enum quadop {
   or_op,
   test_op,
   // condition operations
-  if_op,
   testing_op,
   elif_op,
   else_op,

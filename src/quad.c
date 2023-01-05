@@ -61,7 +61,6 @@ char *quad_op_string[] = {
     "or_op",
     "test_op",
     // condition operations
-    "if_op",
     "testing_op",
     "elif_op",
     "else_op",
@@ -128,6 +127,12 @@ void quadarg_display(struct quadarg *quadarg) {
     printf("null");
     return;
   }
+
+  if (quadarg == ALL || quadarg == ARG) {
+    printf("null");
+    return;
+  }
+
   switch (quadarg->type) {
   case int_arg:
     printf("int: %d", quadarg->value.int_value);

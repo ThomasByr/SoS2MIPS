@@ -2,6 +2,9 @@
 
 #include <stdio.h>
 
+#define ARG (void *)0x42
+#define ALL (void *)0x43
+
 enum sys_call {
   sc_print_int = 1,    // $a0 = integer
   sc_print_float = 2,  // $f12 = float ($a0...$a3)
