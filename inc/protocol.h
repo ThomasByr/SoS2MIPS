@@ -2,6 +2,9 @@
 
 #include <stdio.h>
 
+#define ARG (void *)0x42
+#define ALL (void *)0x43
+
 enum sys_call {
   sc_print_int = 1,    // $a0 = integer
   sc_print_float = 2,  // $f12 = float ($a0...$a3)
@@ -69,6 +72,8 @@ enum reg {
   reg_fp = 30, // frame pointer
   reg_ra = 31, // return address
 };
+
+const char *reg_name(enum reg reg);
 
 // Iterate through the quad_array and generates assembly for each quad,
 // filling out the quad_assembly_lines array accordingly

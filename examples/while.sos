@@ -1,0 +1,6 @@
+i = 0;
+while test 1 eq 12 do
+    echo ${i};
+    i= $(expr ${i} + 1)
+done;
+exit
