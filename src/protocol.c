@@ -87,7 +87,7 @@ void generate_asm(FILE *out) {
   char *buf;
   struct symnode *node;
   unsigned int jmp_count = 0;
-  char *jmp_name_yes, *jmp_name_no;
+  char *jmp_name_if, *jmp_name_else, *jmp_name_next;
 
 #define asblock ((const char *)vec_last(blocks)) // current block
 
@@ -401,22 +401,33 @@ void generate_asm(FILE *out) {
 
       break;
 
+    case if_op:
+
+      break;
+
     case test_op:
 
-      jmp_name_yes = malloc(100);
-      snprintf(jmp_name_yes, 100, "instr%d", jmp_count);
+      jmp_name_if = malloc(100);
+      snprintf(jmp_name_if, 100, "instr%d", jmp_count);
       jmp_count++;
+
       astack_push_text(stack, asblock, "beq %s, 1, %s",
-                       reg_name(quad->arg1->reg_arg), jmp_name_yes);
+                       reg_name(quad->arg1->reg_arg), jmp_name_if);
       quad->arg3->reg_arg = quad->arg1->reg_arg;
 
-      jmp_name_no = malloc(100);
-      snprintf(jmp_name_no, 100, "instr%d", ++jmp_count);
+      jmp_name_else = malloc(100);
+      snprintf(jmp_name_else, 100, "instr%d", jmp_count);
       jmp_count++;
-      astack_push_text(stack, asblock, "j %s", jmp_name_no);
 
-      vec_push(blocks, jmp_name_no);
-      vec_push(blocks, jmp_name_yes);
+      astack_push_text(stack, asblock, "j %s", jmp_name_else);
+
+      jmp_name_next = malloc(100);
+      snprintf(jmp_name_next, 100, "instr%d", jmp_count);
+      jmp_count++;
+
+      vec_push(blocks, jmp_name_next);
+      vec_push(blocks, jmp_name_else);
+      vec_push(blocks, jmp_name_if);
 
       break;
 
@@ -426,32 +437,32 @@ void generate_asm(FILE *out) {
 
     case else_op:
 
-      jmp_name_yes = malloc(100);
-      snprintf(jmp_name_yes, 100, "instr%d", jmp_count);
-
-      if (vec_last(blocks) == jmp_name_yes)
-        astack_push_text(stack, asblock, "\n%s:", jmp_name_yes);
-
-      vec_push(blocks, jmp_name_yes);
+      vec_pop(blocks);
       break;
 
     case else_end_op:
+
+      jmp_name_else = vec_last(blocks);
+      vec_pop(blocks);
+      jmp_name_next = vec_last(blocks);
+      vec_push(blocks, jmp_name_else);
+      astack_push_text(stack, asblock, "j %s", jmp_name_next);
 
       break;
 
     case if_instr_op:
 
-      jmp_name_yes = vec_last(blocks);
+      jmp_name_else = vec_last(blocks);
       vec_pop(blocks);
 
-      if (quad->arg2 != NULL) {
-        jmp_name_yes = vec_last(blocks);
-        vec_pop(blocks);
-      } else {
-        jmp_name_no = vec_last(blocks);
-        vec_pop(blocks);
-        vec_push(blocks, jmp_name_yes);
-      }
+      // if (quad->arg2 != NULL) {
+      //   jmp_name_yes = vec_last(blocks);
+      //   vec_pop(blocks);
+      // } else {
+      //   jmp_name_no = vec_last(blocks);
+      //   vec_pop(blocks);
+      //   vec_push(blocks, jmp_name_yes);
+      // }
 
       break;
 
