@@ -49,6 +49,10 @@ enum quadop {
   cases_op,
   // instruction operations
   concat_op,
+  ops_init_op,
+  ops_add_op,
+  ops_first_op,
+  ops_array_op,
   assn_instr_op,
   assn_array_instr_op,
   declare_array_instr_op,
@@ -86,7 +90,6 @@ enum quadargtype {
   int_array_arg,
   id_arg,
   quad_arg,
-  quad_subbarray_arg,
 };
 
 enum quadtype {
@@ -101,7 +104,6 @@ struct quadarg {
     char *str_value;
     char **array_str_value;
     struct symnode *id_value;
-    vec_t quad_subarray;
   } value;
   enum quadargtype type;
   enum reg reg_arg;
@@ -111,7 +113,7 @@ struct quad {
   enum quadtype type;
   enum quadop op;
 
-  vec_t quad_subarray;
+  vec_t subarray;
 
   struct quadarg *arg1;
   struct quadarg *arg2;
@@ -138,7 +140,7 @@ void quad_vec_init(int size);
 struct quad *quad_new_from_quadarg(int lineno, enum quadop, struct quadarg *,
                                    struct quadarg *, struct quadarg *);
 
-struct quad *quad_new_from_vec(int lineno, enum quadop op, vec_t quadarg_vec);
+struct quad *quad_new_from_vec(int lineno, enum quadop op, vec_t quadarg_array);
 
 /**
  * @brief Take a global quad and assign the good operation within

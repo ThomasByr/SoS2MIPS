@@ -6,7 +6,6 @@
 #include "protocol.h"
 #include "quad.h"
 #include "symtable.h"
-#include "vec.h"
 
 #define ARG (void *)0x42
 #define ALL (void *)0x43
@@ -90,9 +89,14 @@ void generate_asm(FILE *out) {
   struct symnode *node;
   unsigned int jmp_count = 0;
   char *jmp_name_if, *jmp_name_else, *jmp_name_next;
-  enum reg reg1, reg2, reg3;
+  enum reg reg1, reg2, reg3,
+      reg_ops = reg_t8; // note : reg_t8 is used for ops in the case if all
+                        // other reg are used
+  int ops_count = 0, ops_print = 0;
 
 #define asblock ((const char *)vec_last(blocks)) // current block
+
+  astack_push_data(stack, "msg_space: .asciiz \" \"");
 
   for (i = 0; i < vec_size(quad_array); i++) {
     quad = vec_get(quad_array, i);
@@ -462,51 +466,104 @@ void generate_asm(FILE *out) {
       vec_pop(blocks);
       break;
 
+    case ops_init_op:
+
+      ops_count = 0;
+
+      reg_ops = find_free_reg();
+
+      astack_push_text(stack, asblock, "li $v0, 9");
+      astack_push_text(stack, asblock, "li $a0, 8192");
+      astack_push_text(stack, asblock, "syscall");
+      astack_push_text(stack, asblock, "move %s, $v0", reg_name(reg_ops));
+
+      break;
+
+    case ops_add_op:
+
+      if (quad->arg1->type != str_arg) {
+
+        astack_push_text(stack, asblock, "sw %s, %d(%s)",
+                         reg_name(quad->arg1->reg_arg), ops_count * 4,
+                         reg_name(reg_ops));
+
+        free_reg(quad->arg1->reg_arg);
+      }
+
+      ops_count++;
+
+      break;
+
+    case ops_first_op:
+
+      if (quad->arg1->type != str_arg) {
+
+        astack_push_text(stack, asblock, "sw %s, 0(%s)",
+                         reg_name(quad->arg1->reg_arg), reg_name(reg_ops));
+
+        free_reg(quad->arg1->reg_arg);
+      }
+
+      ops_count++;
+
+      break;
+
+    case ops_array_op:
+
+      // write all the element of the table ID in the array
+
+      break;
+
+    case for_instr_op:
+
+      break;
+
     case while_instr_op:
 
-      astack_push_text(stack, asblock, "test");
       break;
 
     case echo_instr_op:
 
-      for (j = 0; j < vec_size(quad->quad_subarray); j++) {
+      for (j = 0; j < vec_size(quad->subarray); j++) {
 
-        // echo 1 -> quadarg1 = 1, quadarg2 = NULL
-        // echo ID[*] -> quadarg1 = ID, quadarg2 = ALL
+        quadarg1 = vec_get(quad->subarray, j);
+        quadarg2 = vec_get(quad->subarray, j + 1);
 
-        quadarg1 = vec_get(quad->quad_subarray, j);
-        quadarg2 = vec_get(quad->quad_subarray, j + 1);
+        if (quadarg1->type == int_arg || quadarg1->type == id_arg) {
 
-        if (quadarg1->type == int_arg) {
-          astack_push_text(stack, asblock, "move %s, %s", reg_name(reg_a0),
-                           reg_name(quadarg1->reg_arg));
+          astack_push_text(stack, asblock, "lw $a0, %d(%s)", ops_print * 4,
+                           reg_name(reg_ops));
           astack_push_text(stack, asblock, "li $v0, %d", sc_print_int);
-          free_reg(quadarg1->reg_arg);
-
           astack_push_text(stack, asblock, "syscall");
+          ops_print++;
+
+          if (j != vec_size(quad->subarray) - 1) {
+
+            astack_push_text(stack, asblock, "la %s, msg_space",
+                             reg_name(reg_a0));
+            astack_push_text(stack, asblock, "li $v0, %d", sc_print_string);
+            astack_push_text(stack, asblock, "syscall");
+          }
 
         } else if (quadarg1->type == str_arg) {
+
           astack_push_text(stack, asblock, "la %s, msg%d", reg_name(reg_a0),
                            msg_print);
+          astack_push_text(stack, asblock, "li $v0, %d", sc_print_string);
+          astack_push_text(stack, asblock, "syscall");
           msg_print++;
 
-          astack_push_text(stack, asblock, "li $v0, %d", sc_print_string);
+          if (j != vec_size(quad->subarray) - 1) {
 
-          astack_push_text(stack, asblock, "syscall");
-        }
-        // only print one value
-        else if ((quadarg1->type == id_arg ||
-                  quadarg1->type == int_array_arg) &&
-                 quadarg2 != ALL) {
-          astack_push_text(stack, asblock, "move %s, %s", reg_name(reg_a0),
-                           reg_name(quadarg1->reg_arg));
-          astack_push_text(stack, asblock, "li $v0, %d", sc_print_int);
-          free_reg(quadarg1->reg_arg);
-
-          astack_push_text(stack, asblock, "syscall");
+            astack_push_text(stack, asblock, "la %s, msg_space",
+                             reg_name(reg_a0));
+            astack_push_text(stack, asblock, "li $v0, %d", sc_print_string);
+            astack_push_text(stack, asblock, "syscall");
+          }
         }
         // print all the array
         if (quadarg2 == ALL) {
+
           reg1 = find_free_reg();
           reg2 = find_free_reg();
           reg3 = find_free_reg();
@@ -557,23 +614,30 @@ void generate_asm(FILE *out) {
           astack_push_text(stack, asblock, "beq %s, %s, %s", reg_name(reg3),
                            reg_name(reg2), jmp_name_else);
 
-          // print ", "
-          astack_push_data(stack, "msg%d: .asciiz \", \"", msg_count);
-          astack_push_text(stack, asblock, "la %s, msg%d", reg_name(reg_a0),
-                           msg_print);
-          msg_count++;
-          msg_print++;
-          astack_push_text(stack, asblock, "li $v0, %d", sc_print_string);
-          astack_push_text(stack, asblock, "syscall");
-
           astack_push_text(stack, asblock, "j %s", jmp_name_else);
 
           vec_pop(blocks);
           vec_push(blocks, jmp_name_next);
 
+          if (j != vec_size(quad->subarray) - 1) {
+
+            astack_push_text(stack, asblock, "la %s, msg_space",
+                             reg_name(reg_a0));
+            astack_push_text(stack, asblock, "li $v0, %d", sc_print_string);
+            astack_push_text(stack, asblock, "syscall");
+          }
+
           j++;
+
+          free_reg(reg1);
+          free_reg(reg2);
+          free_reg(reg3);
         }
       }
+
+      free_reg(reg_ops);
+
+      // TODO remove msg : ", "
 
       break;
 

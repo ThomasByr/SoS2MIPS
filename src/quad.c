@@ -72,6 +72,10 @@ char *quad_op_string[] = {
     "cases_op",
     // instruction operations
     "concat_op",
+    "ops_init_op",
+    "ops_add_op",
+    "ops_first_op",
+    "ops_array_op",
     "assn_instr_op",
     "assn_array_instr_op",
     "declare_array_instr_op",
@@ -181,12 +185,13 @@ struct quad *quad_new_from_quadarg(int lineno, enum quadop op,
   return quad;
 }
 
-struct quad *quad_new_from_vec(int lineno, enum quadop op, vec_t quadarg_vec) {
+struct quad *quad_new_from_vec(int lineno, enum quadop op,
+                               vec_t quadarg_array) {
 
   struct quad *quad = malloc(sizeof(struct quad));
   quad->type = quadarg;
   quad->op = op;
-  quad->quad_subarray = quadarg_vec;
+  quad->subarray = quadarg_array;
   quad->lineno = lineno;
 
   quad->index = quad_array_index;
