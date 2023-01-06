@@ -114,20 +114,19 @@ instruction
     $$ = quad_new_from_quadarg(0, if_instr_op, $2->arg3, NULL, NULL); 
   else 
     $$ = quad_new_from_quadarg(0, if_instr_op, $2->arg3, $5->arg3, NULL); }
-| FOR ID DO instructions DONE
-{ $$ = quad_new_from_quadarg(0, for_instr_op, quadarg_new_id($2), $4->arg3, NULL); }
-| FOR ID IN ops DO instructions DONE
-{ quadarg_array_add($4, quadarg_new_id($2));
-  quadarg_array_add($4, $6->arg3);
-  $$ = quad_new_from_vec(0, for_instr_op, $4); }
+/* | FOR ID DO instructions DONE
+{ $$ = quad_new_from_quadarg(0, for_instr_op, quadarg_new_id($2), $4->arg3, NULL); } */
+| FOR ID IN { quad_new_from_quadarg(0, ops_init_op, NULL, NULL, NULL); } ops DO instructions DONE
+{ quadarg_array_add($5, quadarg_new_id($2));
+  $$ = quad_new_from_vec(0, for_instr_op, $5); }
 | WHILE testing DO instructions DONE
 { $$ = quad_new_from_quadarg(0, while_instr_op, $2->arg3, $4->arg3, NULL); }
 | UNTIL testing DO instructions DONE
 { $$ = quad_new_from_quadarg(0, until_instr_op, $2->arg3, $4->arg3, NULL); }
 | CASE op IN cases ESAC
 { $$ = quad_new_from_quadarg(0, case_instr_op, $2->arg3, $4->arg3, NULL); }
-| EKKO ops
-{ $$ = quad_new_from_vec(0, echo_instr_op, $2); }
+| EKKO { quad_new_from_quadarg(0, ops_init_op, NULL, NULL, NULL); } ops
+{ $$ = quad_new_from_vec(0, echo_instr_op, $3); }
 | READ  ID 
 { $$ = quad_new_from_quadarg(0, read_instr_op, quadarg_new_id($2), NULL, NULL); }
 | READ  ID '[' op_int ']'
@@ -200,15 +199,18 @@ filter
 ;
 
 ops
-: ops op
-{ quadarg_array_add($$, $2->arg3); }
+: ops op 
+{ quadarg_array_add($$, $2->arg3);
+  quad_new_from_quadarg(0, ops_add_op, $2->arg3, NULL, NULL); }
 | op
-{ $$ = quadarg_array_new(); 
-  quadarg_array_add($$, $1->arg3);}
+{ $$ = quadarg_array_new();
+  quadarg_array_add($$, $1->arg3);
+  quad_new_from_quadarg(0, ops_first_op, $1->arg3, NULL, NULL); }
 | '$' '{' ID '[' '*' ']' '}'
-{ $$ = quadarg_array_new(); 
+{ $$ = quadarg_array_new();
   quadarg_array_add($$, quadarg_new_id($3));
-  quadarg_array_add($$, ALL); }
+  quadarg_array_add($$, ALL); 
+  quad_new_from_quadarg(0, ops_array_op, quadarg_new_id($3), ALL, NULL); }
 ;
 
 concat

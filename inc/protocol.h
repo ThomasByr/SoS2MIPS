@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vec.h"
 #include <stdio.h>
 
 #define ARG (void *)0x42
@@ -71,6 +72,11 @@ enum reg {
   reg_sp = 29, // stack pointer
   reg_fp = 30, // frame pointer
   reg_ra = 31, // return address
+};
+
+struct ops_s {
+  char *label;
+  vec_t array;
 };
 
 const char *reg_name(enum reg reg);
