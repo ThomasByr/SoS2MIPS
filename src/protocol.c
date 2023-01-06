@@ -58,7 +58,7 @@ enum reg find_free_reg(void) {
 
   int i;
   for (i = reg_t0; i <= reg_t7; i++) {
-    if (!reg_use[i]) {
+    if (reg_use[i] == false) {
       reg_use[i] = true;
       return i;
     }
@@ -71,15 +71,35 @@ enum reg find_free_reg(void) {
  *
  * @param reg
  */
-void free_reg(enum reg reg) {
-  if (reg < reg_t0 || reg > reg_t7) {
-    panic("trying to free a non-temporary register");
-  }
-  if (!reg_use[reg]) {
-    panic("trying to free an already free register");
-  }
-  reg_use[reg] = false;
-}
+// void free_reg(enum reg reg) {
+//   if (reg < reg_t0 || reg > reg_t7) {
+//     panic("trying to free a non-temporary register");
+//   }
+//   if (!reg_use[reg]) {
+//     panic("trying to free an already free register");
+//   }
+//   reg_use[reg] = false;
+// }
+#define free_reg(reg)                                                          \
+  do {                                                                         \
+    if (reg < reg_t0 || reg > reg_t7) {                                        \
+      fprintf(stderr,                                                          \
+              FG_RED " trying to free a non-temporary register at line :%d\n " \
+                     "    -> " RST,                                            \
+              __LINE__);                                                       \
+      fprintf(stderr, "\n");                                                   \
+      abort();                                                                 \
+    }                                                                          \
+    if (!reg_use[reg]) {                                                       \
+      fprintf(stderr,                                                          \
+              FG_RED " trying to free an already free register at line :%d\n " \
+                     "    -> " RST,                                            \
+              __LINE__);                                                       \
+      fprintf(stderr, "\n");                                                   \
+      abort();                                                                 \
+    }                                                                          \
+    reg_use[reg] = false;                                                      \
+  } while (0)
 
 /**
  * @brief Generate MIPS assembly code from the quad array
@@ -101,8 +121,8 @@ void generate_asm(FILE *out) {
                ops_print = 0;
 
   enum reg reg1, reg2,
-      reg_ops = reg_jt8; // note : reg_t8 is used for ops in the case if all
-                         // other reg are used
+      reg_ops = reg_t8; // note : reg_t8 is used for ops in the case if all
+                        // other reg are used
 
 #define asblock ((const char *)vec_last(blocks)) // current block
 
@@ -498,10 +518,10 @@ void generate_asm(FILE *out) {
                          reg_name(quad->arg1->reg_arg), ops_count * 4,
                          reg_name(reg_ops));
 
-        free_reg(quad->arg1->reg_arg);
+        ops_count++;
       }
 
-      ops_count++;
+      free_reg(quad->arg1->reg_arg);
 
       break;
 
@@ -609,8 +629,8 @@ void generate_asm(FILE *out) {
             (quadarg1->type == int_arg || quadarg1->type == id_arg ||
              quadarg1->type == int_array_arg)) {
 
-          astack_push_text(stack, asblock, "lw $a0, %d(%s)",
-                           (ops_print + 1) * 4, reg_name(reg_ops));
+          astack_push_text(stack, asblock, "lw $a0, %d(%s)", (ops_print)*4,
+                           reg_name(reg_ops));
           astack_push_text(stack, asblock, "li $v0, %d", sc_print_int);
           astack_push_text(stack, asblock, "syscall");
           ops_print++;
@@ -778,7 +798,6 @@ void generate_asm(FILE *out) {
           stack, asblock, "sw %s, %s(%s)", reg_name(quad->arg3->reg_arg),
           quad->arg1->value.id_value->name, reg_name(quad->arg2->reg_arg));
 
-      free_reg(quad->arg1->reg_arg);
       free_reg(quad->arg2->reg_arg);
       free_reg(quad->arg3->reg_arg);
 
