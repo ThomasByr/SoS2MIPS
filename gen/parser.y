@@ -116,9 +116,10 @@ instruction
     $$ = quad_new_from_quadarg(0, if_instr_op, $2->arg3, $5->arg3, NULL); }
 /* | FOR ID DO instructions DONE
 { $$ = quad_new_from_quadarg(0, for_instr_op, quadarg_new_id($2), $4->arg3, NULL); } */
-| FOR ID IN { quad_new_from_quadarg(0, ops_init_op, NULL, NULL, NULL); } ops DO instructions DONE
-{ quadarg_array_add($5, quadarg_new_id($2));
-  $$ = quad_new_from_vec(0, for_instr_op, $5); }
+| FOR ID { quad_new_from_quadarg(0, for_init_op, quadarg_new_id($2), NULL, NULL); } IN 
+{ quad_new_from_quadarg(0, ops_init_op, NULL, NULL, NULL); } ops { quadarg_array_add($6, quadarg_new_id($2));
+  quad_new_from_vec(0, for_assn_op, $6); } DO instructions DONE
+{ $$ = quad_new_from_vec(0, for_instr_op, $6);}
 | WHILE testing DO instructions DONE
 { $$ = quad_new_from_quadarg(0, while_instr_op, $2->arg3, $4->arg3, NULL); }
 | UNTIL testing DO instructions DONE
