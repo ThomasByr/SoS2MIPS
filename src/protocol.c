@@ -79,20 +79,22 @@ void free_reg(enum reg reg) { reg_use[reg] = false; }
  */
 void generate_asm(FILE *out) {
 
-  size_t i, j;
+  size_t i, j, k;
+
   vec_t blocks = vec_from("main", NULL);
+  astack_t stack = astack_new(2, 10); // random preallocation
+
   struct quad *quad;
   struct quadarg *quadarg1, *quadarg2;
-  int msg_count = 0, msg_print = 0;
-  astack_t stack = astack_new(2, 10); // random preallocation
-  char *buf;
   struct symnode *node;
-  unsigned int jmp_count = 0;
-  char *jmp_name_if, *jmp_name_else, *jmp_name_next;
-  enum reg reg1, reg2, reg3,
+
+  char *buf, *jmp_name_if, *jmp_name_else, *jmp_name_next;
+  unsigned int msg_count = 0, msg_print = 0, jmp_count = 0, ops_count = 0,
+               ops_print = 0;
+
+  enum reg reg1, reg2,
       reg_ops = reg_t8; // note : reg_t8 is used for ops in the case if all
                         // other reg are used
-  int ops_count = 0, ops_print = 0;
 
 #define asblock ((const char *)vec_last(blocks)) // current block
 
@@ -472,8 +474,9 @@ void generate_asm(FILE *out) {
 
       reg_ops = find_free_reg();
 
+      // initialiaze ops array with sbrk of 8192 bytes
       astack_push_text(stack, asblock, "li $v0, 9");
-      astack_push_text(stack, asblock, "li $a0, 8192");
+      astack_push_text(stack, asblock, "li $a0, 256");
       astack_push_text(stack, asblock, "syscall");
       astack_push_text(stack, asblock, "move %s, $v0", reg_name(reg_ops));
 
@@ -494,27 +497,82 @@ void generate_asm(FILE *out) {
 
       break;
 
-    case ops_first_op:
+    case ops_array_op:
 
-      if (quad->arg1->type != str_arg) {
+      reg1 = find_free_reg();
+      reg2 = find_free_reg();
 
-        astack_push_text(stack, asblock, "sw %s, 0(%s)",
-                         reg_name(quad->arg1->reg_arg), reg_name(reg_ops));
+      for (j = 0; j < (size_t)quad->arg1->value.id_value->var_size; j++) {
 
-        free_reg(quad->arg1->reg_arg);
+        astack_push_text(stack, asblock, "la %s, %s", reg_name(reg2),
+                         quad->arg1->value.id_value->name);
+
+        astack_push_text(stack, asblock, "lw %s, %d(%s)", reg_name(reg1), j * 4,
+                         reg_name(reg2));
+
+        astack_push_text(stack, asblock, "sw %s, %d(%s)", reg_name(reg1),
+                         ops_count * 4, reg_name(reg_ops));
+
+        ops_count++;
       }
-
-      ops_count++;
 
       break;
 
-    case ops_array_op:
+    case for_init_op:
 
-      // write all the element of the table ID in the array
+      // declare the variable
+      buf = malloc(BUFSIZ);
+      snprintf_s(buf, BUFSIZ, "%s: .word 0", quad->arg1->value.id_value->name);
+      astack_push_data(stack, buf);
+      free(buf);
+
+      // index variable
+      astack_push_text(stack, asblock, "li %s, 0", reg_name(reg_s0));
+
+      quad->arg1->value.id_value->var_type = inttype;
+      quad->arg1->value.id_value->var_addr = 1;
+
+      break;
+
+    case for_assn_op:
+
+      jmp_name_next = malloc(BUFSIZ);
+      snprintf_s(jmp_name_next, BUFSIZ, "instr%d", jmp_count);
+      jmp_count++;
+
+      vec_push(blocks, jmp_name_next);
+
+      // assign the value of reg_ops first element to the variable
+      quadarg1 = vec_get(quad->subarray, vec_size(quad->subarray) - 1);
+
+      reg1 = find_free_reg();
+
+      // get the current element
+      astack_push_text(stack, asblock, "lw %s, 0(%s)", reg_name(reg1),
+                       reg_name(reg_ops));
+
+      // get the next element
+      astack_push_text(stack, asblock, "addi %s, %s, 4", reg_name(reg_ops),
+                       reg_name(reg_ops));
+
+      astack_push_text(stack, asblock, "sw %s, %s", reg_name(reg1),
+                       quadarg1->value.id_value->name);
+
+      astack_push_text(stack, asblock, "addi %s, %s, 1", reg_name(reg_s0),
+                       reg_name(reg_s0));
+
+      free_reg(reg1);
 
       break;
 
     case for_instr_op:
+
+      jmp_name_else = vec_last(blocks);
+      astack_push_text(stack, asblock, "ble %s, %d, %s", reg_name(reg_s0),
+                       vec_size(quad->subarray) - 2, jmp_name_else);
+
+      astack_push_text(stack, asblock, "\ninstr%d:", jmp_count);
+      jmp_count++;
 
       break;
 
@@ -526,8 +584,13 @@ void generate_asm(FILE *out) {
 
       for (j = 0; j < vec_size(quad->subarray); j++) {
 
-        quadarg1 = vec_get(quad->subarray, j);
-        quadarg2 = vec_get(quad->subarray, j + 1);
+        if ((quadarg1 = vec_get(quad->subarray, j)) == NULL)
+          panic("quadarg1 is NULL");
+        if (j != vec_size(quad->subarray) - 1) {
+          if ((quadarg2 = vec_get(quad->subarray, j + 1)) == NULL)
+            panic("quadarg2 is NULL");
+        } else
+          quadarg2 = NULL;
 
         if (quadarg1->type == int_arg || quadarg1->type == id_arg) {
 
@@ -544,7 +607,6 @@ void generate_asm(FILE *out) {
             astack_push_text(stack, asblock, "li $v0, %d", sc_print_string);
             astack_push_text(stack, asblock, "syscall");
           }
-
         } else if (quadarg1->type == str_arg) {
 
           astack_push_text(stack, asblock, "la %s, msg%d", reg_name(reg_a0),
@@ -562,82 +624,33 @@ void generate_asm(FILE *out) {
           }
         }
         // print all the array
-        if (quadarg2 == ALL) {
+        else if (quadarg1->type == id_arg && quadarg1->value.id_value != NULL &&
+                 quadarg1->value.id_value->var_type == arrayinttype &&
+                 quadarg2 == ALL) {
 
-          reg1 = find_free_reg();
-          reg2 = find_free_reg();
-          reg3 = find_free_reg();
+          for (k = ops_print; k < ops_count - 1; k++) {
 
-          // load the array address
-          astack_push_text(stack, asblock, "la %s, %s", reg_name(reg1),
-                           quadarg1->value.id_value->name);
-
-          buf = malloc(BUFSIZ);
-          snprintf_s(buf, BUFSIZ, "%s_size", quadarg1->value.id_value->name);
-
-          // load the size of the array
-          astack_push_text(stack, asblock, "lw %s, %s", reg_name(reg2), buf);
-
-          // load the index
-          astack_push_text(stack, asblock, "li %s, 0", reg_name(reg3));
-
-          // the loop
-          jmp_name_next = malloc(100);
-          snprintf(jmp_name_next, 100, "instr%d", jmp_count);
-          jmp_count++;
-
-          jmp_name_else = malloc(100);
-          snprintf(jmp_name_else, 100, "instr%d", jmp_count);
-          jmp_count++;
-
-          vec_push(blocks, jmp_name_else);
-
-          astack_push_text(stack, asblock, "bge %s, %s, %s", reg_name(reg3),
-                           reg_name(reg2), jmp_name_next);
-
-          // load the value
-          astack_push_text(stack, asblock, "lw %s, 0(%s)", reg_name(reg_a0),
-                           reg_name(reg1));
-          astack_push_text(stack, asblock, "li $v0, %d", sc_print_int);
-
-          astack_push_text(stack, asblock, "syscall");
-
-          // add 4 to the address
-          astack_push_text(stack, asblock, "addi %s, %s, 4", reg_name(reg1),
-                           reg_name(reg1));
-
-          // add 1 to the index
-          astack_push_text(stack, asblock, "addi %s, %s, 1", reg_name(reg3),
-                           reg_name(reg3));
-
-          // avoid print ", " on the last element
-          astack_push_text(stack, asblock, "beq %s, %s, %s", reg_name(reg3),
-                           reg_name(reg2), jmp_name_else);
-
-          astack_push_text(stack, asblock, "j %s", jmp_name_else);
-
-          vec_pop(blocks);
-          vec_push(blocks, jmp_name_next);
-
-          if (j != vec_size(quad->subarray) - 1) {
-
-            astack_push_text(stack, asblock, "la %s, msg_space",
-                             reg_name(reg_a0));
-            astack_push_text(stack, asblock, "li $v0, %d", sc_print_string);
+            // print each value of sbrk array
+            astack_push_text(stack, asblock, "lw $a0, %d(%s)", k * 4,
+                             reg_name(reg_ops));
+            astack_push_text(stack, asblock, "li $v0, %d", sc_print_int);
             astack_push_text(stack, asblock, "syscall");
+
+            if (ops_print != ops_count - 1) {
+
+              astack_push_text(stack, asblock, "la %s, msg_space",
+                               reg_name(reg_a0));
+              astack_push_text(stack, asblock, "li $v0, %d", sc_print_string);
+              astack_push_text(stack, asblock, "syscall");
+            }
           }
 
+          ops_print = ops_count;
           j++;
-
-          free_reg(reg1);
-          free_reg(reg2);
-          free_reg(reg3);
         }
       }
 
       free_reg(reg_ops);
-
-      // TODO remove msg : ", "
 
       break;
 
@@ -716,6 +729,7 @@ void generate_asm(FILE *out) {
       buf[strlen(buf)] = '\0';
 
       quad->arg1->value.id_value->var_type = arrayinttype;
+      quad->arg1->value.id_value->var_size = quad->arg2->value.int_value;
       quad->arg1->value.id_value->var_addr = 1;
 
       astack_push_data(stack, buf);
