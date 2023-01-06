@@ -71,7 +71,15 @@ enum reg find_free_reg(void) {
  *
  * @param reg
  */
-void free_reg(enum reg reg) { reg_use[reg] = false; }
+void free_reg(enum reg reg) {
+  if (reg < reg_t0 || reg > reg_t7) {
+    panic("trying to free a non-temporary register");
+  }
+  if (!reg_use[reg]) {
+    panic("trying to free an already free register");
+  }
+  reg_use[reg] = false;
+}
 
 /**
  * @brief Generate MIPS assembly code from the quad array
@@ -93,8 +101,8 @@ void generate_asm(FILE *out) {
                ops_print = 0;
 
   enum reg reg1, reg2,
-      reg_ops = reg_t8; // note : reg_t8 is used for ops in the case if all
-                        // other reg are used
+      reg_ops = reg_jt8; // note : reg_t8 is used for ops in the case if all
+                         // other reg are used
 
 #define asblock ((const char *)vec_last(blocks)) // current block
 
@@ -472,7 +480,7 @@ void generate_asm(FILE *out) {
 
       ops_count = 0;
 
-      reg_ops = find_free_reg();
+      // reg_ops = find_free_reg();
 
       // initialiaze ops array with sbrk of 8192 bytes
       astack_push_text(stack, asblock, "li $v0, 9");
@@ -515,6 +523,9 @@ void generate_asm(FILE *out) {
 
         ops_count++;
       }
+
+      free_reg(reg1);
+      free_reg(reg2);
 
       break;
 
@@ -582,6 +593,8 @@ void generate_asm(FILE *out) {
 
     case echo_instr_op:
 
+      ops_print = 0;
+
       for (j = 0; j < vec_size(quad->subarray); j++) {
 
         if ((quadarg1 = vec_get(quad->subarray, j)) == NULL)
@@ -592,10 +605,12 @@ void generate_asm(FILE *out) {
         } else
           quadarg2 = NULL;
 
-        if (quadarg1->type == int_arg || quadarg1->type == id_arg) {
+        if ((quadarg2 != ALL && quadarg2 != ARG) &&
+            (quadarg1->type == int_arg || quadarg1->type == id_arg ||
+             quadarg1->type == int_array_arg)) {
 
-          astack_push_text(stack, asblock, "lw $a0, %d(%s)", ops_print * 4,
-                           reg_name(reg_ops));
+          astack_push_text(stack, asblock, "lw $a0, %d(%s)",
+                           (ops_print + 1) * 4, reg_name(reg_ops));
           astack_push_text(stack, asblock, "li $v0, %d", sc_print_int);
           astack_push_text(stack, asblock, "syscall");
           ops_print++;
@@ -607,7 +622,8 @@ void generate_asm(FILE *out) {
             astack_push_text(stack, asblock, "li $v0, %d", sc_print_string);
             astack_push_text(stack, asblock, "syscall");
           }
-        } else if (quadarg1->type == str_arg) {
+        } else if (quadarg1->type == str_arg &&
+                   (quadarg2 != ALL && quadarg2 != ARG)) {
 
           astack_push_text(stack, asblock, "la %s, msg%d", reg_name(reg_a0),
                            msg_print);
@@ -628,7 +644,7 @@ void generate_asm(FILE *out) {
                  quadarg1->value.id_value->var_type == arrayinttype &&
                  quadarg2 == ALL) {
 
-          for (k = ops_print; k < ops_count - 1; k++) {
+          for (k = ops_print; k < ops_count; k++) {
 
             // print each value of sbrk array
             astack_push_text(stack, asblock, "lw $a0, %d(%s)", k * 4,
@@ -650,7 +666,7 @@ void generate_asm(FILE *out) {
         }
       }
 
-      free_reg(reg_ops);
+      // free_reg(reg_ops);
 
       break;
 
