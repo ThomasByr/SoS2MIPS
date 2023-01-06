@@ -104,7 +104,7 @@ struct vec_s {
 };
 ```
 
-Le vecteur est donc composé d'un tableau de pointeurs `void*` (`data`), d'une taille (`size`), d'une capacité (`capacity`), et d'un mutex (`lock`). Le mutex est utilisé pour rendre le vecteur thread-safe.
+Le vecteur est donc composé d'un tableau de pointeurs `void*` (`data`), d'une taille (`size`), d'une capacité (`capacity`), et d'un mutex (`lock`). Le mutex est utilisé pour rendre le vecteur thread-safe. Le vecteur se redimensionne automatiquement à chaque fois que la capacité est atteinte (à un certain pourcentage) ; et dès que des éléments sont insérés ou supprimés, le vecteur vide l'espace mémoire non utilisé mais le conserve pour les prochaines insertions.
 
 Pour initialiser un vecteur, il faut utiliser la macro `vec_new`. Cette macro permet l'utilisation d'un paramètre optionnel pour définir la capacité initiale du vecteur. Par défaut, la capacité initiale est de 0, et le vecteur est réalloué à chaque fois que la capacité est atteinte. Si la capacité initiale est définie, le vecteur est alloué d'un coup avec la capacité initiale donnée.
 
@@ -120,7 +120,7 @@ vec_free(vec);
 
 ### Dictionnaire `dict_t`
 
-Le dictionnaire est une structure de données dynamique qui permet de stocker des paires clé-valeur de type `void*` et `void*`. Il est possible d'ajouter des paires clé-valeur, de supprimer des paires clé-valeur, et de récupérer une valeur à partir d'une clé donnée. Son header se trouve dans le fichier [`inc/dict.h`](../inc/dict.h).
+Le dictionnaire est une structure de données dynamique qui permet de stocker des paires clé-valeur de type `void*` et `void*` (par défaut, `void *` et `size_t` ont la même taille en mémoire, nous pouvons donc utiliser les deux de manière transparente). Il est possible d'ajouter des paires clé-valeur, de supprimer des paires clé-valeur, et de récupérer une valeur à partir d'une clé donnée. Son header se trouve dans le fichier [`inc/dict.h`](../inc/dict.h).
 
 La structure `dict_s` est intentionnellement opaque à l'utilisateur. Elle est définie dans le fichier [`src/dict.c`](../src/dict.c) comme suit :
 
@@ -235,6 +235,10 @@ La pile d'instructions assembleur est composée d'un vecteur de données (`data`
 Pour initialiser une pile d'instructions assembleur, il faut utiliser la macro `astack_new`, qui ne prend deux paramètres, la taille initiale du vecteur de données et la taille initiale du vecteur de vecteurs de textes.
 
 ```c
+// won't work when freeing astack but it's ok for this example
+// normally, we would malloc bloc names
+// directives are copied, so we can free them after pushing them
+// which allows us to also use string literals
 astack_t stack = astack_new(2, 10);
 astack_push_data(stack, "msg: .asciiz \"Hello World!\"");
 astack_push_text(stack, "main", "li $v0, 4");
@@ -247,15 +251,15 @@ Par défaut, le block `main` de la section `.text` est créé. Il est possible d
 Une représentation de la pile d'instruction assembleur est disponible ci-dessous.
 
 ```c
-// .data section
+// .data segment representation
 vec_t data : { "msg: .asciiz \"Hello World!\"" }
 
-// .text section
+// .text segment representation
 vec_t text : {
-  vec_t text_block_0 : { "li $v0, 4", "la $a0, msg", "syscall" },
+  vec_t text_block_1 : { "li $v0, 4", "la $a0, msg", "syscall" },
 }
 vec_t name : { "main" }
-dict_t text_blocks : { "main" => 1 /* index cannot be 0 (because of type void *) */ }
+dict_t text_blocks : { "main" => 1 /* index cannot be 0 (will cast to NULL) */ }
 ```
 
 Le dictionnaire est utile et très efficace lorsqu'il s'avère nécessaire de chercher un bloc de texte dans le vecteur de vecteurs de textes. En effet, la recherche dans un dictionnaire est en moyenne plus rapide que la recherche dans un vecteur. A la fin de la compilation, la fonction `astack_fprintf` permet d'écrire la pile d'instructions assembleur dans un fichier. Le vecteur de données est écrit dans la section `.data` et le vecteur de vecteurs de textes est écrit dans la section `.text`, dans l'ordre des noms des blocs de texte.
@@ -300,9 +304,54 @@ Un exemple d'utilisation est disponible ci-dessous.
 
 ## Milestones
 
+Nous allons maintenant détailler les différentes étapes de développement du projet. Les exemples de code ci-dessous sont pour la plupart issus de tests, et certains peuvent même être retrouvés dans le dossier [examples/](../examples/). Notez également que ces étapes reflètent l'avancement de notre projet uniquement à l'instant où nous avons écrit ce document.
+
+### opérations arithmétiques
+
+La toute première étape du projet a été de faire fonctionner les opérations arithmétiques basiques (`+`, `-`, `*`, `/`, `%`) qui ne fonctionnent que sur les entiers.
+
+```sos
+$( expr 1+2 );
+$( expr (1+2)*3 );
+$( expr 1+2*3 );
+exit
+```
+
+```asm
+
+```
+
+### stockage de variables entières
+
+La seconde étape a été de faire fonctionner le stockage de variables. Nous avons choisi d'écrire les variables entières dans le segment `.data`. Il est possible de stocker des variables dans le segment `.text` mais cela nécessite de faire des manipulations supplémentaires pour accéder à la mémoire. Nous avons donc choisi de stocker les variables dans le segment `.data` pour simplifier le code généré.
+
+```sos
+i = 1;
+i = $( expr ${i}+1 );
+exit
+```
+
+```asm
+
+```
+
+### stockage de variables de type tableau d'entiers
+
+L'étape naturelle suivante a été de faire fonctionner le stockage de variables de type tableau d'entiers. Nous avons choisi de stocker les tableaux dans le segment `.data` à l'aide de la directive `.word`.
+
+```sos
+declare tab[10];
+tab[0] = 1;
+exit
+```
+
+```asm
+
+```
+
 ---
 
-## License
+## Licence
 
 Ce projet est sous licence GNU GPL v3.0. Pour plus d'informations, veuillez consulter le fichier [LICENSE](../LICENSE). Pour obtenir une copie de la licence, veuillez consulter <https://www.gnu.org/licenses/gpl-3.0.html>. Vous pouvez également obtenir une copie de la licence en écrivant à la Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
