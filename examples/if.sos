@@ -1,10 +1,4 @@
-i = 1;
-if test ${i} eq 2 then 
-echo "true\n"
-else 
-echo "false\n"
-fi;
-i=$(expr ${i}+1);
+i = 2;
 if test ${i} eq 2 then 
 echo "true\n"
 else 

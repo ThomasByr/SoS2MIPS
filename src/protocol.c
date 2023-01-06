@@ -479,6 +479,8 @@ void generate_asm(FILE *out) {
     case else_op:
 
       vec_pop(blocks);
+      jmp_name_else = vec_last(blocks);
+      astack_push_text(stack, asblock, "j %s", jmp_name_else);
       break;
 
     case else_end_op:
@@ -500,7 +502,7 @@ void generate_asm(FILE *out) {
 
       ops_count = 0;
 
-      // reg_ops = find_free_reg();
+      reg_ops = find_free_reg();
 
       // initialiaze ops array with sbrk of 8192 bytes
       astack_push_text(stack, asblock, "li $v0, 9");
@@ -604,6 +606,7 @@ void generate_asm(FILE *out) {
 
       astack_push_text(stack, asblock, "\ninstr%d:", jmp_count);
       jmp_count++;
+      // free_reg(reg_ops);
 
       break;
 
@@ -686,7 +689,7 @@ void generate_asm(FILE *out) {
         }
       }
 
-      // free_reg(reg_ops);
+      free_reg(reg_ops);
 
       break;
 
