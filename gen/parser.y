@@ -202,10 +202,14 @@ ops
 : ops op 
 { quadarg_array_add($$, $2->arg3);
   quad_new_from_quadarg(0, ops_add_op, $2->arg3, NULL, NULL); }
+| ops '$' '{' ID '[' '*' ']' '}'
+{ quadarg_array_add($$, quadarg_new_id($4));
+  quadarg_array_add($$, ALL); 
+  quad_new_from_quadarg(0, ops_array_op, quadarg_new_id($4), ALL, NULL); }
 | op
 { $$ = quadarg_array_new();
   quadarg_array_add($$, $1->arg3);
-  quad_new_from_quadarg(0, ops_first_op, $1->arg3, NULL, NULL); }
+  quad_new_from_quadarg(0, ops_add_op, $1->arg3, NULL, NULL); }
 | '$' '{' ID '[' '*' ']' '}'
 { $$ = quadarg_array_new();
   quadarg_array_add($$, quadarg_new_id($3));
