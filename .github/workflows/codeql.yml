@@ -13,11 +13,7 @@ name: "CodeQL"
 
 on:
   push:
-<<<<<<< HEAD
     branches: ["*"]
-=======
-    branches: ["master"]
->>>>>>> f5801d470217d59733a3d3507ea2c66344374290
   pull_request:
     # The branches below must be a subset of the branches above
     branches: ["*"]
