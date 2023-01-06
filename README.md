@@ -59,10 +59,12 @@ The program takes command line arguments from (`..` indicating no short option, 
 | `.., --no-exe`      | do not execute output file               | ❌         |         |
 | `-O, --optlvl` `<>` | set optimization level (from `0` or `1`) | ❌         | `0`     |
 
+Note that at the time of writing, the only optimization level implemented is `0`. Furthermore, `-i` and `-o` can be omitter, provided that both (if both) are typed in order. If only one option is used without the hint, you can specify it wherever you want in the command line.
+
 A legal launching instruction could be :
 
 ```bash
-./bin/sos -i examples/hello_world.sos -01
+./bin/sos -o out.s examples/hello_world.sos --tos --verbose
 ```
 
 <!--
