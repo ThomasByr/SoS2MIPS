@@ -118,7 +118,7 @@ void generate_asm(FILE *out) {
 
   char *buf, *jmp_name_if, *jmp_name_else, *jmp_name_next;
   unsigned int msg_count = 0, msg_print = 0, jmp_count = 0, ops_count = 0,
-               ops_print = 0;
+               ops_print = 0, ops_size = 0;
 
   enum reg reg1, reg2,
       reg_ops = reg_t8; // note : reg_t8 is used for ops in the case if all
@@ -600,9 +600,30 @@ void generate_asm(FILE *out) {
 
     case for_instr_op:
 
+      ops_size = 0;
+
+      for (j = 0; j < vec_size(quad->subarray) - 1; j++) {
+
+        if ((quadarg1 = vec_get(quad->subarray, j)) == NULL)
+          panic("quadarg1 is NULL");
+        if (j != vec_size(quad->subarray) - 1) {
+          if ((quadarg2 = vec_get(quad->subarray, j + 1)) == NULL)
+            panic("quadarg2 is NULL");
+        } else
+          quadarg2 = NULL;
+
+        if (quadarg1->type == int_arg ||
+            (quadarg1->type == id_arg && quadarg2 != ALL)) {
+          ops_size++;
+        } else if (quadarg1->type == id_arg && quadarg2 == ALL) {
+          ops_size += quadarg1->value.id_value->var_size;
+          j++;
+        }
+      }
+
       jmp_name_else = vec_last(blocks);
       astack_push_text(stack, asblock, "ble %s, %d, %s", reg_name(reg_s0),
-                       vec_size(quad->subarray) - 2, jmp_name_else);
+                       ops_size - 1, jmp_name_else);
 
       astack_push_text(stack, asblock, "\ninstr%d:", jmp_count);
       jmp_count++;
