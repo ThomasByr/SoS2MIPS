@@ -14,15 +14,24 @@ size: 9:16
 2. [Répartition du travail](#répartition-du-travail)
 3. [Structure du projet](#structure-du-projet)
 4. [Quelques structures en détail](#quelques-structures-en-détail)
-   <!-- 1. [Vecteur `vec_t`](#vecteur-vec_t)
+   1. [Vecteur `vec_t`](#vecteur-vec_t)
    2. [Dictionnaire `dict_t`](#dictionnaire-dict_t)
    3. [ThreadPool `threadpool_t`](#threadpool-threadpool_t)
-   4. [Pile d'instructions assembleur `astack_t`](#pile-dinstructions-assembleur-astack_t) -->
+   4. [Pile d'instructions assembleur `astack_t`](#pile-dinstructions-assembleur-astack_t)
 5. [Tests](#tests)
 6. [Documentation et Utilisation](#documentation-et-utilisation)
-7. [Milestones](#milestones)
-8. [License](#license)
-
+7. [Remarques générales sur la grammaire](#remarques-générales-sur-la-grammaire)
+8. [Milestones](#milestones)
+   1. [opérations arithmétiques](#opérations-arithmétiques)
+   2. [stockage de variables entières](#stockage-de-variables-entières)
+   3. [stockage de variables de type tableau d'entiers](#stockage-de-variables-de-type-tableau-dentiers)
+   4. [affichage en console avec `echo`](#affichage-en-console-avec-echo)
+   5. [lecture en console avec `read`](#lecture-en-console-avec-read)
+   6. [opérations logiques](#opérations-logiques)
+   7. [structures de contrôle](#structures-de-contrôle)
+   8. [ce qu'il reste à faire (et qu'on sait comment faire)](#ce-quil-reste-à-faire-et-quon-sait-comment-faire)
+   9. [ce qu'il reste à faire (et qui est pour l'instant obscure)](#ce-quil-reste-à-faire-et-qui-est-pour-linstant-obscure)
+9. [Licence](#licence)
 
 ---
 
@@ -53,9 +62,9 @@ Le binaire exécutable produit se trouve dans le dossier `bin`.
 
 ## Répartition du travail
 
-Le projet a été réalisé en groupe de 4 personnes. La première partie du projet, qui consiste à préparer une application fonctionnelle avec récupération des arguments en ligne de commande n'est pas parallélisable, et a donc été réalisée par une seule personne. Les structures de vecteur `vec_t`, de dictionnaire `dict_t`, de threadpool `threadpool_t`, et de pile d'instructions `astack_t` ont également été réalisées par une seule personne.
+Le projet a été réalisé en groupe de 4 personnes. La première partie du projet, qui consiste à préparer une application fonctionnelle avec récupération des arguments en ligne de commande n'est pas parallélisable, et a donc été réalisée par une seule personne. Les structures de vecteur `vec_t`, de dictionnaire `dict_t`, de threadpool `threadpool_t`, et de pile d'instructions (quoique cette dernière fut revue en groupe) `astack_t` ont également été réalisées par une seule personne.
 
-Les autres parties du projet ont été réalisées en groupe (notamment la génération de code intermédiaire avec les quads et la génération de code assembleur).
+Les autres parties du projet ont été réalisées en groupe, notamment la génération de code intermédiaire (en groupe plus restreint) avec les quads, et la génération de code assembleur.
 
 ## Structure du projet
 
@@ -109,10 +118,10 @@ Le vecteur est donc composé d'un tableau de pointeurs `void*` (`data`), d'une t
 Pour initialiser un vecteur, il faut utiliser la macro `vec_new`. Cette macro permet l'utilisation d'un paramètre optionnel pour définir la capacité initiale du vecteur. Par défaut, la capacité initiale est de 0, et le vecteur est réalloué à chaque fois que la capacité est atteinte. Si la capacité initiale est définie, le vecteur est alloué d'un coup avec la capacité initiale donnée.
 
 ```c
-vec_t vec = vec_new(); // vec_new(10) for a vector with initial capacity of 10
-vec_push(vec, (void*) 42);
+vec_t vec = vec_new(); // vec_new(10) for an initial capacity of 10
+vec_push(vec, (void*) 42l);
 
-printf("%d\n", (int) vec_get(vec, 0)); // prints 42
+printf("%ld\n", (long) vec_get(vec, 0)); // prints 42
 vec_free(vec);
 ```
 
@@ -268,7 +277,7 @@ Le dictionnaire est utile et très efficace lorsqu'il s'avère nécessaire de ch
 
 ## Tests
 
-Les tests unitaires sont disponibles dans le dossier [`tests/`](../tests/). Ils sont écrits en C et supposent que [Valgrind](https://valgrind.org/) est installé sur la machine. Pour compiler et exécuter les tests, il faut utiliser la commande `make check`.
+Les tests unitaires sont disponibles dans le dossier [`tests/`](../tests/). Ils sont écrits en C et supposent que [Valgrind](https://valgrind.org/) est installé sur la machine. Pour compiler et exécuter les tests, il faut utiliser la commande `make check` ou `make check_quiet`. La seconde commande redirige toutes les sorties du programme vers `/dev/null` et ne garde que l'affichage de la progression des tests.
 
 ```bash
 cd tests && make check
@@ -299,6 +308,14 @@ Un exemple d'utilisation est disponible ci-dessous.
 ```bash
 ./bin/sos -o out.s examples/hello_world.sos --tos --verbose
 ```
+
+---
+
+## Remarques générales sur la grammaire
+
+La remarque la plus générale sur ce projet porte sur les types de données qu'il est possible de traiter avec notre implémentation du compilateur SOS. Nous n'avons traité que le cas de variables stockant des entiers ou des tableaux d'entiers. Les chaînes de caractères peuvent être affichées mais doivent être statiques (entièrement définies au moment de la compilation).
+
+Les opérateurs logiques ont aussi été revus. Étant donné qu'il est possible d'avoir des opérations arithmétiques à l'intérieur d'un bloc de test, les opérateurs commençant par `-` provoquent des erreurs dans notre implémentation. Nous avons donc enlevé ce préfixe superflu.
 
 ---
 
@@ -348,6 +365,107 @@ exit
 ```asm
 
 ```
+
+---
+
+### affichage en console avec `echo`
+
+Les primitives système MIPS `1` et `4` (car nous ne nous occupons pas des chaînes de caractère et des nombres à virgule flottante à simple ou double précision) nous servent à l'affichage. La principale difficulté de l'utilisation du `echo` en SOS est le nombre d'argument très variable de cette directive. Il a donc fallu (comme pour toutes les règles dérivants de `ops`) allouer de la mémoire dynamiquement avec `sbrk`. Nous avons choisi de stocker les chaînes de caractères statiques dans le segment `.data` à l'aide de la directive `.asciiz`. Il est possible également d'afficher un tableau d'entier `tab` avec `echo ${tab[*]}`.
+
+```sos
+echo "Hello, world!\n";
+exit
+```
+
+```asm
+
+```
+
+### lecture en console avec `read`
+
+La primitive système MIPS 5 nous sert à la lecture. Nous ne lisons que des entiers en console (que ça soit des variables entière, ou des accès lecture à des tableaux d'entiers). (Nous ne mettons pas le code généré en assembleur ici car il n'aide pas vraiment à la compréhension et est très volumineux ; vous pouvez néanmoins le retrouver avec la commande `./bin/sos examples/read.sos -o test.s`.)
+
+```sos
+echo "Entrez un entier : ";
+read entier;
+echo "Vous avez rentré : ";
+echo ${entier};
+declare tab[10] ;
+i = 1 ;
+echo "\nModifiez la valeur du tableau à l'indice 1 : " ;
+read tab[${i}] ;
+echo "La valeur du tableau est : " ;
+echo ${tab[*]};
+exit
+```
+
+### opérations logiques
+
+Avant de pouvoir implémenter les structures de contrôle, il faut implémenter les opérations (portes) logiques. Les opérations implémentées sont les suivantes : `eq` (pour `==`), `ne` (pour `!=`), `lt` (pour `<`), `le` (pour `<=`), `gt` (pour `>`), `ge` (pour `>=`), `a` (pour `&&`), `o` (pour `||`), et `!`.
+
+Attention, le code SOS suivant n'est pas syntaxiquement correcte, il faut utiliser ces opérateurs dans des structures de contrôle et non seules.
+
+```SOS
+test ( 1 eq 1 ) ; /* true  */
+test ( 1 eq 2 ) ; /* false */
+test ( 1 ne 1 ) ; /* false */
+test ( 1 ne 2 ) ; /* true  */
+test ( 1 lt 2 ) ; /* true  */
+test ( 1 lt 1 ) ; /* false */
+test ( 1 le 1 ) ; /* true  */
+test ( 1 le 2 ) ; /* true  */
+test ( 1 gt 2 ) ; /* false */
+test ( 1 gt 1 ) ; /* false */
+test ( 1 ge 1 ) ; /* true  */
+test ( 1 ge 2 ) ; /* false */
+```
+
+---
+
+### structures de contrôle
+
+Nous avons implémenté les structures de contrôle logiques suivantes : `if` et `if-else`. La structure de contrôle de flot `for` est aussi implémentée mais présente quelques imperfections. Grâce à la pile d'instructions, les structures de contrôles logiques reviennent à empiler successivement et à dépiler progressivement les noms des blocs sur la pile des blocs.
+
+```sos
+echo "Enter a number : ";
+read i;
+echo "\n";
+if test ${i} ge 12 then 
+echo "true\n"
+else 
+echo "false\n"
+fi;
+exit 3
+```
+
+```asm
+
+```
+
+---
+
+La syntaxe d'une boucle `for` est la suivante :
+
+```sos
+for i in 1 2 3 4
+do
+  echo "i = " ${i} "\n"
+done;
+exit
+```
+
+```sos
+declare tab[10];
+for i in ${tab[*]}
+do
+  echo "top\n"
+done;
+exit
+```
+
+### ce qu'il reste à faire (et qu'on sait comment faire)
+
+### ce qu'il reste à faire (et qui est pour l'instant obscure)
 
 ---
 
