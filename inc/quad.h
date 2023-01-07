@@ -2,6 +2,7 @@
 
 #include "protocol.h"
 #include "symtable.h"
+#include "vec.h"
 
 enum quadop {
   // assignation operations
@@ -36,23 +37,31 @@ enum quadop {
   and_op,
   or_op,
   test_op,
+  test_while_op,
   // condition operations
   testing_op,
   elif_op,
   else_op,
+  else_end_op,
+  fi_op,
   empty_op,
   filter_instr,
   cases_op,
   // instruction operations
   concat_op,
+  ops_init_op,
+  ops_add_op,
+  ops_first_op,
+  ops_array_op,
   assn_instr_op,
-  array_instr_op,
   assn_array_instr_op,
   declare_array_instr_op,
   test_instr_op,
   maybe_else_instr_op,
   if_instr_op,
   in_instr_op,
+  for_init_op,
+  for_assn_op,
   for_instr_op,
   while_instr_op,
   until_instr_op,
@@ -85,6 +94,11 @@ enum quadargtype {
   quad_arg,
 };
 
+enum quadtype {
+  quadarg,
+  quadarray,
+};
+
 struct quadarg {
   union {
     int int_value;
@@ -98,7 +112,11 @@ struct quadarg {
 };
 
 struct quad {
+  enum quadtype type;
   enum quadop op;
+
+  vec_t subarray;
+
   struct quadarg *arg1;
   struct quadarg *arg2;
   struct quadarg *arg3;
@@ -121,8 +139,10 @@ void quad_vec_init(int size);
  * @brief Create a new quad and add it to the quad vector.
  *
  */
-struct quad *quad_new(int lineno, enum quadop, struct quadarg *,
-                      struct quadarg *, struct quadarg *);
+struct quad *quad_new_from_quadarg(int lineno, enum quadop, struct quadarg *,
+                                   struct quadarg *, struct quadarg *);
+
+struct quad *quad_new_from_vec(int lineno, enum quadop op, vec_t quadarg_array);
 
 /**
  * @brief Take a global quad and assign the good operation within
@@ -174,4 +194,8 @@ vec_t quadarray_new();
 
 vec_t quadarray_add(vec_t quad_subarray, struct quad *quad);
 
-vec_t quadarray_append(vec_t quad_array1, vec_t quad_array2);
+vec_t quadarg_array_new();
+
+void quadarg_array_add(vec_t quadarg_array, struct quadarg *quadarg);
+
+struct quadarg *quadarg_array_get(vec_t quadarg_array, int index);

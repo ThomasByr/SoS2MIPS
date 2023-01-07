@@ -91,6 +91,7 @@ void astack_push_text(astack_t stack, const char *restrict block,
   size_t size = vec_size(stack->text);
   if (n == 0) {
     v = vec_new();
+
     dict_push(stack->text_blocks, (void *)block, (void *)(size + 1ul));
     vec_push(stack->text, v);
     vec_push(stack->name, (void *)block);

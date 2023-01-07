@@ -1,6 +1,10 @@
 #pragma once
 
+#include "vec.h"
 #include <stdio.h>
+
+#define ARG (void *)0x42
+#define ALL (void *)0x43
 
 enum sys_call {
   sc_print_int = 1,    // $a0 = integer
@@ -69,6 +73,13 @@ enum reg {
   reg_fp = 30, // frame pointer
   reg_ra = 31, // return address
 };
+
+struct ops_s {
+  char *label;
+  vec_t array;
+};
+
+const char *reg_name(enum reg reg);
 
 // Iterate through the quad_array and generates assembly for each quad,
 // filling out the quad_assembly_lines array accordingly
