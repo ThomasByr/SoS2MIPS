@@ -94,7 +94,7 @@ program
 ;
 
 instructions
-: instructions ';' instruction
+: instructions instruction
 { $$ = quad_new_from_quadarg(0, instr_op, NULL, NULL, NULL); }
 | instruction
 { $$ = $1; }
@@ -360,22 +360,22 @@ mult_div_mod
 ;
 
 dfun
-: ID '(' ')' '{' declarations instructions '}'
-{ struct quad *marker = quad_new_from_quadarg(0, cont_func_op, $5->arg3, $6->arg3, quadarg_new_reg());
-  $$ = quad_new_from_quadarg(0, dfun_op, quadarg_new_id($1), marker->arg3, quadarg_new_reg()); }
+: ID '(' ')' '{' declarations 
+{ quad_new_from_quadarg(0, dfun_init_op, quadarg_new_id($1), NULL, quadarg_new_reg()); } instructions '}'
+{ $$ = quad_new_from_quadarg(0, dfun_op, quadarg_new_id($1), NULL, quadarg_new_reg()); }
 ;
 
 declarations
 : declarations local ID '=' concat ';'
-{ struct quad *marker = quad_new_from_quadarg(0, local_decl_op, $1->arg3, quadarg_new_id($3), quadarg_new_reg());
-  $$ = quad_new_from_quadarg(0, decl_op, quadarg_new_id($3), marker->arg3, quadarg_new_reg()); }
+{ $$ = quad_new_from_quadarg(0, local_decl_op, $1->arg3, quadarg_new_id($3), $5->arg3); }
 | %empty
 { $$ = quad_new_from_quadarg(0, decl_op, NULL, NULL, quadarg_new_reg()); }
 ;
 
 cfun
-: ID ops
-{ $$ = quad_new_from_quadarg(0, cfun_ops, quadarg_new_id($1), quadarg_array_get($2, 0), quadarg_new_reg()); }
+: ID  { quad_new_from_quadarg(0, ops_init_op, NULL, NULL, NULL); } ops
+{ quadarg_array_add($3,quadarg_new_id($1));
+  $$ = quad_new_from_vec(0, cfun_ops, $3); }
 | ID
 { $$ = quad_new_from_quadarg(0, cfun_op, quadarg_new_id($1), NULL, quadarg_new_reg()); }
 ;

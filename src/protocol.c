@@ -71,34 +71,15 @@ enum reg find_free_reg(void) {
  *
  * @param reg
  */
-// void free_reg(enum reg reg) {
-//   if (reg < reg_t0 || reg > reg_t7) {
-//     panic("trying to free a non-temporary register");
-//   }
-//   if (!reg_use[reg]) {
-//     panic("trying to free an already free register");
-//   }
-//   reg_use[reg] = false;
-// }
-
-#define free_reg(reg)                                                       \
-  do {                                                                      \
-    if (reg < reg_t0 || reg > reg_t7) {                                     \
-      fprintf(stderr,                                                       \
-              FG_RED                                                        \
-              "trying to free a non-temporary register at line %d\n " RST,  \
-              __LINE__);                                                    \
-      abort();                                                              \
-    }                                                                       \
-    if (!reg_use[reg]) {                                                    \
-      fprintf(stderr,                                                       \
-              FG_RED                                                        \
-              "trying to free an already free register at line :%d\n " RST, \
-              __LINE__);                                                    \
-      abort();                                                              \
-    }                                                                       \
-    reg_use[reg] = false;                                                   \
-  } while (0)
+void free_reg(enum reg reg) {
+  if (reg < reg_t0 || reg > reg_t7) {
+    panic("trying to free a non-temporary register");
+  }
+  if (!reg_use[reg]) {
+    panic("trying to free an already free register");
+  }
+  reg_use[reg] = false;
+}
 
 /**
  * @brief Generate MIPS assembly code from the quad array
@@ -117,7 +98,7 @@ void generate_asm(FILE *out) {
 
   char *buf, *jmp_name_if, *jmp_name_else, *jmp_name_next, *jmp_name_previous;
   unsigned int msg_count = 0, msg_print = 0, jmp_count = 0, ops_count = 0,
-               ops_print = 0, ops_size = 0, error_count = 0, error_print = 0;
+               ops_print = 0, ops_size = 0, error_count = 1, error_print = 0;
 
   enum reg reg1, reg2,
       reg_ops = reg_t8, // note : reg_t8 is used for ops in the case if all
@@ -128,6 +109,7 @@ void generate_asm(FILE *out) {
 
 #define asblock ((const char *)vec_last(blocks)) // current block
 
+  astack_push_data(stack, "error_msg0: .asciiz \"none\"");
   astack_push_data(stack, "msg_space: .asciiz \" \"");
 
   for (i = 0; i < vec_size(quad_array); i++) {
@@ -145,6 +127,15 @@ void generate_asm(FILE *out) {
       break;
 
     case assn_arg_to_var_op:
+
+      // get the argument from the stack
+      quad->arg3->type = int_arg;
+      quad->arg3->reg_arg = find_free_reg();
+
+      astack_push_text(stack, asblock, "lw %s, %d($sp)",
+                       reg_name(quad->arg3->reg_arg),
+                       quad->arg1->value.int_value * 4);
+
       break;
 
     case assn_string_to_var_op:
@@ -706,6 +697,7 @@ void generate_asm(FILE *out) {
 
       ops_print = 0;
 
+      // make echo instruction according to the type of the arguments
       for (j = 0; j < vec_size(quad->subarray); j++) {
 
         if ((quadarg1 = vec_get(quad->subarray, j)) == NULL)
@@ -716,16 +708,19 @@ void generate_asm(FILE *out) {
         } else
           quadarg2 = NULL;
 
+        // int value
         if ((quadarg2 != ALL && quadarg2 != ARG) &&
             (quadarg1->type == int_arg || quadarg1->type == id_arg ||
              quadarg1->type == int_array_arg)) {
 
+          // print the value store in sbrk
           astack_push_text(stack, asblock, "lw $a0, %d(%s)", (ops_print)*4,
                            reg_name(reg_ops));
           astack_push_text(stack, asblock, "li $v0, %d", sc_print_int);
           astack_push_text(stack, asblock, "syscall");
           ops_print++;
 
+          // display
           if (j != vec_size(quad->subarray) - 1) {
 
             astack_push_text(stack, asblock, "la %s, msg_space",
@@ -733,6 +728,7 @@ void generate_asm(FILE *out) {
             astack_push_text(stack, asblock, "li $v0, %d", sc_print_string);
             astack_push_text(stack, asblock, "syscall");
           }
+          // string value
         } else if (quadarg1->type == str_arg &&
                    (quadarg2 != ALL && quadarg2 != ARG)) {
 
@@ -742,6 +738,7 @@ void generate_asm(FILE *out) {
           astack_push_text(stack, asblock, "syscall");
           msg_print++;
 
+          // display
           if (j != vec_size(quad->subarray) - 1) {
 
             astack_push_text(stack, asblock, "la %s, msg_space",
@@ -750,7 +747,7 @@ void generate_asm(FILE *out) {
             astack_push_text(stack, asblock, "syscall");
           }
         }
-        // print all the array
+        // int array
         else if (quadarg1->type == id_arg && quadarg1->value.id_value != NULL &&
                  quadarg1->value.id_value->var_type == arrayinttype &&
                  quadarg2 == ALL) {
@@ -783,6 +780,7 @@ void generate_asm(FILE *out) {
 
     case read_instr_op:
 
+      // id value
       node = quad->arg1->value.id_value;
 
       if (node->var_type != inttype) {
@@ -794,6 +792,7 @@ void generate_asm(FILE *out) {
         node->var_addr = 1;
       }
 
+      // get the value from the user
       astack_push_text(stack, asblock, "li $v0, %d", sc_read_int);
       astack_push_text(stack, asblock, "syscall");
 
@@ -803,6 +802,7 @@ void generate_asm(FILE *out) {
 
     case read_array_instr_op:
 
+      // id value
       node = quad->arg1->value.id_value;
 
       if (node->var_type != arrayinttype) {
@@ -813,6 +813,7 @@ void generate_asm(FILE *out) {
         panic("Array %s not declared", node->name);
       }
 
+      // get the value from the user
       astack_push_text(stack, asblock, "li $v0, %d", sc_read_int);
       astack_push_text(stack, asblock, "syscall");
 
@@ -828,6 +829,7 @@ void generate_asm(FILE *out) {
 
     case assn_instr_op:
 
+      // declare id value
       node = quad->arg1->value.id_value;
       if (node->var_addr == 0) {
         astack_push_data(stack, "%s: .word 0", node->name);
@@ -835,6 +837,7 @@ void generate_asm(FILE *out) {
         node->var_addr = 1;
       }
 
+      // assign value
       astack_push_text(stack, asblock, "sw %s, %s",
                        reg_name(quad->arg2->reg_arg), node->name);
       free_reg(quad->arg2->reg_arg);
@@ -843,6 +846,7 @@ void generate_asm(FILE *out) {
 
     case declare_array_instr_op:
 
+      // write the array in the data section
       buf = malloc(BUFSIZ);
       snprintf_s(buf, BUFSIZ, "%s: .word ", quad->arg1->value.id_value->name);
 
@@ -855,12 +859,14 @@ void generate_asm(FILE *out) {
       }
       buf[strlen(buf)] = '\0';
 
+      // store array informations in the symbol table
       quad->arg1->value.id_value->var_type = arrayinttype;
       quad->arg1->value.id_value->var_size = quad->arg2->value.int_value;
       quad->arg1->value.id_value->var_addr = 1;
 
       astack_push_data(stack, buf);
 
+      // write the size in the data section
       snprintf_s(buf, BUFSIZ, "%s_size: .word %d",
                  quad->arg1->value.id_value->name, quad->arg2->value.int_value);
 
@@ -872,6 +878,7 @@ void generate_asm(FILE *out) {
 
     case assn_array_instr_op:
 
+      // id value
       node = quad->arg1->value.id_value;
 
       if (node->var_type != arrayinttype) {
@@ -898,6 +905,7 @@ void generate_asm(FILE *out) {
           error_count, quad->lineno);
       error_count++;
 
+      // assign value
       astack_push_text(stack, asblock, "mul %s, %s, %d",
                        reg_name(quad->arg2->reg_arg),
                        reg_name(quad->arg2->reg_arg), 4);
@@ -907,6 +915,81 @@ void generate_asm(FILE *out) {
 
       free_reg(quad->arg2->reg_arg);
       free_reg(quad->arg3->reg_arg);
+
+      break;
+
+    case dfun_init_op:
+
+      // go to the next instruction that represents the left part of the program
+      astack_push_text(stack, asblock, "j instr%d", jmp_count);
+
+      // write the function in the text section
+      astack_push_text(stack, asblock, "\n.globl %s",
+                       quad->arg1->value.id_value->name);
+      astack_push_text(stack, asblock, "%s:", quad->arg1->value.id_value->name);
+
+      // write the prologue
+      astack_push_text(stack, asblock, "sw $ra, 0($sp)");
+
+      break;
+
+    case dfun_op:
+
+      // set the return of the function
+      quad->arg3->reg_arg = find_free_reg();
+      astack_push_text(stack, asblock, "move $v0, %s",
+                       reg_name(quad->arg3->reg_arg));
+
+      // write the epilogue
+      astack_push_text(stack, asblock, "lw $ra, 0($sp)");
+      astack_push_text(stack, asblock, "jr $ra");
+
+      // write the left part of the program in a new instruction
+      astack_push_text(stack, asblock, "\ninstr%d:", jmp_count);
+      jmp_count++;
+
+      break;
+
+    case decl_op:
+
+      break;
+
+    case cfun_ops:
+
+      // load the arguments in the stack
+      reg1 = find_free_reg();
+      for (j = 0; j < vec_size(quad->subarray); j++) {
+        astack_push_text(stack, asblock, "sw %s, %d($sp)", reg_name(reg1),
+                         j * 4);
+        astack_push_text(stack, asblock, "lw %s, %d(%s)", reg_name(reg1), j * 4,
+                         reg_name(reg_ops));
+      }
+
+      free_reg(reg1);
+
+      // jump to the function code
+      astack_push_text(stack, asblock, "jal %s",
+                       ((struct quadarg *)vec_get(quad->subarray,
+                                                  vec_size(quad->subarray) - 1))
+                           ->value.id_value->name);
+
+      // store the result in the return register
+      quad->arg3 = quadarg_new_reg();
+      quad->arg3->reg_arg = find_free_reg();
+      astack_push_text(stack, asblock, "move %s, $v0",
+                       reg_name(quad->arg3->reg_arg));
+
+      break;
+
+    case cfun_op:
+
+      // jump to the function code
+      astack_push_text(stack, asblock, "jal %s",
+                       quad->arg1->value.id_value->name);
+
+      // store the result in the return register
+      astack_push_text(stack, asblock, "move %s, $v0",
+                       reg_name(quad->arg3->reg_arg));
 
       break;
 
@@ -941,6 +1024,5 @@ void generate_asm(FILE *out) {
   astack_push_text(stack, asblock, "syscall");
 
   astack_fprintf(stack, out);
-  astack_fprintf(stack, stdout);
   astack_free(stack);
 }

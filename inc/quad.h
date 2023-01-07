@@ -75,6 +75,7 @@ enum quadop {
   instr_op,
   // function operations
   cont_func_op,
+  dfun_init_op,
   dfun_op,
   local_decl_op,
   decl_op,

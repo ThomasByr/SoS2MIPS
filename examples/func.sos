@@ -1,0 +1,5 @@
+myfunc(){
+    echo $1 $2 $3
+}
+myfunc 1 2 3
+exit
