@@ -1,10 +1,10 @@
 %{
 
-  #include "parser.h"
-  #include "lib.h"
   #include <string.h>
   #include <stdio.h>
 
+  #include "parser.h"
+  #include "lib.h"
 
   int lineNumber = 1;
 
@@ -27,7 +27,7 @@ wordl ({letter}|{digit}|_)*
 integerl {digit}+
 floatl {integerl}"."{integerl}?|"."{integerl}
 
-white [ \t]+
+white [ \t\r]+
 
 %x stringl
 %x commentl
@@ -50,10 +50,10 @@ white [ \t]+
 }
 
 
-\"              BEGIN(stringl);
+\"               BEGIN(stringl);
 <stringl>\n      {
     savedText = strdup(yytext);
-    alert("Unterminated string constant: %s", savedText);
+    panic("Unterminated string constant: %s", savedText);
     lineNumber++;
 }
 <stringl>\\\"    yymore();
@@ -62,36 +62,33 @@ white [ \t]+
     yytext[--yyleng] = '\0';
     savedText = strdup(yytext);
     yylval = (YYSTYPE){ .string = savedText };
-    printf("stringl: %s\n", savedText);
     return string;
 }
 <stringl>.       yymore();
 
-\/\*            BEGIN(commentl);
+\/\*             BEGIN(commentl);
 <commentl>\*\/   BEGIN(INITIAL);
 <commentl>.      /* skip comment text */
 <commentl>\n     lineNumber++; /* eat up multiline comments */
 
 \+               return '+';
--               return '-';
+-                return '-';
 \*               return '*';
-\/              return '/';
+\/               return '/';
 %                return '%';
-!               return '!';
+!                return '!';
 \<               return '<';
->                 return '>';
+>                return '>';
 =                return '=';
-;               return ';';
+;                return ';';
 ,                return ',';
-\(                return '(';
-\)                 return ')';
-\[                return '[';
+\(               return '(';
+\)               return ')';
+\[               return '[';
 ]                return ']';
-\{              return '{';
+\{               return '{';
 \}               return '}';
-\$                return '$';
-\'               return '\'';
-\"               return '\"';
+\$               return '$';
 
 <<EOF>>          return 0;
 
@@ -103,55 +100,55 @@ white [ \t]+
 
 int keywordLookup(char *s)
 {
-    struct keywordTokenPair {
-       char *keyword;
-       int token;
-    };
-    typedef struct keywordTokenPair KeywordTokenPair;
+  struct keywordTokenPair {
+      char *keyword;
+      int token;
+  };
+  typedef struct keywordTokenPair KeywordTokenPair;
 
-    const int KEYWORD_COUNT = 32;
+  const int KEYWORD_COUNT = 32;
 
-    static KeywordTokenPair keywordTokenPairs[] =
-        {
-            {"declare", declare},
-            {"if", IF},
-            {"then", THEN},
-            {"fi", FI},
-            {"elif", ELIF},
-            {"else", ELSE},
-            {"for", FOR},
-            {"do", DO},
-            {"in", IN},
-            {"done", DONE},
-            {"while", WHILE},
-            {"until", UNTIL},
-            {"case", CASE},
-            {"esac", ESAC},
-            {"echo", EKKO},
-            {"read", READ},
-            {"return", RETURN},
-            {"exit", EXIT},
-            {"test", test},
-            {"o", or},
-            {"a", and},
-            {"eq", eq},
-            {"ne", neq},
-            {"gt", gt},
-            {"ge", ge},
-            {"lt", lt},
-            {"le", le},
-            {"n", nnull},
-            {"z", null},
-            {"expr", expr},
-            {"local", local},
-            {NULL , ID}
-        };
+  static KeywordTokenPair keywordTokenPairs[] =
+  {
+    {"declare", declare},
+    {"if", IF},
+    {"then", THEN},
+    {"fi", FI},
+    {"elif", ELIF},
+    {"else", ELSE},
+    {"for", FOR},
+    {"do", DO},
+    {"in", IN},
+    {"done", DONE},
+    {"while", WHILE},
+    {"until", UNTIL},
+    {"case", CASE},
+    {"esac", ESAC},
+    {"echo", EKKO},
+    {"read", READ},
+    {"return", RETURN},
+    {"exit", EXIT},
+    {"test", test},
+    {"o", or},
+    {"a", and},
+    {"eq", eq},
+    {"ne", neq},
+    {"gt", gt},
+    {"ge", ge},
+    {"lt", lt},
+    {"le", le},
+    {"n", nnull},
+    {"z", null},
+    {"expr", expr},
+    {"local", local},
+    {NULL , ID}
+  };
 
-    KeywordTokenPair *keywordTokenPair;
+  KeywordTokenPair *keywordTokenPair;
 
-    keywordTokenPairs[KEYWORD_COUNT - 1].keyword = s;
+  keywordTokenPairs[KEYWORD_COUNT - 1].keyword = s;
 
-    for (keywordTokenPair = keywordTokenPairs; strcmp(keywordTokenPair->keyword, s) != 0; keywordTokenPair++);
+  for (keywordTokenPair = keywordTokenPairs; strcmp(keywordTokenPair->keyword, s) != 0; keywordTokenPair++);
 
-    return keywordTokenPair->token;
+  return keywordTokenPair->token;
 }
