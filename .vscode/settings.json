@@ -24,5 +24,8 @@
     "yyin",
     "yyout",
     "yyparse"
+  ],
+  "markdown.marp.themes": [
+    "./styles/theme.css"
   ]
 }
