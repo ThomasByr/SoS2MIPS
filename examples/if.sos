@@ -1,5 +1,7 @@
-i = 2;
-if test ${i} eq 2 then 
+echo "Enter a number : ";
+read i;
+echo "\n";
+if test ( ${i} ge 12 ) then 
 echo "true\n"
 else 
 echo "false\n"
