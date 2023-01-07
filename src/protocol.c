@@ -80,25 +80,24 @@ enum reg find_free_reg(void) {
 //   }
 //   reg_use[reg] = false;
 // }
-#define free_reg(reg)                                                          \
-  do {                                                                         \
-    if (reg < reg_t0 || reg > reg_t7) {                                        \
-      fprintf(stderr,                                                          \
-              FG_RED " trying to free a non-temporary register at line :%d\n " \
-                     "    -> " RST,                                            \
-              __LINE__);                                                       \
-      fprintf(stderr, "\n");                                                   \
-      abort();                                                                 \
-    }                                                                          \
-    if (!reg_use[reg]) {                                                       \
-      fprintf(stderr,                                                          \
-              FG_RED " trying to free an already free register at line :%d\n " \
-                     "    -> " RST,                                            \
-              __LINE__);                                                       \
-      fprintf(stderr, "\n");                                                   \
-      abort();                                                                 \
-    }                                                                          \
-    reg_use[reg] = false;                                                      \
+
+#define free_reg(reg)                                                       \
+  do {                                                                      \
+    if (reg < reg_t0 || reg > reg_t7) {                                     \
+      fprintf(stderr,                                                       \
+              FG_RED                                                        \
+              "trying to free a non-temporary register at line %d\n " RST,  \
+              __LINE__);                                                    \
+      abort();                                                              \
+    }                                                                       \
+    if (!reg_use[reg]) {                                                    \
+      fprintf(stderr,                                                       \
+              FG_RED                                                        \
+              "trying to free an already free register at line :%d\n " RST, \
+              __LINE__);                                                    \
+      abort();                                                              \
+    }                                                                       \
+    reg_use[reg] = false;                                                   \
   } while (0)
 
 /**
@@ -107,7 +106,8 @@ enum reg find_free_reg(void) {
  */
 void generate_asm(FILE *out) {
 
-  size_t i, j, k;
+  size_t i, j;
+  int k;
 
   vec_t blocks = vec_from("main", NULL);
   astack_t stack = astack_new(2, 10); // random preallocation
@@ -117,14 +117,15 @@ void generate_asm(FILE *out) {
   struct symnode *node;
 
   char *buf, *jmp_name_if, *jmp_name_else, *jmp_name_next;
-  unsigned int msg_count = 0, msg_print = 0, jmp_count = 0, ops_count = 0,
-               ops_print = 0, ops_size = 0;
+  int msg_count = 0, msg_print = 0, jmp_count = 0, ops_count = 0, ops_print = 0,
+      ops_size = 0;
 
   enum reg reg1, reg2,
       reg_ops = reg_t8; // note : reg_t8 is used for ops in the case if all
                         // other reg are used
 
 #define asblock ((const char *)vec_last(blocks)) // current block
+#define SBRK_SIZE 0x100
 
   astack_push_data(stack, "msg_space: .asciiz \" \"");
 
@@ -449,7 +450,7 @@ void generate_asm(FILE *out) {
     case test_op:
 
       jmp_name_if = malloc(100);
-      snprintf(jmp_name_if, 100, "instr%d", jmp_count);
+      snprintf_s(jmp_name_if, 100, "instr%d", jmp_count);
       jmp_count++;
 
       astack_push_text(stack, asblock, "beq %s, 1, %s",
@@ -457,13 +458,13 @@ void generate_asm(FILE *out) {
       quad->arg3->reg_arg = quad->arg1->reg_arg;
 
       jmp_name_else = malloc(100);
-      snprintf(jmp_name_else, 100, "instr%d", jmp_count);
+      snprintf_s(jmp_name_else, 100, "instr%d", jmp_count);
       jmp_count++;
 
       astack_push_text(stack, asblock, "j %s", jmp_name_else);
 
       jmp_name_next = malloc(100);
-      snprintf(jmp_name_next, 100, "instr%d", jmp_count);
+      snprintf_s(jmp_name_next, 100, "instr%d", jmp_count);
       jmp_count++;
 
       vec_push(blocks, jmp_name_next);
@@ -478,9 +479,10 @@ void generate_asm(FILE *out) {
 
     case else_op:
 
+      jmp_name_next = vec_get(blocks, vec_size(blocks) - 3);
+      ASSERT(jmp_name_next != NULL);
+      astack_push_text(stack, asblock, "j %s", jmp_name_next);
       vec_pop(blocks);
-      jmp_name_else = vec_last(blocks);
-      astack_push_text(stack, asblock, "j %s", jmp_name_else);
       break;
 
     case else_end_op:
@@ -504,11 +506,13 @@ void generate_asm(FILE *out) {
 
       reg_ops = find_free_reg();
 
-      // initialiaze ops array with sbrk of 8192 bytes
-      astack_push_text(stack, asblock, "li $v0, 9");
-      astack_push_text(stack, asblock, "li $a0, 256");
+      // initialize ops array with sbrk of some bytes
+      astack_push_text(stack, asblock, "li %s, %d", reg_name(reg_v0), sc_sbrk);
+      astack_push_text(stack, asblock, "li %s, %d", reg_name(reg_a0),
+                       SBRK_SIZE);
       astack_push_text(stack, asblock, "syscall");
-      astack_push_text(stack, asblock, "move %s, $v0", reg_name(reg_ops));
+      astack_push_text(stack, asblock, "move %s, %s", reg_name(reg_ops),
+                       reg_name(reg_v0));
 
       break;
 
@@ -625,8 +629,10 @@ void generate_asm(FILE *out) {
       astack_push_text(stack, asblock, "ble %s, %d, %s", reg_name(reg_s0),
                        ops_size - 1, jmp_name_else);
 
+      // fake new block but its ok though, we do not need to pop it
       astack_push_text(stack, asblock, "\ninstr%d:", jmp_count);
       jmp_count++;
+
       // free_reg(reg_ops);
 
       break;
@@ -653,8 +659,8 @@ void generate_asm(FILE *out) {
             (quadarg1->type == int_arg || quadarg1->type == id_arg ||
              quadarg1->type == int_array_arg)) {
 
-          astack_push_text(stack, asblock, "lw $a0, %d(%s)", (ops_print)*4,
-                           reg_name(reg_ops));
+          astack_push_text(stack, asblock, "lw %s, %d(%s)", reg_name(reg_a0),
+                           ops_print * 4, reg_name(reg_ops));
           astack_push_text(stack, asblock, "li $v0, %d", sc_print_int);
           astack_push_text(stack, asblock, "syscall");
           ops_print++;
@@ -663,7 +669,8 @@ void generate_asm(FILE *out) {
 
             astack_push_text(stack, asblock, "la %s, msg_space",
                              reg_name(reg_a0));
-            astack_push_text(stack, asblock, "li $v0, %d", sc_print_string);
+            astack_push_text(stack, asblock, "li %s, %d", reg_name(reg_v0),
+                             sc_print_string);
             astack_push_text(stack, asblock, "syscall");
           }
         } else if (quadarg1->type == str_arg &&
@@ -671,7 +678,8 @@ void generate_asm(FILE *out) {
 
           astack_push_text(stack, asblock, "la %s, msg%d", reg_name(reg_a0),
                            msg_print);
-          astack_push_text(stack, asblock, "li $v0, %d", sc_print_string);
+          astack_push_text(stack, asblock, "li %s, %d", reg_name(reg_v0),
+                           sc_print_string);
           astack_push_text(stack, asblock, "syscall");
           msg_print++;
 
@@ -679,7 +687,8 @@ void generate_asm(FILE *out) {
 
             astack_push_text(stack, asblock, "la %s, msg_space",
                              reg_name(reg_a0));
-            astack_push_text(stack, asblock, "li $v0, %d", sc_print_string);
+            astack_push_text(stack, asblock, "li %s, %d", reg_name(reg_v0),
+                             sc_print_string);
             astack_push_text(stack, asblock, "syscall");
           }
         }
@@ -691,16 +700,18 @@ void generate_asm(FILE *out) {
           for (k = ops_print; k < ops_count; k++) {
 
             // print each value of sbrk array
-            astack_push_text(stack, asblock, "lw $a0, %d(%s)", k * 4,
-                             reg_name(reg_ops));
-            astack_push_text(stack, asblock, "li $v0, %d", sc_print_int);
+            astack_push_text(stack, asblock, "lw %s, %d(%s)", reg_name(reg_a0),
+                             k * 4, reg_name(reg_ops));
+            astack_push_text(stack, asblock, "li %s, %d", reg_name(reg_v0),
+                             sc_print_int);
             astack_push_text(stack, asblock, "syscall");
 
             if (ops_print != ops_count - 1) {
 
               astack_push_text(stack, asblock, "la %s, msg_space",
                                reg_name(reg_a0));
-              astack_push_text(stack, asblock, "li $v0, %d", sc_print_string);
+              astack_push_text(stack, asblock, "li %s, %d", reg_name(reg_v0),
+                               sc_print_string);
               astack_push_text(stack, asblock, "syscall");
             }
           }
@@ -727,10 +738,12 @@ void generate_asm(FILE *out) {
         node->var_addr = 1;
       }
 
-      astack_push_text(stack, asblock, "li $v0, %d", sc_read_int);
+      astack_push_text(stack, asblock, "li %s, %d", reg_name(reg_v0),
+                       sc_read_int);
       astack_push_text(stack, asblock, "syscall");
 
-      astack_push_text(stack, asblock, "sw $v0, %s", node->name);
+      astack_push_text(stack, asblock, "sw %s, %s", reg_name(reg_v0),
+                       node->name);
 
       break;
 
@@ -746,14 +759,15 @@ void generate_asm(FILE *out) {
         panic("Array %s not declared", node->name);
       }
 
-      astack_push_text(stack, asblock, "li $v0, %d", sc_read_int);
+      astack_push_text(stack, asblock, "li %s, %d", reg_name(reg_v0),
+                       sc_read_int);
       astack_push_text(stack, asblock, "syscall");
 
       astack_push_text(stack, asblock, "mul %s, %s, %d",
                        reg_name(quad->arg2->reg_arg),
                        reg_name(quad->arg2->reg_arg), 4);
-      astack_push_text(stack, asblock, "sw $v0, %s(%s)", node->name,
-                       reg_name(quad->arg2->reg_arg));
+      astack_push_text(stack, asblock, "sw %s, %s(%s)", reg_name(reg_v0),
+                       node->name, reg_name(quad->arg2->reg_arg));
 
       free_reg(quad->arg2->reg_arg);
 
@@ -829,17 +843,15 @@ void generate_asm(FILE *out) {
 
     case exit_void_op:
 
-      astack_push_text(stack, asblock, "li $v0, %d", sc_exit);
-      astack_push_text(stack, asblock, "syscall");
+      astack_push_text(stack, asblock, "j _exit");
 
       break;
 
     case exit_int_op:
 
-      astack_push_text(stack, asblock, "li $v0, %d", sc_exit);
-      astack_push_text(stack, asblock, "move $a0, %s",
+      astack_push_text(stack, asblock, "move %s, %s", reg_name(reg_a0),
                        reg_name(quad->arg1->reg_arg));
-      astack_push_text(stack, asblock, "syscall");
+      astack_push_text(stack, asblock, "j _exit2");
 
       break;
 
@@ -848,7 +860,21 @@ void generate_asm(FILE *out) {
     }
   }
 
+  // default exit
+  buf = malloc(BUFSIZ);
+  snprintf_s(buf, BUFSIZ, "_exit");
+  vec_push(blocks, buf);
+  astack_push_text(stack, asblock, "li %s, %d", reg_name(reg_v0), sc_exit);
+  astack_push_text(stack, asblock, "syscall");
+
+  // declare exit2
+  buf = malloc(BUFSIZ);
+  snprintf_s(buf, BUFSIZ, "_exit2");
+  vec_push(blocks, buf);
+  astack_push_text(stack, asblock, "li %s, %d", reg_name(reg_v0), sc_exit2);
+  astack_push_text(stack, asblock, "syscall");
+
+  // astack_fprintf(stack, stdout);
   astack_fprintf(stack, out);
-  astack_fprintf(stack, stdout);
   astack_free(stack);
 }

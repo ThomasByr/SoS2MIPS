@@ -68,14 +68,14 @@ void snprintf_s(char *restrict str, size_t size, const char *restrict fmt,
   n = vsnprintf(str, size, fmt, ap);
   va_end(ap);
 
-  if (n < 0) panic("vsnprintf failure");
+  if (n < 0) panic("vsnprintf failure on %s", fmt);
   if ((size_t)n >= size) panic("format string too long");
 }
 
 void vsnprintf_s(char *restrict str, size_t size, const char *restrict fmt,
                  va_list ap) {
   int n = vsnprintf(str, size, fmt, ap);
-  if (n < 0) panic("vsnprintf failure");
+  if (n < 0) panic("vsnprintf failure on %s", fmt);
   if ((size_t)n >= size) panic("format string too long");
 }
 
