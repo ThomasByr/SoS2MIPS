@@ -120,8 +120,8 @@ instruction
 { quad_new_from_quadarg(0, ops_init_op, NULL, NULL, NULL); } ops { quadarg_array_add($6, quadarg_new_id($2));
   quad_new_from_vec(0, for_assn_op, $6); } DO instructions DONE
 { $$ = quad_new_from_vec(0, for_instr_op, $6);}
-| WHILE testing DO instructions DONE
-{ $$ = quad_new_from_quadarg(0, while_instr_op, $2->arg3, $4->arg3, NULL); }
+| WHILE {quad_new_from_quadarg(0, while_init_op, NULL, NULL, NULL); } testing DO instructions DONE
+{ $$ = quad_new_from_quadarg(0, while_instr_op, NULL, NULL, NULL); }
 | UNTIL testing DO instructions DONE
 { $$ = quad_new_from_quadarg(0, until_instr_op, $2->arg3, $4->arg3, NULL); }
 | CASE op IN cases ESAC

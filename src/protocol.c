@@ -116,7 +116,7 @@ void generate_asm(FILE *out) {
   struct quadarg *quadarg1, *quadarg2;
   struct symnode *node;
 
-  char *buf, *jmp_name_if, *jmp_name_else, *jmp_name_next;
+  char *buf, *jmp_name_if, *jmp_name_else, *jmp_name_next, *jmp_name_previous;
   unsigned int msg_count = 0, msg_print = 0, jmp_count = 0, ops_count = 0,
                ops_print = 0, ops_size = 0;
 
@@ -478,9 +478,9 @@ void generate_asm(FILE *out) {
 
     case else_op:
 
+      jmp_name_next = vec_get(blocks, vec_size(blocks) - 3);
+      astack_push_text(stack, asblock, "j %s", jmp_name_next);
       vec_pop(blocks);
-      jmp_name_else = vec_last(blocks);
-      astack_push_text(stack, asblock, "j %s", jmp_name_else);
       break;
 
     case else_end_op:
@@ -631,7 +631,37 @@ void generate_asm(FILE *out) {
 
       break;
 
+    case while_init_op:
+
+      /// write the "instr%d" where it will be the test of the condition
+      jmp_name_next = malloc(BUFSIZ);
+      snprintf_s(jmp_name_next, BUFSIZ, "instr%d", jmp_count);
+      jmp_count++;
+
+      vec_push(blocks, jmp_name_next);
+
+      break;
+
     case while_instr_op:
+
+      // go back to the previous "instr%d"
+
+      // print all the name of instructions in blocks
+      jmp_name_next = vec_last(blocks);
+      vec_pop(blocks);
+      jmp_name_else = vec_last(blocks);
+      vec_pop(blocks);
+      jmp_name_if = vec_last(blocks);
+      vec_pop(blocks);
+      jmp_name_previous = vec_last(blocks);
+
+      vec_push(blocks, jmp_name_if);
+      vec_push(blocks, jmp_name_else);
+      vec_push(blocks, jmp_name_next);
+
+      astack_push_text(stack, asblock, "j %s", jmp_name_previous);
+
+      vec_pop(blocks);
 
       break;
 

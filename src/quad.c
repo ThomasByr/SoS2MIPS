@@ -86,6 +86,7 @@ char *quad_op_string[] = {
     "for_init_op",
     "for_assn_op",
     "for_instr_op",
+    "while_init_op",
     "while_instr_op",
     "until_instr_op",
     "case_instr_op",

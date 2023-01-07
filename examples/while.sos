@@ -1,6 +1,8 @@
-i = 0;
-while test 1 eq 12 do
-    echo ${i};
-    i= $(expr ${i} + 1)
-done;
+i = 12;
+    echo ${i} " ";
+    for k in 1 2 3 4
+    do
+        echo ${k}
+    done;
+    i= $(expr ${i} - 1);
 exit
