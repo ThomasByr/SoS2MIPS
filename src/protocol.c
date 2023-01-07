@@ -71,15 +71,34 @@ enum reg find_free_reg(void) {
  *
  * @param reg
  */
-void free_reg(enum reg reg) {
-  if (reg < reg_t0 || reg > reg_t7) {
-    panic("trying to free a non-temporary register");
-  }
-  if (!reg_use[reg]) {
-    panic("trying to free an already free register");
-  }
-  reg_use[reg] = false;
-}
+// void free_reg(enum reg reg) {
+//   if (reg < reg_t0 || reg > reg_t7) {
+//     panic("trying to free a non-temporary register");
+//   }
+//   if (!reg_use[reg]) {
+//     panic("trying to free an already free register");
+//   }
+//   reg_use[reg] = false;
+// }
+
+#define free_reg(reg)                                                       \
+  do {                                                                      \
+    if (reg < reg_t0 || reg > reg_t7) {                                     \
+      fprintf(stderr,                                                       \
+              FG_RED                                                        \
+              "trying to free a non-temporary register at line %d\n " RST,  \
+              __LINE__);                                                    \
+      abort();                                                              \
+    }                                                                       \
+    if (!reg_use[reg]) {                                                    \
+      fprintf(stderr,                                                       \
+              FG_RED                                                        \
+              "trying to free an already free register at line :%d\n " RST, \
+              __LINE__);                                                    \
+      abort();                                                              \
+    }                                                                       \
+    reg_use[reg] = false;                                                   \
+  } while (0)
 
 /**
  * @brief Generate MIPS assembly code from the quad array
@@ -98,9 +117,10 @@ void generate_asm(FILE *out) {
 
   char *buf, *jmp_name_if, *jmp_name_else, *jmp_name_next, *jmp_name_previous;
   unsigned int msg_count = 0, msg_print = 0, jmp_count = 0, ops_count = 0,
-               ops_print = 0, ops_size = 0, error_count = 1, error_print = 0;
+               ops_print = 0, ops_size = 0, error_count = 1, error_print = 0,
+               fct_count = 0;
 
-  enum reg reg1, reg2,
+  enum reg reg1, reg2, reg3,
       reg_ops = reg_t8, // note : reg_t8 is used for ops in the case if all
                         // other reg are used
       reg_index_for = reg_s0; // note : reg_s"i" is used for index in for loop
@@ -123,18 +143,6 @@ void generate_asm(FILE *out) {
       astack_push_text(stack, asblock, "li %s, %d",
                        reg_name(quad->arg3->reg_arg),
                        quad->arg1->value.int_value);
-
-      break;
-
-    case assn_arg_to_var_op:
-
-      // get the argument from the stack
-      quad->arg3->type = int_arg;
-      quad->arg3->reg_arg = find_free_reg();
-
-      astack_push_text(stack, asblock, "lw %s, %d($sp)",
-                       reg_name(quad->arg3->reg_arg),
-                       quad->arg1->value.int_value * 4);
 
       break;
 
@@ -205,11 +213,104 @@ void generate_asm(FILE *out) {
 
       break;
 
+    case assn_arg_to_var_op:
+
+      // get the argument from the stack
+      quad->arg3->type = int_arg;
+      quad->arg3->reg_arg = find_free_reg();
+
+      astack_push_text(stack, asblock, "lw %s, %d($sp)",
+                       reg_name(quad->arg3->reg_arg),
+                       (quad->arg1->value.int_value + 1) * 4);
+
+      break;
+
+    case assn_all_arg_to_var_op:
+
+      // skip the return address
+      astack_push_text(stack, asblock, "addi $sp, $sp, 4");
+
+      // load the number of arguments
+      reg1 = find_free_reg();
+      astack_push_text(stack, asblock, "lw %s, 0($sp)", reg_name(reg1));
+
+      // copy the arguments in the array of reg_ops
+      reg2 = find_free_reg();
+      astack_push_text(stack, asblock, "li %s, 0", reg_name(reg2));
+      astack_push_text(stack, asblock, "\ninstr%d:", jmp_count);
+      jmp_count++;
+
+      // load the argument in the array
+      reg3 = find_free_reg();
+      if (reg3 == reg_ops) panic("reg_ops is not free");
+      astack_push_text(stack, asblock, "addi $sp, $sp, 4");
+      astack_push_text(stack, asblock, "lw %s, 0($sp)", reg_name(reg3));
+      astack_push_text(stack, asblock, "sw %s, 0(%s)", reg_name(reg3),
+                       reg_name(reg_ops));
+      astack_push_text(stack, asblock, "addi %s, %s, 4", reg_name(reg_ops),
+                       reg_name(reg_ops));
+
+      // increment the counter
+      astack_push_text(stack, asblock, "addi %s, %s, 1", reg_name(reg2),
+                       reg_name(reg2));
+
+      // check if the counter is less than the number of arguments
+      astack_push_text(stack, asblock, "blt %s, %s, instr%d", reg_name(reg2),
+                       reg_name(reg1), jmp_count - 1);
+
+      // clear the stack with the number of arguments
+      astack_push_text(stack, asblock, "li %s, 0", reg_name(reg2));
+      astack_push_text(stack, asblock, "\ninstr%d:", jmp_count);
+      jmp_count++;
+      astack_push_text(stack, asblock, "addi $sp, $sp, -4");
+      astack_push_text(stack, asblock, "addi %s, %s, 1", reg_name(reg2),
+                       reg_name(reg2));
+      astack_push_text(stack, asblock, "blt %s, %s, instr%d", reg_name(reg2),
+                       reg_name(reg1), jmp_count - 1);
+
+      // get back the return address
+      astack_push_text(stack, asblock, "addi $sp, $sp, -4");
+
+      astack_push_text(stack, asblock, "\ninstr%d:", jmp_count);
+      jmp_count++;
+
+      // free the registers
+      free_reg(reg1);
+      free_reg(reg2);
+      free_reg(reg3);
+
+      // store the array in the variable
+      quad->arg3->type = int_array_arg;
+      quad->arg3->reg_arg = reg_ops;
+
+      break;
+
+    case assn_status_to_var_op:
+
+      // get the return from a function store in $v0
+      quad->arg3->type = int_arg;
+      quad->arg3->reg_arg = find_free_reg();
+
+      astack_push_text(stack, asblock, "move %s, $v0",
+                       reg_name(quad->arg3->reg_arg));
+
+      break;
+
+    case assn_cfun_to_var_op:
+
+      // get the return from a function store in $v0
+      quad->arg3->type = int_arg;
+      quad->arg3->reg_arg = find_free_reg();
+
+      astack_push_text(stack, asblock, "move %s, $v0",
+                       reg_name(quad->arg3->reg_arg));
+
+      break;
+
     case plus_op:
 
       // sum int rule
       if (quad->arg1->type != str_arg && quad->arg2->type != str_arg) {
-
         quad->arg3->reg_arg = find_free_reg();
         astack_push_text(
             stack, asblock, "add %s, %s, %s", reg_name(quad->arg3->reg_arg),
@@ -221,7 +322,6 @@ void generate_asm(FILE *out) {
 
       // plus_minus integer rule
       else if (quad->arg1->type == int_arg && quad->arg2 == NULL) {
-
         quad->arg1->reg_arg = find_free_reg();
         astack_push_text(stack, asblock, "li %s, %d",
                          reg_name(quad->arg1->reg_arg),
@@ -246,7 +346,6 @@ void generate_asm(FILE *out) {
 
       // sum int rule
       if (quad->arg1->type != str_arg && quad->arg2->type != str_arg) {
-
         quad->arg3->reg_arg = find_free_reg();
         astack_push_text(
             stack, asblock, "sub %s, %s, %s", reg_name(quad->arg3->reg_arg),
@@ -258,7 +357,6 @@ void generate_asm(FILE *out) {
 
       // plus_minus integer rule
       else if (quad->arg1->type == int_arg && quad->arg2 == NULL) {
-
         quad->arg1->reg_arg = find_free_reg();
         astack_push_text(stack, asblock, "li %s, %d",
                          reg_name(quad->arg1->reg_arg),
@@ -283,7 +381,6 @@ void generate_asm(FILE *out) {
 
       // prod int rule
       if (quad->arg1->type != str_arg && quad->arg2->type != str_arg) {
-
         quad->arg3->reg_arg = find_free_reg();
         astack_push_text(
             stack, asblock, "mul %s, %s, %s", reg_name(quad->arg3->reg_arg),
@@ -299,7 +396,6 @@ void generate_asm(FILE *out) {
 
       // prod int rule
       if (quad->arg1->type != str_arg && quad->arg2->type != str_arg) {
-
         quad->arg3->reg_arg = find_free_reg();
         astack_push_text(
             stack, asblock, "div %s, %s, %s", reg_name(quad->arg3->reg_arg),
@@ -315,7 +411,6 @@ void generate_asm(FILE *out) {
 
       // prod int rule
       if (quad->arg1->type != str_arg && quad->arg2->type != str_arg) {
-
         astack_push_text(stack, asblock, "div %s, %s",
                          reg_name(quad->arg1->reg_arg),
                          reg_name(quad->arg2->reg_arg));
@@ -518,16 +613,14 @@ void generate_asm(FILE *out) {
     case ops_add_op:
 
       // add the value to the ops array
-      if (quad->arg1->type != str_arg) {
-
+      if (quad->arg1 != ALL_ARG && quad->arg1->type != str_arg) {
         astack_push_text(stack, asblock, "sw %s, %d(%s)",
                          reg_name(quad->arg1->reg_arg), ops_count * 4,
                          reg_name(reg_ops));
 
         ops_count++;
+        free_reg(quad->arg1->reg_arg);
       }
-
-      free_reg(quad->arg1->reg_arg);
 
       break;
 
@@ -538,13 +631,13 @@ void generate_asm(FILE *out) {
       reg2 = find_free_reg();
 
       for (j = 0; j < (size_t)quad->arg1->value.id_value->var_size; j++) {
-
         astack_push_text(stack, asblock, "la %s, %s", reg_name(reg2),
                          quad->arg1->value.id_value->name);
 
         astack_push_text(stack, asblock, "lw %s, %d(%s)", reg_name(reg1), j * 4,
                          reg_name(reg2));
 
+        if (reg1 == reg_ops) panic("reg1 == reg_ops");
         astack_push_text(stack, asblock, "sw %s, %d(%s)", reg_name(reg1),
                          ops_count * 4, reg_name(reg_ops));
 
@@ -629,7 +722,6 @@ void generate_asm(FILE *out) {
       ops_size = 0;
 
       for (j = 0; j < vec_size(quad->subarray) - 1; j++) {
-
         if ((quadarg1 = vec_get(quad->subarray, j)) == NULL)
           panic("quadarg1 is NULL");
         if (j != vec_size(quad->subarray) - 1) {
@@ -709,7 +801,7 @@ void generate_asm(FILE *out) {
           quadarg2 = NULL;
 
         // int value
-        if ((quadarg2 != ALL && quadarg2 != ARG) &&
+        if (quadarg1 != ALL_ARG && (quadarg2 != ALL && quadarg2 != ARG) &&
             (quadarg1->type == int_arg || quadarg1->type == id_arg ||
              quadarg1->type == int_array_arg)) {
 
@@ -729,8 +821,9 @@ void generate_asm(FILE *out) {
             astack_push_text(stack, asblock, "syscall");
           }
           // string value
-        } else if (quadarg1->type == str_arg &&
-                   (quadarg2 != ALL && quadarg2 != ARG)) {
+        } else if (quadarg1 != ALL_ARG &&
+                   (quadarg2 != ALL && quadarg2 != ARG) &&
+                   quadarg1->type == str_arg) {
 
           astack_push_text(stack, asblock, "la %s, msg%d", reg_name(reg_a0),
                            msg_print);
@@ -748,9 +841,11 @@ void generate_asm(FILE *out) {
           }
         }
         // int array
-        else if (quadarg1->type == id_arg && quadarg1->value.id_value != NULL &&
-                 quadarg1->value.id_value->var_type == arrayinttype &&
-                 quadarg2 == ALL) {
+        else if ((quadarg1->type == id_arg &&
+                  quadarg1->value.id_value != NULL &&
+                  quadarg1->value.id_value->var_type == arrayinttype &&
+                  quadarg2 == ALL) ||
+                 quadarg1 != ALL_ARG) {
 
           for (k = ops_print; k < ops_count; k++) {
 
@@ -921,7 +1016,7 @@ void generate_asm(FILE *out) {
     case dfun_init_op:
 
       // go to the next instruction that represents the left part of the program
-      astack_push_text(stack, asblock, "j instr%d", jmp_count);
+      astack_push_text(stack, asblock, "j end_fct%d", fct_count);
 
       // write the function in the text section
       astack_push_text(stack, asblock, "\n.globl %s",
@@ -945,8 +1040,8 @@ void generate_asm(FILE *out) {
       astack_push_text(stack, asblock, "jr $ra");
 
       // write the left part of the program in a new instruction
-      astack_push_text(stack, asblock, "\ninstr%d:", jmp_count);
-      jmp_count++;
+      astack_push_text(stack, asblock, "\nend_fct%d:", fct_count);
+      fct_count++;
 
       break;
 
@@ -956,13 +1051,19 @@ void generate_asm(FILE *out) {
 
     case cfun_ops:
 
+      // store the number of arguments in the stack
+      reg1 = find_free_reg();
+      astack_push_text(stack, asblock, "li %s, %d", reg_name(reg1),
+                       vec_size(quad->subarray) - 1);
+      astack_push_text(stack, asblock, "sw %s, 4($sp)", reg_name(reg1));
+
       // load the arguments in the stack
       reg1 = find_free_reg();
       for (j = 0; j < vec_size(quad->subarray); j++) {
-        astack_push_text(stack, asblock, "sw %s, %d($sp)", reg_name(reg1),
-                         j * 4);
         astack_push_text(stack, asblock, "lw %s, %d(%s)", reg_name(reg1), j * 4,
                          reg_name(reg_ops));
+        astack_push_text(stack, asblock, "sw %s, %d($sp)", reg_name(reg1),
+                         (j + 2) * 4);
       }
 
       free_reg(reg1);

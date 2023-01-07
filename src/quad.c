@@ -135,7 +135,7 @@ void quadarg_display(struct quadarg *quadarg) {
     return;
   }
 
-  if (quadarg == ALL || quadarg == ARG) {
+  if (quadarg == ALL || quadarg == ARG || quadarg == ALL_ARG) {
     printf("null");
     return;
   }

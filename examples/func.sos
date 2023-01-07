@@ -1,5 +1,6 @@
 myfunc(){
-    echo $1 $2 $3
+    echo "size :" $0 "content :" $1 $2 $3 $4
+    echo $*
 }
-myfunc 1 2 3
+myfunc 1 1 1 1
 exit

@@ -200,16 +200,30 @@ filter
 
 ops
 : ops op 
-{ quadarg_array_add($$, $2->arg3);
-  quad_new_from_quadarg(0, ops_add_op, $2->arg3, NULL, NULL); }
+{ if ($2->arg1 != ALL_ARG) {
+    quadarg_array_add($$, $2->arg3);
+    quad_new_from_quadarg(0, ops_add_op, $2->arg3, NULL, NULL);
+  } else {
+    quadarg_array_add($$, quadarg_new_id("$*"));
+    quadarg_array_add($$, ALL);
+    quad_new_from_quadarg(0, ops_add_op, ALL_ARG, NULL, NULL);
+  }
+}
 | ops '$' '{' ID '[' '*' ']' '}'
 { quadarg_array_add($$, quadarg_new_id($4));
   quadarg_array_add($$, ALL); 
   quad_new_from_quadarg(0, ops_array_op, quadarg_new_id($4), ALL, NULL); }
 | op
 { $$ = quadarg_array_new();
-  quadarg_array_add($$, $1->arg3);
-  quad_new_from_quadarg(0, ops_add_op, $1->arg3, NULL, NULL); }
+  if ($1->arg1 != ALL_ARG) {
+    quadarg_array_add($$, $1->arg3);
+    quad_new_from_quadarg(0, ops_add_op, $1->arg3, NULL, NULL);
+  } else {
+    quadarg_array_add($$, quadarg_new_id("$*"));
+    quadarg_array_add($$, ALL);
+    quad_new_from_quadarg(0, ops_add_op, ALL_ARG, NULL, NULL);
+  }
+}
 | '$' '{' ID '[' '*' ']' '}'
 { $$ = quadarg_array_new();
   quadarg_array_add($$, quadarg_new_id($3));
@@ -273,7 +287,7 @@ op
 | '$' integer
 { $$ = quad_new_from_quadarg(0, assn_arg_to_var_op, quadarg_new_int($2), NULL, quadarg_new_reg()); }
 | '$' '*'
-{ $$ = quad_new_from_quadarg(0, assn_all_arg_to_var_op, NULL, NULL, quadarg_new_reg()); }
+{ $$ = quad_new_from_quadarg(0, assn_all_arg_to_var_op, ALL_ARG, NULL ,quadarg_new_reg()); }
 | '$' '?'
 { $$ = quad_new_from_quadarg(0, assn_status_to_var_op, NULL, NULL, quadarg_new_reg()); }
 | string
