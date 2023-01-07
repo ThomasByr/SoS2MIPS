@@ -66,7 +66,6 @@ char *quad_op_string[] = {
     "elif_op",
     "else_op",
     "else_end_op",
-    "fi_op",
     "empty_op",
     "filter_instr",
     "cases_op",

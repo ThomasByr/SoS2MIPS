@@ -150,9 +150,8 @@ maybe_else
 : ELIF testing THEN instructions maybe_else
 { struct quad *marker = quad_new_from_quadarg(0, testing_op, $2->arg3, $4->arg3, quadarg_new_reg());
   $$ = quad_new_from_quadarg(0, elif_op, marker->arg3, $4->arg3, quadarg_new_reg()); }
-| ELSE { quad_new_from_quadarg(0, else_op, NULL, NULL, quadarg_new_reg()); } 
-instructions
-{ $$ = quad_new_from_quadarg(0, else_end_op, NULL, NULL, quadarg_new_reg()); }
+| ELSE { quad_new_from_quadarg(0, else_op, NULL, NULL, quadarg_new_reg()); } instructions
+{ $$ = quad_new_from_quadarg(0, else_end_op, NULL, NULL, NULL); }
 | %empty
 { $$ = NULL; }
 ;

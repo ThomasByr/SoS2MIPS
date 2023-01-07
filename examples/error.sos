@@ -1,0 +1,3 @@
+declare ID[10];
+i = ${ID[11]};
+exit

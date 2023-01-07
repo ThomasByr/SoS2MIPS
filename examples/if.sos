@@ -1,7 +1,7 @@
-i = 2;
-if test ${i} eq 2 then 
-echo "true\n"
-else 
-echo "false\n"
-fi;
+i = 0;
+if test $(expr ${i} % 2) eq 0 then
+            echo "true"
+        else
+            echo "false"
+        fi;
 exit 3

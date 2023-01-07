@@ -80,25 +80,24 @@ enum reg find_free_reg(void) {
 //   }
 //   reg_use[reg] = false;
 // }
-#define free_reg(reg)                                                          \
-  do {                                                                         \
-    if (reg < reg_t0 || reg > reg_t7) {                                        \
-      fprintf(stderr,                                                          \
-              FG_RED " trying to free a non-temporary register at line :%d\n " \
-                     "    -> " RST,                                            \
-              __LINE__);                                                       \
-      fprintf(stderr, "\n");                                                   \
-      abort();                                                                 \
-    }                                                                          \
-    if (!reg_use[reg]) {                                                       \
-      fprintf(stderr,                                                          \
-              FG_RED " trying to free an already free register at line :%d\n " \
-                     "    -> " RST,                                            \
-              __LINE__);                                                       \
-      fprintf(stderr, "\n");                                                   \
-      abort();                                                                 \
-    }                                                                          \
-    reg_use[reg] = false;                                                      \
+
+#define free_reg(reg)                                                       \
+  do {                                                                      \
+    if (reg < reg_t0 || reg > reg_t7) {                                     \
+      fprintf(stderr,                                                       \
+              FG_RED                                                        \
+              "trying to free a non-temporary register at line %d\n " RST,  \
+              __LINE__);                                                    \
+      abort();                                                              \
+    }                                                                       \
+    if (!reg_use[reg]) {                                                    \
+      fprintf(stderr,                                                       \
+              FG_RED                                                        \
+              "trying to free an already free register at line :%d\n " RST, \
+              __LINE__);                                                    \
+      abort();                                                              \
+    }                                                                       \
+    reg_use[reg] = false;                                                   \
   } while (0)
 
 /**
@@ -118,11 +117,14 @@ void generate_asm(FILE *out) {
 
   char *buf, *jmp_name_if, *jmp_name_else, *jmp_name_next, *jmp_name_previous;
   unsigned int msg_count = 0, msg_print = 0, jmp_count = 0, ops_count = 0,
-               ops_print = 0, ops_size = 0;
+               ops_print = 0, ops_size = 0, error_count = 0, error_print = 0;
 
   enum reg reg1, reg2,
-      reg_ops = reg_t8; // note : reg_t8 is used for ops in the case if all
+      reg_ops = reg_t8, // note : reg_t8 is used for ops in the case if all
                         // other reg are used
+      reg_index_for = reg_s0; // note : reg_s"i" is used for index in for loop
+
+  int index_alloc_count = 0;
 
 #define asblock ((const char *)vec_last(blocks)) // current block
 
@@ -159,9 +161,8 @@ void generate_asm(FILE *out) {
     case assn_id_to_var_op:
 
       if (quad->arg2 == NULL) {
-        // assign type int to id
-        quad->arg1->value.id_value->var_type = inttype;
 
+        quad->arg1->value.id_value->var_type = inttype;
         quad->arg3->type = id_arg;
         quad->arg3->reg_arg = find_free_reg();
         node = quad->arg1->value.id_value;
@@ -174,11 +175,27 @@ void generate_asm(FILE *out) {
                          reg_name(quad->arg3->reg_arg), node->name);
       } else {
 
-        // TODO: check in C if the index is less than the size of the array
+        // check if the index is less than the size of the array
+        reg1 = find_free_reg();
+        buf = malloc(BUFSIZ);
+        snprintf_s(buf, BUFSIZ, "%s_size", quad->arg1->value.id_value->name);
+        astack_push_text(stack, asblock, "lw %s, %s", reg_name(reg1), buf);
+        free(buf);
+        astack_push_text(stack, asblock, "bge %s, %s, %s",
+                         reg_name(quad->arg2->reg_arg), reg_name(reg1),
+                         "error");
+        free_reg(reg1);
 
-        // assign type int to id
+        // setup the error message
+        astack_push_data(
+            stack,
+            "error_msg%d: .asciiz \"Index out of array bounds (sos:%d)\\n\"",
+            error_count, quad->lineno);
+        error_count++;
+
+        // assign the value in the id given by quad->arg1 at the index given by
+        // quad->arg2
         quad->arg1->value.id_value->var_type = arrayinttype;
-
         quad->arg3->type = int_array_arg;
         quad->arg3->reg_arg = find_free_reg();
         astack_push_text(stack, asblock, "mul %s, %s, 4",
@@ -305,6 +322,7 @@ void generate_asm(FILE *out) {
 
     case mod_op:
 
+      // prod int rule
       if (quad->arg1->type != str_arg && quad->arg2->type != str_arg) {
 
         astack_push_text(stack, asblock, "div %s, %s",
@@ -448,20 +466,24 @@ void generate_asm(FILE *out) {
 
     case test_op:
 
+      // block for if instruction
       jmp_name_if = malloc(100);
       snprintf(jmp_name_if, 100, "instr%d", jmp_count);
       jmp_count++;
 
+      // test if the result of test_instr is true
       astack_push_text(stack, asblock, "beq %s, 1, %s",
                        reg_name(quad->arg1->reg_arg), jmp_name_if);
       quad->arg3->reg_arg = quad->arg1->reg_arg;
 
+      // block for else instruction
       jmp_name_else = malloc(100);
       snprintf(jmp_name_else, 100, "instr%d", jmp_count);
       jmp_count++;
 
       astack_push_text(stack, asblock, "j %s", jmp_name_else);
 
+      // block for the rest of the program
       jmp_name_next = malloc(100);
       snprintf(jmp_name_next, 100, "instr%d", jmp_count);
       jmp_count++;
@@ -483,16 +505,6 @@ void generate_asm(FILE *out) {
       vec_pop(blocks);
       break;
 
-    case else_end_op:
-
-      jmp_name_else = vec_last(blocks);
-      vec_pop(blocks);
-      jmp_name_next = vec_last(blocks);
-      vec_push(blocks, jmp_name_else);
-      astack_push_text(stack, asblock, "j %s", jmp_name_next);
-
-      break;
-
     case if_instr_op:
 
       vec_pop(blocks);
@@ -504,7 +516,7 @@ void generate_asm(FILE *out) {
 
       reg_ops = find_free_reg();
 
-      // initialiaze ops array with sbrk of 8192 bytes
+      // initialiaze ops array with sbrk of 256 bytes
       astack_push_text(stack, asblock, "li $v0, 9");
       astack_push_text(stack, asblock, "li $a0, 256");
       astack_push_text(stack, asblock, "syscall");
@@ -514,6 +526,7 @@ void generate_asm(FILE *out) {
 
     case ops_add_op:
 
+      // add the value to the ops array
       if (quad->arg1->type != str_arg) {
 
         astack_push_text(stack, asblock, "sw %s, %d(%s)",
@@ -529,6 +542,7 @@ void generate_asm(FILE *out) {
 
     case ops_array_op:
 
+      // add all the array to the ops array
       reg1 = find_free_reg();
       reg2 = find_free_reg();
 
@@ -559,8 +573,10 @@ void generate_asm(FILE *out) {
       astack_push_data(stack, buf);
       free(buf);
 
-      // index variable
-      astack_push_text(stack, asblock, "li %s, 0", reg_name(reg_s0));
+      // initialize the index
+      astack_push_text(stack, asblock, "li %s, 0",
+                       reg_name(reg_index_for + index_alloc_count));
+      index_alloc_count++;
 
       quad->arg1->value.id_value->var_type = inttype;
       quad->arg1->value.id_value->var_addr = 1;
@@ -569,8 +585,26 @@ void generate_asm(FILE *out) {
 
     case for_assn_op:
 
+      // check if there is a string in the vector
+      for (j = 0; j < vec_size(quad->subarray); j++) {
+        if (((struct quadarg *)(vec_get(quad->subarray, j)))->type == str_arg) {
+          j = 0;
+          break;
+        }
+      }
+
+      if (j == 0) {
+        astack_push_text(stack, asblock, "j error");
+        astack_push_data(
+            stack,
+            "error_msg%d: .asciiz \"Do not put strings in for (sos:%d)\\n\"",
+            error_count, quad->lineno);
+        error_count++;
+      }
+
+      // block for each "for" instruction
       jmp_name_next = malloc(BUFSIZ);
-      snprintf_s(jmp_name_next, BUFSIZ, "instr%d", jmp_count);
+      snprintf_s(jmp_name_next, BUFSIZ, "instr%d", index_alloc_count - 1);
       jmp_count++;
 
       vec_push(blocks, jmp_name_next);
@@ -591,8 +625,9 @@ void generate_asm(FILE *out) {
       astack_push_text(stack, asblock, "sw %s, %s", reg_name(reg1),
                        quadarg1->value.id_value->name);
 
-      astack_push_text(stack, asblock, "addi %s, %s, 1", reg_name(reg_s0),
-                       reg_name(reg_s0));
+      astack_push_text(stack, asblock, "addi %s, %s, 1",
+                       reg_name(reg_index_for + index_alloc_count - 1),
+                       reg_name(reg_index_for + index_alloc_count - 1));
 
       free_reg(reg1);
 
@@ -621,19 +656,23 @@ void generate_asm(FILE *out) {
         }
       }
 
-      jmp_name_else = vec_last(blocks);
-      astack_push_text(stack, asblock, "ble %s, %d, %s", reg_name(reg_s0),
-                       ops_size - 1, jmp_name_else);
+      // go back to the good "for" block
+      buf = malloc(BUFSIZ);
+      snprintf_s(buf, BUFSIZ, "instr%d", index_alloc_count - 1);
+
+      astack_push_text(stack, asblock, "ble %s, %d, %s",
+                       reg_name(reg_index_for + index_alloc_count - 1),
+                       ops_size - 1, buf);
+      index_alloc_count--;
 
       astack_push_text(stack, asblock, "\ninstr%d:", jmp_count);
       jmp_count++;
-      // free_reg(reg_ops);
 
       break;
 
     case while_init_op:
 
-      /// write the "instr%d" where it will be the test of the condition
+      /// put the instruction name to define the while condition section
       jmp_name_next = malloc(BUFSIZ);
       snprintf_s(jmp_name_next, BUFSIZ, "instr%d", jmp_count);
       jmp_count++;
@@ -644,9 +683,7 @@ void generate_asm(FILE *out) {
 
     case while_instr_op:
 
-      // go back to the previous "instr%d"
-
-      // print all the name of instructions in blocks
+      // go back to the previous while condition
       jmp_name_next = vec_last(blocks);
       vec_pop(blocks);
       jmp_name_else = vec_last(blocks);
@@ -845,6 +882,22 @@ void generate_asm(FILE *out) {
         panic("Array %s not declared", node->name);
       }
 
+      // check if the index is less than the size of the array
+      reg1 = find_free_reg();
+      buf = malloc(BUFSIZ);
+      snprintf_s(buf, BUFSIZ, "%s_size", node->name);
+      astack_push_text(stack, asblock, "lw %s, %s", reg_name(reg1), buf);
+      free(buf);
+      astack_push_text(stack, asblock, "bge %s, %s, %s",
+                       reg_name(quad->arg2->reg_arg), reg_name(reg1), "error");
+      free_reg(reg1);
+      // setup the error message
+      astack_push_data(
+          stack,
+          "error_msg%d: .asciiz \"Index out of array bounds (sos:%d)\\n\"",
+          error_count, quad->lineno);
+      error_count++;
+
       astack_push_text(stack, asblock, "mul %s, %s, %d",
                        reg_name(quad->arg2->reg_arg),
                        reg_name(quad->arg2->reg_arg), 4);
@@ -877,6 +930,15 @@ void generate_asm(FILE *out) {
       break;
     }
   }
+
+  // error section
+  astack_push_text(stack, asblock, "\nerror:");
+  astack_push_text(stack, asblock, "li $v0, %d", sc_print_string);
+  astack_push_text(stack, asblock, "la $a0, error_msg%d", error_print);
+  error_print++;
+  astack_push_text(stack, asblock, "syscall");
+  astack_push_text(stack, asblock, "li $v0, %d", sc_exit);
+  astack_push_text(stack, asblock, "syscall");
 
   astack_fprintf(stack, out);
   astack_fprintf(stack, stdout);
