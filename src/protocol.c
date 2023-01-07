@@ -541,7 +541,7 @@ void generate_asm(FILE *out) {
         astack_push_text(stack, asblock, "la %s, %s", reg_name(reg2),
                          quad->arg1->value.id_value->name);
 
-        astack_push_text(stack, asblock, "lw %s, %d(%s)", reg_name(reg1), j * 4,
+        astack_push_text(stack, asblock, "lw %s, %zu(%s)", reg_name(reg1), j * 4,
                          reg_name(reg2));
 
         astack_push_text(stack, asblock, "sw %s, %d(%s)", reg_name(reg1),
