@@ -86,7 +86,11 @@ If you're looking for something - here's a breakdown of our codebase
 │   ├── dict.h                     # efficient key-value pair storage with hash map
 │   ├── io.h                       # input and output handling for command line arguments
 │   ├── lib.h                      # very generic utility functions
-│   └── threadpool.h               # a threadpool in c, because why not
+│   ├── protocol.h                 # utility functions and enums for MIPS32
+│   ├── quad.h                     # quad structure
+│   ├── symtable.h                 # symbol table
+│   ├── threadpool.h               # a threadpool in c, because why not
+│   └── vec.h                      # thread safe dynamic array
 │
 ├── scripts/
 │   ├── crlf-lf.bash               # dos2unix but using 8 threads 
@@ -97,8 +101,12 @@ If you're looking for something - here's a breakdown of our codebase
 │   ├── dict.c
 │   ├── io.c
 │   ├── lib.c
+│   ├── protocol.c
 │   ├── main.c
-│   └── threadpool.c
+│   ├── quad.c
+│   ├── symtable.c
+│   ├── threadpool.c
+│   └── vec.c
 │
 ├── tests/                         # test suite 👻
 │   └── ...

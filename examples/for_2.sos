@@ -1,0 +1,6 @@
+declare tab[10];
+for i in ${tab[*]}
+do 
+    echo "top\n"
+done;
+exit

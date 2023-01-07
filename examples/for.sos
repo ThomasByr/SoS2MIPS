@@ -1,0 +1,7 @@
+ID2 = 0;
+for ID in 1 2 3 4 5 6 
+do
+    echo "ID = " ${ID} "\n";
+    echo "ID2 = " ${ID2} "\n"
+done;
+exit

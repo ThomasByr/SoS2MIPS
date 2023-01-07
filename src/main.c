@@ -11,6 +11,7 @@
 
 int opt_lvl;
 bool verbose;
+char *output;
 
 int main(int argc, char *argv[]) {
   struct cmd_args args;
@@ -24,9 +25,9 @@ int main(int argc, char *argv[]) {
 
   opt_lvl = args.opt_lvl;
   verbose = args.verbose;
+  output = args.output;
 
   /* run the application */
 
-  int status = run_app(&args);
-  return status;
+  return run_app(&args);
 }

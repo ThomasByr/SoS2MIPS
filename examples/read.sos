@@ -1,0 +1,11 @@
+echo "Entrez un entier : ";
+read entier;
+echo "Vous avez rentré : ";
+echo ${entier};
+declare tab[10] ;
+i = 1 ;
+echo "\nModifiez la valeur du tableau à l'indice 1 : " ;
+read tab[${i}] ;
+echo "La valeur du tableau est : " ;
+echo ${tab[*]};
+exit

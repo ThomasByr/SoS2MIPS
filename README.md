@@ -21,7 +21,7 @@
 4. [🧑‍🏫 Contributing](#-contributing)
 5. [⚖️ License](#️-license)
 6. [🔄 Changelog](#-changelog)
-7. [🐛 Bugs & TODO](#-bugs--todo)
+7. [🐛 Bugs \& TODO](#-bugs--todo)
 
 ## ✏️ Setup
 
@@ -47,21 +47,24 @@ The produced executable binary is to be found inside of the `bin` folder.
 
 The program takes command line arguments from (`..` indicating no short option, `<>` that an argument is required and `*` mutual incompatibility) :
 
-| command              | hint                                     | required ? | default |
-| -------------------- | ---------------------------------------- | ---------- | ------- |
-| `-h, --help`         | display help and **exit**                | ❔         |         |
-| `-v, --version`      | display version and **exit**             | ❔         |         |
-| `-l, --license`      | display license and **exit**             | ❔         |         |
-| `-i, --in` `<>`      | path to input file                       | ✔️         |         |
-| `-o, --out` `<>`     | path to output file                      | ❌         | `a.s`   |
-| `.., --tos`          | display the Symbol Table on running time | ❌         |         |
-| `.., --verbose`      | be very noisy                            | ❌         |         |
-| `-O, --opt_lvl` `<>` | set optimization level (from `0` or `1`) | ❌         | `0`     |
+| command             | hint                                     | required ? | default |
+| ------------------- | ---------------------------------------- | ---------- | ------- |
+| `-h, --help`        | display help and **exit**                | ❔         |         |
+| `-v, --version`     | display version and **exit**             | ❔         |         |
+| `-l, --license`     | display license and **exit**             | ❔         |         |
+| `-i, --in` `<>`     | path to input file                       | ✔️         |         |
+| `-o, --out` `<>`    | path to output file                      | ❌         | `a.s`   |
+| `.., --tos`         | display the Symbol Table on running time | ❌         |         |
+| `.., --verbose`     | be very noisy                            | ❌         |         |
+| `.., --no-exe`      | do not execute output file               | ❌         |         |
+| `-O, --optlvl` `<>` | set optimization level (from `0` or `1`) | ❌         | `0`     |
+
+Note that at the time of writing, the only optimization level implemented is `0`. Furthermore, `-i` and `-o` can be omitter, provided that both (if both) are typed in order. If only one option is used without the hint, you can specify it wherever you want in the command line.
 
 A legal launching instruction could be :
 
 ```bash
-./bin/sos -i examples/hello_world.sos -01
+./bin/sos -o out.s examples/hello_world.sos --tos --verbose
 ```
 
 <!--
@@ -125,27 +128,37 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 ## 🔄 Changelog
 
 <details>
-  <summary>  Beta first minor release (click here to expand) </summary>
+  <summary>  V1 First Release Version (click here to expand) </summary>
 
-**v0.1.0** first release
+**v1.1** boy do i hate makefiles
 
-- helper functions for C app
-- ah yes... threadpools in C, but why you may ask ? you know what ? I do not know either
-- reworked my old [dict.h](inc/dict.h) hash table
-- did some testing (so long valgrind)
+- properly linked lex/yacc objects file this time
+- `dispose_on_exit` was being changed on `-i` instead of `-o`
+- removed `-Werror` compile flag until `static int input(void)` is either used or no longer static
+- added `-Werror` back (with `%option noinput` in `./gen/lexer.l`)
+- created grammar (shoutout to ThomasD !)
 
-**v0.1.1** qtspim
+**v1.2** but what is a quad ?
 
-- ditched java for c++ for speed concerns
-- please do not use `-bare`
+- `quad`, `symtable` and `vec` header files
+- `vec` should now be thread safe (still need unit tests for that)
+- updated doc
+- implemented `symtable` (not based on `dict` - might change that later)
+- `quad` is a struct with a `type` and a `value`
+- do I go along the AST route? send help
 
-**v0.2.1** dumping lex and yacc
+**v1.3** memory
 
-- it kind of works ! yo do I finally understand how to make makefiles ?
-- support arbitrary number of lex/yacc files
-- renamed `sos.l` and `sos.y` to `lexer.l` and `parser.y`
-- the makefile creates files in [src](src/) dir, please do not push them
-- changed the makefile for tests also
+- implemented `.data` segment
+- assembly instructions stack
+- now we compile
+- `--no-exe` flag to not run the compiled assembly file
+
+**v1.4** the end is near
+
+- more to assembly instructions stack for `j` and `jal`
+- wrote control flow structures and some more logical expressions
+- now we use `sbrk`
 
 </details>
 
@@ -162,20 +175,22 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
       (throw `.h` to [inc](inc/) folder and `.c` to [src](src/) folder ; then add files to wildcard) [v0.2.1]
 - [x] make sure qtspim is properly working
       (dump in some [example files](vm/qtspim/helloworld.s)) [v0.1.1]
-- [ ] create grammar
-      (that's a big fish, please send help)
+- [x] create grammar
+      (that's a big fish, please send help) [v1.1]
+- [ ] improve error messages on `yylex` and `yyparse`
+      (point the current line and make a suggestion)
 - [ ] standard console i/o
-      (`echo` and `read`)
+      (`echo` and `read`) [`echo` v1.3 - pending]
 - [ ] primitive types
       (`int`, `float`, `char` -> dynamic types)
-- [ ] variable declaration
-      (support scope : all variables are global by default [?](https://www.gnu.org/software/emacs/manual/html_node/elisp/Local-Variables.html), unless `local` is used)
+- [x] variable declaration
+      (support scope : all variables are global by default [?](https://www.gnu.org/software/emacs/manual/html_node/elisp/Local-Variables.html), unless `local` is used) [v1.3]
 - [ ] function declaration
       (no keywords, no arguments : `funname() { ... }`)
 - [ ] first order keywords
       (`if` `then` `for` `do` `done` `in` `while` `until` `case` `esac` `echo` `read` `return` `exit` `local` `elif` `else` `fi` `declare` `test` `expr`)
-- [ ] comments
-      (with `#` from `'#'` until `'\n'`)
+- [x] comments
+      (with `/**/` from `/*` until `*/`) [v1.2]
 - [ ] optimization level 1.0
       (evaluate constant expression at compile time)
 - [ ] optimization level 1.1

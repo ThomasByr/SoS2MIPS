@@ -1,1 +1,2 @@
-echo "Hello, World!\n";
+echo "Hello World in SOS !\n";
+exit

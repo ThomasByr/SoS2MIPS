@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <ctype.h>
 #include <limits.h>
 #include <stdarg.h>
@@ -11,6 +12,8 @@
 #include "lib.h"
 
 void _display(const char *restrict fmt, va_list *ap) {
+  // because stderr is unbuffered by default
+  // https://man7.org/linux/man-pages/man3/setbuf.3.html#DESCRIPTION
   vfprintf(stderr, fmt, *ap);
   fprintf(stderr, "\n");
 }
@@ -65,16 +68,23 @@ void snprintf_s(char *restrict str, size_t size, const char *restrict fmt,
   n = vsnprintf(str, size, fmt, ap);
   va_end(ap);
 
-  if (n < 0) panic("vsnprintf failure");
+  if (n < 0) panic("vsnprintf failure on %s", fmt);
   if ((size_t)n >= size) panic("format string too long");
 }
 
-typedef int word; // "word" used for optimal copy speed
+void vsnprintf_s(char *restrict str, size_t size, const char *restrict fmt,
+                 va_list ap) {
+  int n = vsnprintf(str, size, fmt, ap);
+  if (n < 0) panic("vsnprintf failure on %s", fmt);
+  if ((size_t)n >= size) panic("format string too long");
+}
+
+void *memcpy_s(void *restrict dst0, const void *restrict src0, size_t length) {
+  typedef int word; // "word" used for optimal copy speed
 
 #define wsize sizeof(word)
 #define wmask (wsize - 1)
 
-void *memcpy_s(void *restrict dst0, const void *restrict src0, size_t length) {
   char *dst = dst0;
   const char *src = src0;
 

@@ -23,3 +23,35 @@
 - renamed `sos.l` and `sos.y` to `lexer.l` and `parser.y`
 - the makefile creates files in [src](src/) dir, please do not push them
 - changed the makefile for tests also
+
+## V1 First Release Version
+
+**v1.1** boy do i hate makefiles
+
+- properly linked lex/yacc objects file this time
+- `dispose_on_exit` was being changed on `-i` instead of `-o`
+- removed `-Werror` compile flag until `static int input(void)` is either used or no longer static
+- added `-Werror` back (with `%option noinput` in `./gen/lexer.l`)
+- created grammar (shoutout to ThomasD !)
+
+**v1.2** but what is a quad ?
+
+- `quad`, `symtable` and `vec` header files
+- `vec` should now be thread safe (still need unit tests for that)
+- updated doc
+- implemented `symtable` (not based on `dict` - might change that later)
+- `quad` is a struct with a `type` and a `value`
+- do I go along the AST route? send help
+
+**v1.3** memory
+
+- implemented `.data` segment
+- assembly instructions stack
+- now we compile
+- `--no-exe` flag to not run the compiled assembly file
+
+**v1.4** the end is near
+
+- more to assembly instructions stack for `j` and `jal`
+- wrote control flow structures and some more logical expressions
+- now we use `sbrk`

@@ -2,6 +2,9 @@
 
 #include "dict.h"
 
+#define BUILD_BUG_ON(condition) size_t _ = (sizeof(char[1 - 2 * !!(condition)]))
+BUILD_BUG_ON(sizeof(size_t) != sizeof(void *));
+
 struct dict_s {
   int hash_content; // 0: hash pointer, otherwise hash content
   size_t nbits;     // number of bits of the mask
@@ -26,8 +29,9 @@ unsigned long hash(char *str) {
   if (str == NULL) return 0;
   unsigned long hash = 5381;
   int c;
-  while ((c = *str++))
+  while ((c = *str++)) {
     hash = ((hash << 5) + hash) + c;
+  }
   return hash;
 }
 

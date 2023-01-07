@@ -19,18 +19,22 @@ static noreturn void display_help(const char *restrict fmt, ...) {
       "  -h, --help\t\tDisplay this help message and exit\n"
       "  -v, --version\t\tDisplay the version of this program and exit\n"
       "  -l, --license\t\tDisplay the license of this program and exit\n"
-      "  -i, --input\t\tSpecify the input file\n"
-      "  -o, --output\t\tSpecify the output file\n"
+      "  -i, --in\t\tSpecify the input file\n"
+      "  -o, --out\t\tSpecify the output file\n"
       "  .., --tos\t\tDisplay the Symbol Table on runtime\n"
       "  .., --verbose\t\tDisplay verbose information on runtime\n"
-      "  -O, --opt_lvl\t\tSet the optimization level\n";
+      "  .., --no-exe\t\tDo not execute output file\n"
+      "  -O, --optlvl\t\tSet the optimization level\n"
+      "the input and output files can be non-option arguments\n"
+      "but are taken in order of appearance\n";
 
   if (fmt != NULL) {
-    va_list args;
-    va_start(args, fmt);
-    alert(fmt, &args);
-    va_end(args);
-    printf("\n");
+    fprintf(stderr, FG_YEL " alert: " RST);
+    va_list ap;
+    va_start(ap, fmt);
+    vfprintf(stderr, fmt, ap);
+    va_end(ap);
+    fprintf(stderr, "\n\n");
   }
   printf("%s", help);
 
@@ -74,7 +78,7 @@ static noreturn void display_license(void) {
   exit(EXIT_SUCCESS);
 }
 
-void cmd_args_init(struct cmd_args* args) {
+void cmd_args_init(struct cmd_args *args) {
   // struct _io *args = (struct _io *)malloc(sizeof(struct _io));
   args->filename = NULL;
   args->output = "a.s";
@@ -83,6 +87,7 @@ void cmd_args_init(struct cmd_args* args) {
 
   args->stdisplay = false;
   args->verbose = false;
+  args->no_exe = false;
 
   args->opt_lvl = 0;
 
@@ -92,6 +97,7 @@ void cmd_args_init(struct cmd_args* args) {
 void parse_args(int argc, char *argv[], struct cmd_args *args) {
 #define TOS_OPT 1000
 #define VERB_OPT 2000
+#define NOEXE_OPT 3000
 
   static const struct option long_options[] = {
       {"help", no_argument, NULL, 'h'},
@@ -101,13 +107,16 @@ void parse_args(int argc, char *argv[], struct cmd_args *args) {
       {"out", required_argument, NULL, 'o'},
       {"tos", no_argument, NULL, TOS_OPT},
       {"verbose", no_argument, NULL, VERB_OPT},
-      {"opt_lvl", required_argument, NULL, 'O'},
+      {"no-exe", no_argument, NULL, NOEXE_OPT},
+      {"optlvl", required_argument, NULL, 'O'},
       {NULL, 0, NULL, 0},
   };
-  static const char short_options[] = "i:o:O:hvl";
+  static const char short_options[] = ":i:o:O:hvl";
+
+  extern int opterr;
+  opterr = 0;
 
   int opt;
-  char *bad_opt;
   while ((opt = getopt_long(argc, argv, short_options, long_options, NULL)) !=
          -1) {
 
@@ -130,11 +139,11 @@ void parse_args(int argc, char *argv[], struct cmd_args *args) {
 
     case 'i':
       args->filename = optarg;
-      args->dispose_on_exit = false;
       break;
 
     case 'o':
       args->output = optarg;
+      args->dispose_on_exit = false;
       break;
 
     case TOS_OPT:
@@ -145,20 +154,43 @@ void parse_args(int argc, char *argv[], struct cmd_args *args) {
       args->verbose = true;
       break;
 
+    case NOEXE_OPT:
+      args->no_exe = true;
+      break;
+
     case 'O':
       args->opt_lvl = strtoi(optarg);
       break;
 
-    default:
-      bad_opt = argv[optind - 1];
-      display_help("unrecognized option '%s'", bad_opt);
+    case '?':
+      display_help("unrecognized option '%s'", argv[optind - 1]);
       unreachable();
       break;
+
+    case ':':
+      display_help("option '%s' requires an argument", argv[optind - 1]);
+      unreachable();
+      break;
+
+    default:
+      unreachable();
     }
   }
-  if (optind < argc) {
-    display_help("unrecognized argument '%s'", argv[optind]);
-    unreachable();
+  if (optind < argc) /* non-option arguments remain */ {
+    if (args->filename == NULL) {
+      args->filename = argv[optind];
+      optind++;
+    }
+    if (optind < argc) {
+      args->output = argv[optind];
+      args->dispose_on_exit = false;
+      optind++;
+    }
+
+    // check if there are more arguments
+    for (int i = optind; i < argc; i++) {
+      alert("ignoring extra argument: %s", argv[i]);
+    }
   }
   optind = 0;
 }
@@ -170,6 +202,9 @@ void check_args(const struct cmd_args *args) {
   if (args->opt_lvl < 0 || args->opt_lvl > 1) {
     display_help("invalid optimization level");
   }
+  if (args->no_exe && args->dispose_on_exit) {
+    display_help("can't run in no-exe mode without output file");
+  }
 }
 
 void print_args(const struct cmd_args *args) {
@@ -178,5 +213,6 @@ void print_args(const struct cmd_args *args) {
   debug("dispose_on_exit: %s", args->dispose_on_exit ? "true" : "false");
   debug("stdisplay: %s", args->stdisplay ? "true" : "false");
   debug("verbose: %s", args->verbose ? "true" : "false");
+  debug("no_exe: %s", args->no_exe ? "true" : "false");
   debug("opt_lvl: %d", args->opt_lvl);
 }
