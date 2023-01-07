@@ -39,13 +39,23 @@ void astack_push_data(astack_t stack, const char *restrict fmt, ...);
 
 /**
  * @brief push instruction inside text section
+ * @param stack assembly stack
+ * @param block block name (`main`, `loop`, ...)
+ * @param fmt format string representing the instruction
+ * @note if block is NULL, the instruction will be pushed in the global `main`
+   block ;
+ * if block is not NULL, the instruction will be pushed in the block ;
+ * the block will be created if it does not exist ;
+ * if the block already exists, the instruction will be pushed at the end of the
+   block
  *
  */
-void astack_push_text(astack_t stack, const char *restrict fmt, ...);
+void astack_push_text(astack_t stack, const char *restrict block,
+                      const char *restrict fmt, ...);
 
 /**
  * @brief print content to stream
- * 
+ *
  * @param stack assembly stack
  * @param stream stream to print to
  */

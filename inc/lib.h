@@ -6,7 +6,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
-#define __VERSION__ "1.3.42"
+#define __VERSION__ "1.4.1"
 #define __AUTHORS__ "ThomasByr & ThomasD & EthanH & MathieuM"
 
 #define RST "\x1b[m\x1b[0m"

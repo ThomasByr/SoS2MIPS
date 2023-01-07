@@ -1,3 +1,4 @@
+#include "protocol.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -59,23 +60,31 @@ char *quad_op_string[] = {
     "and_op",
     "or_op",
     "test_op",
+    "test_while_op",
     // condition operations
     "testing_op",
     "elif_op",
     "else_op",
+    "else_end_op",
+    "fi_op",
     "empty_op",
     "filter_instr",
     "cases_op",
     // instruction operations
     "concat_op",
+    "ops_init_op",
+    "ops_add_op",
+    "ops_first_op",
+    "ops_array_op",
     "assn_instr_op",
-    "array_instr_op",
     "assn_array_instr_op",
     "declare_array_instr_op",
     "test_instr_op",
     "maybe_else_instr_op",
     "if_instr_op",
     "in_instr_op",
+    "for_init_op",
+    "for_assn_op",
     "for_instr_op",
     "while_instr_op",
     "until_instr_op",
@@ -124,6 +133,12 @@ void quadarg_display(struct quadarg *quadarg) {
     printf("null");
     return;
   }
+
+  if (quadarg == ALL || quadarg == ARG) {
+    printf("null");
+    return;
+  }
+
   switch (quadarg->type) {
   case int_arg:
     printf("int: %d", quadarg->value.int_value);
@@ -133,6 +148,15 @@ void quadarg_display(struct quadarg *quadarg) {
     break;
   case id_arg:
     printf("id: %s", quadarg->value.id_value->name);
+    break;
+  case str_arg:
+    printf("str: %s", quadarg->value.str_value);
+    break;
+  case no_arg_type:
+    if (quadarg->reg_arg == 0)
+      printf("reg");
+    else
+      printf("reg: %s", reg_name(quadarg->reg_arg));
     break;
   default:
     printf("unknown");
@@ -145,14 +169,31 @@ void quad_vec_init(int size) {
   quad_array = vec_new(size);
 }
 
-struct quad *quad_new(int lineno, enum quadop op, struct quadarg *arg1,
-                      struct quadarg *arg2, struct quadarg *arg3) {
+struct quad *quad_new_from_quadarg(int lineno, enum quadop op,
+                                   struct quadarg *arg1, struct quadarg *arg2,
+                                   struct quadarg *arg3) {
 
   struct quad *quad = malloc(sizeof(struct quad));
+  quad->type = quadarg;
   quad->op = op;
   quad->arg1 = arg1;
   quad->arg2 = arg2;
   quad->arg3 = arg3;
+  quad->lineno = lineno;
+
+  quad->index = quad_array_index;
+  quad_array = quadarray_add(quad_array, quad);
+
+  return quad;
+}
+
+struct quad *quad_new_from_vec(int lineno, enum quadop op,
+                               vec_t quadarg_array) {
+
+  struct quad *quad = malloc(sizeof(struct quad));
+  quad->type = quadarg;
+  quad->op = op;
+  quad->subarray = quadarg_array;
   quad->lineno = lineno;
 
   quad->index = quad_array_index;
@@ -275,4 +316,14 @@ struct quadarg *quadarg_new_tmp(struct symtable *symtab, enum vartype type) {
 
   temp_count++;
   return quadarg;
+}
+
+vec_t quadarg_array_new() { return vec_new(); }
+
+void quadarg_array_add(vec_t quadarg_array, struct quadarg *quadarg) {
+  vec_push(quadarg_array, quadarg);
+}
+
+struct quadarg *quadarg_array_get(vec_t quadarg_array, int index) {
+  return vec_get(quadarg_array, index);
 }

@@ -1,0 +1,9 @@
+echo "Enter a number : ";
+read i;
+echo "\n";
+if test ( ${i} ge 12 ) then 
+echo "true\n"
+else 
+echo "false\n"
+fi;
+exit 3

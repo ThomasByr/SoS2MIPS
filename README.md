@@ -59,10 +59,12 @@ The program takes command line arguments from (`..` indicating no short option, 
 | `.., --no-exe`      | do not execute output file               | ❌         |         |
 | `-O, --optlvl` `<>` | set optimization level (from `0` or `1`) | ❌         | `0`     |
 
+Note that at the time of writing, the only optimization level implemented is `0`. Furthermore, `-i` and `-o` can be omitter, provided that both (if both) are typed in order. If only one option is used without the hint, you can specify it wherever you want in the command line.
+
 A legal launching instruction could be :
 
 ```bash
-./bin/sos -i examples/hello_world.sos -01
+./bin/sos -o out.s examples/hello_world.sos --tos --verbose
 ```
 
 <!--
@@ -155,6 +157,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 **v1.4** the end is near
 
 - more to assembly instructions stack for `j` and `jal`
+- wrote control flow structures and some more logical expressions
+- now we use `sbrk`
 
 </details>
 
