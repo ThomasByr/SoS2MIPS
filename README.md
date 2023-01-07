@@ -157,6 +157,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 **v1.4** the end is near
 
 - more to assembly instructions stack for `j` and `jal`
+- wrote control flow structures and some more logical expressions
+- now we use `sbrk`
 
 </details>
 
