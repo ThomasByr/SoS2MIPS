@@ -7,9 +7,6 @@
 #include "quad.h"
 #include "symtable.h"
 
-#define ARG (void *)0x42
-#define ALL (void *)0x43
-
 extern int opt_lvl;
 extern bool verbose;
 extern char *output;
