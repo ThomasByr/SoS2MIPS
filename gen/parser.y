@@ -94,7 +94,7 @@ program
 ;
 
 instructions
-: instructions instruction
+: instructions ';' instruction
 { $$ = quad_new_from_quadarg(0, instr_op, NULL, NULL, NULL); }
 | instruction
 { $$ = $1; }
@@ -220,7 +220,7 @@ ops
     quad_new_from_quadarg(0, ops_add_op, $1->arg3, NULL, NULL);
   } else {
     quadarg_array_add($$, quadarg_new_id("$*"));
-    quadarg_array_add($$, ALL);
+    quadarg_array_add($$, ALL_ARG);
     quad_new_from_quadarg(0, ops_add_op, ALL_ARG, NULL, NULL);
   }
 }

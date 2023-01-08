@@ -11,5 +11,4 @@ tab[6] = 7;
 tab[7] = 8;
 tab[8] = 9;
 tab[9] = 10;
-echo ${tab[*]};
 exit 42

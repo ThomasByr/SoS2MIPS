@@ -4,9 +4,9 @@ do
   do
   for l in 1 2
   do
-    echo "test" "\n"
+    echo "test" "\n";
     echo "\n"
   done
   done
-done
+done;
 exit
