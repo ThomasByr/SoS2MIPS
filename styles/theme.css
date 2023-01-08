@@ -4,7 +4,6 @@
  * @theme dracula
  *
  * @auto-scaling true
- * @size 9:16 1080px 1920px
  * @size A4 210mm 297mm
  */
 
@@ -122,7 +121,7 @@ h3,
 h4,
 h5,
 h6 {
-  margin: 0.5em 0 0 0;
+  margin: 0.2em 0 0 0;
   color: var(--dracula-pink);
 }
 h1 strong,
@@ -135,47 +134,47 @@ h6 strong {
 }
 
 h1 {
-  font-size: 1.8em;
-}
-
-h2 {
-  font-size: 1.1em;
-}
-
-h3 {
   font-size: 1em;
 }
 
+h2 {
+  font-size: 0.5em;
+}
+
+h3 {
+  font-size: 0.4em;
+}
+
 h4 {
-  font-size: 0.9em;
+  font-size: 0.3em;
 }
 
 h5 {
-  font-size: 0.8em;
+  font-size: 0.2em;
 }
 
 h6 {
-  font-size: 0.7em;
+  font-size: 0.1em;
 }
 
 p {
-  font-size: 0.5em;
+  font-size: 0.3em;
 }
 
 p,
 blockquote {
-  margin: 0.9em 0 0 0;
+  margin: 0.2em 0 0 0;
 }
 
 ul > li,
 ol > li {
-  margin: 0.3em 0 0 0;
+  margin: 0.2em 0 0 0;
   color: var(--dracula-cyan);
-  font-size: 0.5em;
+  font-size: 0.3em;
 }
 ul > li > p,
 ol > li > p {
-  margin: 0.6em 0 0 0;
+  margin: 0.2em 0 0 0;
 }
 
 code {
@@ -191,7 +190,7 @@ code {
 
 pre {
   display: block;
-  margin: 1em 0 0 0;
+  margin: 0.2em 0 0 0;
   min-height: 1em;
   overflow: visible;
 }
@@ -200,15 +199,15 @@ pre code {
   margin: 0;
   min-width: 100%;
   padding: 0.5em;
-  font-size: 0.5em;
+  font-size: 0.3em;
 }
 pre code svg[data-marp-fitting="svg"] {
   max-height: calc(580px - 1em);
 }
 
 blockquote {
-  margin: 1em 0 0 0;
-  padding: 0 1em;
+  margin: 0.2em 0 0 0;
+  padding: 0 0.1em;
   position: relative;
   color: var(--dracula-orange);
 }
@@ -241,8 +240,8 @@ mark {
 table {
   border-spacing: 0;
   border-collapse: collapse;
-  margin: 1em 0 0 0;
-  font-size: 0.5em;
+  margin: 0.2em 0 0 0;
+  font-size: 0.3em;
 }
 table th,
 table td {
