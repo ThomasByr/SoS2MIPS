@@ -11,27 +11,16 @@ size: A4
 > Auteurs : Thomas D., Ethan H., Mathieu M. et Thomas B.
 > GitHub Repo : <https://github.com/ThomasByr/SoS2MIPS>
 
+![logo](../assets/imgs/icon.png)
+
 1. [Introduction](#introduction)
 2. [Répartition du travail](#répartition-du-travail)
 3. [Structure du projet](#structure-du-projet)
 4. [Quelques structures en détail](#quelques-structures-en-détail)
-   1. [Vecteur `vec_t`](#vecteur-vec_t)
-   2. [Dictionnaire `dict_t`](#dictionnaire-dict_t)
-   3. [ThreadPool `threadpool_t`](#threadpool-threadpool_t)
-   4. [Pile d'instructions assembleur `astack_t`](#pile-dinstructions-assembleur-astack_t)
 5. [Tests](#tests)
 6. [Documentation et Utilisation](#documentation-et-utilisation)
 7. [Remarques générales sur la grammaire](#remarques-générales-sur-la-grammaire)
 8. [Milestones](#milestones)
-   1. [opérations arithmétiques](#opérations-arithmétiques)
-   2. [stockage de variables entières](#stockage-de-variables-entières)
-   3. [stockage de variables de type tableau d'entiers](#stockage-de-variables-de-type-tableau-dentiers)
-   4. [affichage en console avec `echo`](#affichage-en-console-avec-echo)
-   5. [lecture en console avec `read`](#lecture-en-console-avec-read)
-   6. [opérations logiques](#opérations-logiques)
-   7. [structures de contrôle](#structures-de-contrôle)
-   8. [ce qu'il reste à faire (et qu'on sait comment faire)](#ce-quil-reste-à-faire-et-quon-sait-comment-faire)
-   9. [ce qu'il reste à faire (et qui est pour l'instant obscure)](#ce-quil-reste-à-faire-et-qui-est-pour-linstant-obscure)
 9. [Licence](#licence)
 
 ---
@@ -319,8 +308,6 @@ La remarque la plus générale sur ce projet porte sur les types de données qu'
 Les opérateurs logiques ont aussi été revus. Étant donné qu'il est possible d'avoir des opérations arithmétiques à l'intérieur d'un bloc de test, les opérateurs commençant par `-` provoquent des erreurs dans notre implémentation. Nous avons donc enlevé ce préfixe superflu.
 
 Par ailleurs, il est actuellement impossible d'utiliser `$*` pour une boucle `for` à l'intérieur d'une fonction.
-
----
 
 ## Milestones
 
