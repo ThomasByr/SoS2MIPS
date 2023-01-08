@@ -216,7 +216,7 @@ void generate_asm(FILE *out) {
 
     case assn_arg_to_var_op:
 
-      astack_push_text(stack, asblock, "beqz $v1, _error");
+      astack_push_text(stack, asblock, "beqz $t9, _error");
       astack_push_data(
           stack,
           "error_msg%d: .asciiz \"$i used outside of a function (sos:%d)\\n\"",
@@ -235,7 +235,7 @@ void generate_asm(FILE *out) {
 
     case assn_all_arg_to_var_op:
 
-      astack_push_text(stack, asblock, "beqz $v1, _error");
+      astack_push_text(stack, asblock, "beqz $t9, _error");
       astack_push_data(
           stack,
           "error_msg%d: .asciiz \"$i used outside of a function (sos:%d)\\n\"",
@@ -246,22 +246,22 @@ void generate_asm(FILE *out) {
 
     case assn_status_to_var_op:
 
-      // get the return from a function store in $v0
+      // get the return from a function store in $v1
       quad->arg3->type = int_arg;
       quad->arg3->reg_arg = find_free_reg();
 
-      astack_push_text(stack, asblock, "move %s, $v0",
+      astack_push_text(stack, asblock, "move %s, $v1",
                        reg_name(quad->arg3->reg_arg));
 
       break;
 
     case assn_cfun_to_var_op:
 
-      // get the return from a function store in $v0
+      // get the return from a function store in $v1
       quad->arg3->type = int_arg;
       quad->arg3->reg_arg = find_free_reg();
 
-      astack_push_text(stack, asblock, "move %s, $v0",
+      astack_push_text(stack, asblock, "move %s, $v1",
                        reg_name(quad->arg3->reg_arg));
 
       break;
@@ -513,7 +513,7 @@ void generate_asm(FILE *out) {
 
       // block for if instruction
       jmp_name_if = malloc(100);
-      snprintf(jmp_name_if, 100, "instr%d", jmp_count);
+      snprintf_s(jmp_name_if, 100, "_instr%d", jmp_count);
       jmp_count++;
 
       // test if the result of test_instr is true
@@ -523,14 +523,14 @@ void generate_asm(FILE *out) {
 
       // block for else instruction
       jmp_name_else = malloc(100);
-      snprintf(jmp_name_else, 100, "instr%d", jmp_count);
+      snprintf_s(jmp_name_else, 100, "_instr%d", jmp_count);
       jmp_count++;
 
       astack_push_text(stack, asblock, "j %s", jmp_name_else);
 
       // block for the rest of the program
       jmp_name_next = malloc(100);
-      snprintf(jmp_name_next, 100, "instr%d", jmp_count);
+      snprintf_s(jmp_name_next, 100, "_instr%d", jmp_count);
       jmp_count++;
 
       vec_push(blocks, jmp_name_next);
@@ -580,7 +580,8 @@ void generate_asm(FILE *out) {
         ops_count++;
       }
 
-      if (quad->arg1 != ALL_ARG) free_reg(quad->arg1->reg_arg);
+      if (quad->arg1 != ALL_ARG)
+        free_reg(quad->arg1->reg_arg);
 
       break;
 
@@ -631,7 +632,9 @@ void generate_asm(FILE *out) {
 
       // check if there is a string in the vector
       for (j = 0; j < vec_size(quad->subarray); j++) {
-        if (((struct quadarg *)(vec_get(quad->subarray, j)))->type == str_arg) {
+        quadarg1 = vec_get(quad->subarray, j);
+        if (quadarg1 != ALL && quadarg1 != ALL_ARG &&
+            quadarg1->type == str_arg) {
           j = 0;
           break;
         }
@@ -648,7 +651,7 @@ void generate_asm(FILE *out) {
 
       // block for each "for" instruction
       jmp_name_next = malloc(BUFSIZ);
-      snprintf_s(jmp_name_next, BUFSIZ, "instr%d", index_alloc_count - 1);
+      snprintf_s(jmp_name_next, BUFSIZ, "_for%d", index_alloc_count - 1);
       jmp_count++;
 
       vec_push(blocks, jmp_name_next);
@@ -701,14 +704,14 @@ void generate_asm(FILE *out) {
 
       // go back to the good "for" block
       buf = malloc(BUFSIZ);
-      snprintf_s(buf, BUFSIZ, "instr%d", index_alloc_count - 1);
+      snprintf_s(buf, BUFSIZ, "_for%d", index_alloc_count - 1);
 
       astack_push_text(stack, asblock, "ble %s, %d, %s",
                        reg_name(reg_index_for + index_alloc_count - 1),
                        ops_size - 1, buf);
       index_alloc_count--;
 
-      astack_push_text(stack, asblock, "\ninstr%d:", jmp_count);
+      astack_push_text(stack, asblock, "\n_instr%d:", jmp_count);
       jmp_count++;
 
       break;
@@ -717,7 +720,7 @@ void generate_asm(FILE *out) {
 
       /// put the instruction name to define the while condition section
       jmp_name_next = malloc(BUFSIZ);
-      snprintf_s(jmp_name_next, BUFSIZ, "instr%d", jmp_count);
+      snprintf_s(jmp_name_next, BUFSIZ, "_instr%d", jmp_count);
       jmp_count++;
 
       vec_push(blocks, jmp_name_next);
@@ -841,7 +844,7 @@ void generate_asm(FILE *out) {
           // copy the arguments in the array of reg_ops
           reg2 = find_free_reg();
           astack_push_text(stack, asblock, "li %s, 0", reg_name(reg2));
-          astack_push_text(stack, asblock, "\ninstr%d:", jmp_count);
+          astack_push_text(stack, asblock, "\n_instr%d:", jmp_count);
           jmp_count++;
 
           // load the size + the argument in the array
@@ -861,23 +864,23 @@ void generate_asm(FILE *out) {
                            reg_name(reg2));
 
           // check if the counter is less than the number of arguments
-          astack_push_text(stack, asblock, "blt %s, %s, instr%d",
+          astack_push_text(stack, asblock, "blt %s, %s, _instr%d",
                            reg_name(reg2), reg_name(reg1), jmp_count - 1);
 
           // clear the stack with the number of arguments
           astack_push_text(stack, asblock, "li %s, 0", reg_name(reg2));
-          astack_push_text(stack, asblock, "\ninstr%d:", jmp_count);
+          astack_push_text(stack, asblock, "\n_instr%d:", jmp_count);
           jmp_count++;
           astack_push_text(stack, asblock, "addi $sp, $sp, -4");
           astack_push_text(stack, asblock, "addi %s, %s, 1", reg_name(reg2),
                            reg_name(reg2));
-          astack_push_text(stack, asblock, "ble %s, %s, instr%d",
+          astack_push_text(stack, asblock, "ble %s, %s, _instr%d",
                            reg_name(reg2), reg_name(reg1), jmp_count - 1);
 
           // get back the return address
           astack_push_text(stack, asblock, "addi $sp, $sp, -4");
 
-          astack_push_text(stack, asblock, "\ninstr%d:", jmp_count);
+          astack_push_text(stack, asblock, "\n_instr%d:", jmp_count);
           jmp_count++;
 
           // free the registers
@@ -1049,11 +1052,6 @@ void generate_asm(FILE *out) {
 
     case dfun_op:
 
-      // set the return of the function
-      quad->arg3->reg_arg = find_free_reg();
-      astack_push_text(stack, asblock, "move $v0, %s",
-                       reg_name(quad->arg3->reg_arg));
-
       // write the epilogue
       astack_push_text(stack, asblock, "lw $ra, 0($sp)");
       astack_push_text(stack, asblock, "jr $ra");
@@ -1070,30 +1068,30 @@ void generate_asm(FILE *out) {
 
     case return_void_op:
 
-      astack_push_text(stack, asblock, "beqz $v1, _error");
+      astack_push_text(stack, asblock, "beqz $t9, _error");
       astack_push_data(stack,
                        "error_msg%d: .asciiz \"$i used outside of a function "
                        "(sos:%d)\\n\"",
                        error_count, quad->lineno);
       error_count++;
 
-      // set $v0 to 0
-      astack_push_text(stack, asblock, "li $v0, 0");
+      // set $v1 to 0
+      astack_push_text(stack, asblock, "li $v1, 0");
 
       break;
 
     case return_int_op:
 
-      astack_push_text(stack, asblock, "beqz $v1, _error");
+      astack_push_text(stack, asblock, "beqz $t9, _error");
       astack_push_data(stack,
                        "error_msg%d: .asciiz \"$i used outside of a function "
                        "(sos:%d)\\n\"",
                        error_count, quad->lineno);
       error_count++;
 
-      // set $v0 to 0
-      astack_push_text(stack, asblock, "li $v0, %d",
-                       quad->arg1->value.int_value);
+      // set $v1 to the return value
+      astack_push_text(stack, asblock, "move $v1, %s",
+                       reg_name(quad->arg1->reg_arg));
 
       break;
 
@@ -1113,8 +1111,8 @@ void generate_asm(FILE *out) {
       }
       free_reg(reg1);
 
-      // set the $v1 to true to know that we are in a function
-      astack_push_text(stack, asblock, "li $v1, 1");
+      // set the $t9 to true to know that we are in a function
+      astack_push_text(stack, asblock, "li $t9, 1");
 
       // jump to the function code
       astack_push_text(stack, asblock, "jal %s",
@@ -1125,11 +1123,11 @@ void generate_asm(FILE *out) {
       // store the result in the return register
       quad->arg3 = quadarg_new_reg();
       quad->arg3->reg_arg = find_free_reg();
-      astack_push_text(stack, asblock, "move %s, $v0",
+      astack_push_text(stack, asblock, "move %s, $v1",
                        reg_name(quad->arg3->reg_arg));
 
       // set the flag to false to know that we are not in a function
-      astack_push_text(stack, asblock, "li $v1, 0");
+      astack_push_text(stack, asblock, "li $t9, 0");
 
       break;
 
@@ -1142,18 +1140,20 @@ void generate_asm(FILE *out) {
       free_reg(reg1);
 
       // set the flag to false to know that we are in a function
-      astack_push_text(stack, asblock, "li $v1, 1");
+      astack_push_text(stack, asblock, "li $t9, 1");
 
       // jump to the function code
       astack_push_text(stack, asblock, "jal %s",
                        quad->arg1->value.id_value->name);
 
       // store the result in the return register
-      astack_push_text(stack, asblock, "move %s, $v0",
+      quad->arg3 = quadarg_new_reg();
+      quad->arg3->reg_arg = find_free_reg();
+      astack_push_text(stack, asblock, "move %s, $v1",
                        reg_name(quad->arg3->reg_arg));
 
       // set the flag to false to know that we are not in a function
-      astack_push_text(stack, asblock, "li $v1, 0");
+      astack_push_text(stack, asblock, "li $t9, 0");
 
       break;
 
