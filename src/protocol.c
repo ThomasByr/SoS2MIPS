@@ -275,6 +275,8 @@ void generate_asm(FILE *out) {
       astack_push_text(stack, asblock, "\ninstr%d:", jmp_count);
       jmp_count++;
       astack_push_text(stack, asblock, "addi $sp, $sp, -4");
+      astack_push_text(stack, asblock, "addi %s, %s, -4", reg_name(reg_ops),
+                       reg_name(reg_ops));
       astack_push_text(stack, asblock, "addi %s, %s, 1", reg_name(reg2),
                        reg_name(reg2));
       astack_push_text(stack, asblock, "ble %s, %s, instr%d", reg_name(reg2),
@@ -885,6 +887,7 @@ void generate_asm(FILE *out) {
           reg1 = find_free_reg();
           astack_push_text(stack, asblock, "lw %s, 0(%s)", reg_name(reg1),
                            reg_name(reg_ops));
+
           // index
           reg2 = find_free_reg();
           astack_push_text(stack, asblock, "li %s, 0", reg_name(reg2));
