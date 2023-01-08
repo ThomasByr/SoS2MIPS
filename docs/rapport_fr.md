@@ -2,7 +2,7 @@
 marp: true
 theme: dracula
 paginate: true
-size: 9:16
+size: A4
 ---
 
 # Rapport de Compilation
@@ -468,7 +468,16 @@ exit
 
 ### ce qu'il reste à faire (et qu'on sait comment faire)
 
+- nombres négatifs
+- nombres à double précision
+- `concat` (les id sont que des entiers, on n'a pas encore fait l'assignation de tableaux)
+- until ... do
+- elif
+
 ### ce qu'il reste à faire (et qui est pour l'instant obscure)
+
+- typage
+- case esac
 
 ---
 
