@@ -883,6 +883,7 @@ void generate_asm(FILE *out) {
           // free the registers
           free_reg(reg1);
           free_reg(reg2);
+          free_reg(reg3);
         }
       }
 
