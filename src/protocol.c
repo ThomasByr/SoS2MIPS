@@ -595,7 +595,7 @@ void generate_asm(FILE *out) {
         astack_push_text(stack, asblock, "la %s, %s", reg_name(reg2),
                          quad->arg1->value.id_value->name);
 
-        astack_push_text(stack, asblock, "lw %s, %d(%s)", reg_name(reg1), j * 4,
+        astack_push_text(stack, asblock, "lw %s, %zu(%s)", reg_name(reg1), j * 4,
                          reg_name(reg2));
 
         if (reg1 == reg_ops) panic("reg1 == reg_ops");
@@ -1099,14 +1099,14 @@ void generate_asm(FILE *out) {
 
       // store the number of arguments in the stack
       reg1 = find_free_reg();
-      astack_push_text(stack, asblock, "li %s, %d", reg_name(reg1),
+      astack_push_text(stack, asblock, "li %s, %zu", reg_name(reg1),
                        vec_size(quad->subarray) - 1);
       astack_push_text(stack, asblock, "sw %s, 4($sp)", reg_name(reg1));
       // load the arguments in the stack
       for (j = 0; j < vec_size(quad->subarray); j++) {
-        astack_push_text(stack, asblock, "lw %s, %d(%s)", reg_name(reg1), j * 4,
+        astack_push_text(stack, asblock, "lw %s, %zu(%s)", reg_name(reg1), j * 4,
                          reg_name(reg_ops));
-        astack_push_text(stack, asblock, "sw %s, %d($sp)", reg_name(reg1),
+        astack_push_text(stack, asblock, "sw %s, %zu($sp)", reg_name(reg1),
                          (j + 2) * 4);
       }
       free_reg(reg1);
