@@ -1,4 +1,3 @@
-#include "protocol.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -66,7 +65,6 @@ char *quad_op_string[] = {
     "elif_op",
     "else_op",
     "else_end_op",
-    "fi_op",
     "empty_op",
     "filter_instr",
     "cases_op",
@@ -86,6 +84,7 @@ char *quad_op_string[] = {
     "for_init_op",
     "for_assn_op",
     "for_instr_op",
+    "while_init_op",
     "while_instr_op",
     "until_instr_op",
     "case_instr_op",
@@ -99,6 +98,7 @@ char *quad_op_string[] = {
     "instr_op",
     // function operations
     "cont_func_op",
+    "dfun_init_op",
     "dfun_op",
     "local_decl_op",
     "decl_op",
@@ -134,7 +134,7 @@ void quadarg_display(struct quadarg *quadarg) {
     return;
   }
 
-  if (quadarg == ALL || quadarg == ARG) {
+  if (quadarg == ALL || quadarg == ARG || quadarg == ALL_ARG) {
     printf("null");
     return;
   }

@@ -5,6 +5,7 @@
 
 #define ARG (void *)0x42
 #define ALL (void *)0x43
+#define ALL_ARG (void *)0x44
 
 enum sys_call {
   sc_print_int = 1,    // $a0 = integer
