@@ -8,6 +8,7 @@
 
 [![C/C++ CI](https://github.com/ThomasByr/SoS2MIPS/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/ThomasByr/SoS2MIPS/actions/workflows/c-cpp.yml)
 [![CodeQL](https://github.com/ThomasByr/SoS2MIPS/actions/workflows/codeql.yml/badge.svg)](https://github.com/ThomasByr/SoS2MIPS/actions/workflows/codeql.yml)
+[![Publish](https://github.com/ThomasByr/SoS2MIPS/actions/workflows/publish.yml/badge.svg)](https://github.com/ThomasByr/SoS2MIPS/actions/workflows/publish.yml)
 
 [![GitHub version](https://badge.fury.io/gh/ThomasByr%2FSoS2MIPS.svg)](https://github.com/ThomasByr/SoS2MIPS)
 [![Author](https://img.shields.io/badge/author-@ThomasByr-blue)](https://github.com/ThomasByr)
