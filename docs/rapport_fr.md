@@ -9,6 +9,7 @@ size: 9:16
 
 > Rapport en français.
 > Auteurs : Thomas D., Ethan H., Mathieu M. et Thomas B.
+> [GitHub Repo](https://github.com/ThomasByr/SoS2MIPS)
 
 1. [Introduction](#introduction)
 2. [Répartition du travail](#répartition-du-travail)
