@@ -1,0 +1,48 @@
+myfunc(){
+  echo "Test : For + Array\n";
+  declare tab[3];
+  tab[0] = 1;
+  tab[1] = 2;
+  tab[2] = 3;
+  for var in 1 2
+  do
+    for var2 in ${tab[*]} 4 5
+    do
+      echo ${var2} ""
+    done;
+    echo "\n"
+  done;
+  echo "\nTest : While + Arg\n";
+  var3 = 0;
+  while test ${var3} lt 2
+  do
+    echo "$i test :" $1 $2 $3 "\n$* test :" $* "\n";
+    var3 = $(expr ${var3} + 1)
+  done;
+  echo "\nTest if :\n";
+  var4 = 1;
+  if test ${var4} eq 1
+  then
+    echo "True\n"
+  else  
+    echo "False\n"
+  fi;
+  var4 = 0;
+  if test ${var4} eq 1
+  then
+    echo "True\n"
+  else  
+    echo "False\n"
+  fi;
+  declare tab2[10];
+  echo "\nTest read :\n";
+  echo "Choisir un indice : ";
+  read id;
+  echo "Choisir une valeur : ";
+  read tab2[${id}];
+  echo "La valeur du tableau est :" ${tab2[*]} "\n";
+  return 1
+};
+var5 = $(myfunc 1 2 3);
+echo "\nTest return :" ${var5};
+exit
