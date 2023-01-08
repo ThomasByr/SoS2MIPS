@@ -8,7 +8,7 @@
   #include "lib.h"
   #include "protocol.h"
 
-  extern int yylex();
+  extern int yylex(), lineNumber;
   extern void yyerror(const char *s);
   extern vec_t quad_array;
   extern struct symtable *id_name_table;
@@ -95,7 +95,7 @@ program
 
 instructions
 : instructions ';' instruction
-{ $$ = quad_new_from_quadarg(0, instr_op, NULL, NULL, NULL); }
+{ $$ = quad_new_from_quadarg(lineNumber, instr_op, NULL, NULL, NULL); }
 | instruction
 { $$ = $1; }
 | %empty
@@ -104,54 +104,52 @@ instructions
 
 instruction
 : ID '=' concat
-{ $$ = quad_new_from_quadarg(0, assn_instr_op, quadarg_new_id($1), $3->arg3, NULL); }
+{ $$ = quad_new_from_quadarg(lineNumber, assn_instr_op, quadarg_new_id($1), $3->arg3, NULL); }
 | ID '[' op_int ']' '=' concat
-{ $$ = quad_new_from_quadarg(0, assn_array_instr_op, quadarg_new_id($1), $3->arg3, $6->arg3); }
+{ $$ = quad_new_from_quadarg(lineNumber, assn_array_instr_op, quadarg_new_id($1), $3->arg3, $6->arg3); }
 | declare ID '[' integer ']'
-{ $$ = quad_new_from_quadarg(0, declare_array_instr_op, quadarg_new_id($2), quadarg_new_int($4), NULL); }
+{ $$ = quad_new_from_quadarg(lineNumber, declare_array_instr_op, quadarg_new_id($2), quadarg_new_int($4), NULL); }
 | IF testing THEN instructions maybe_else instructions FI
 { if ($5 == NULL)
-    $$ = quad_new_from_quadarg(0, if_instr_op, $2->arg3, NULL, NULL); 
+    $$ = quad_new_from_quadarg(lineNumber, if_instr_op, $2->arg3, NULL, NULL); 
   else 
-    $$ = quad_new_from_quadarg(0, if_instr_op, $2->arg3, $5->arg3, NULL); }
-/* | FOR ID DO instructions DONE
-{ $$ = quad_new_from_quadarg(0, for_instr_op, quadarg_new_id($2), $4->arg3, NULL); } */
-| FOR ID { quad_new_from_quadarg(0, for_init_op, quadarg_new_id($2), NULL, NULL); } IN 
-{ quad_new_from_quadarg(0, ops_init_op, NULL, NULL, NULL); } ops { quadarg_array_add($6, quadarg_new_id($2));
-  quad_new_from_vec(0, for_assn_op, $6); } DO instructions DONE
-{ $$ = quad_new_from_vec(0, for_instr_op, $6);}
-| WHILE {quad_new_from_quadarg(0, while_init_op, NULL, NULL, NULL); } testing DO instructions DONE
-{ $$ = quad_new_from_quadarg(0, while_instr_op, NULL, NULL, NULL); }
+    $$ = quad_new_from_quadarg(lineNumber, if_instr_op, $2->arg3, $5->arg3, NULL); }
+| FOR ID { quad_new_from_quadarg(lineNumber, for_init_op, quadarg_new_id($2), NULL, NULL); } IN 
+{ quad_new_from_quadarg(lineNumber, ops_init_op, NULL, NULL, NULL); } ops { quadarg_array_add($6, quadarg_new_id($2));
+  quad_new_from_vec(lineNumber, for_assn_op, $6); } DO instructions DONE
+{ $$ = quad_new_from_vec(lineNumber, for_instr_op, $6);}
+| WHILE {quad_new_from_quadarg(lineNumber, while_init_op, NULL, NULL, NULL); } testing DO instructions DONE
+{ $$ = quad_new_from_quadarg(lineNumber, while_instr_op, NULL, NULL, NULL); }
 | UNTIL testing DO instructions DONE
-{ $$ = quad_new_from_quadarg(0, until_instr_op, $2->arg3, $4->arg3, NULL); }
+{ $$ = quad_new_from_quadarg(lineNumber, until_instr_op, $2->arg3, $4->arg3, NULL); }
 | CASE op IN cases ESAC
-{ $$ = quad_new_from_quadarg(0, case_instr_op, $2->arg3, $4->arg3, NULL); }
-| EKKO { quad_new_from_quadarg(0, ops_init_op, NULL, NULL, NULL); } ops
-{ $$ = quad_new_from_vec(0, echo_instr_op, $3); }
+{ $$ = quad_new_from_quadarg(lineNumber, case_instr_op, $2->arg3, $4->arg3, NULL); }
+| EKKO { quad_new_from_quadarg(lineNumber, ops_init_op, NULL, NULL, NULL); } ops
+{ $$ = quad_new_from_vec(lineNumber, echo_instr_op, $3); }
 | READ  ID 
-{ $$ = quad_new_from_quadarg(0, read_instr_op, quadarg_new_id($2), NULL, NULL); }
+{ $$ = quad_new_from_quadarg(lineNumber, read_instr_op, quadarg_new_id($2), NULL, NULL); }
 | READ  ID '[' op_int ']'
-{ $$ = quad_new_from_quadarg(0, read_array_instr_op, quadarg_new_id($2), $4->arg3, NULL); }
+{ $$ = quad_new_from_quadarg(lineNumber, read_array_instr_op, quadarg_new_id($2), $4->arg3, NULL); }
 | dfun
 { $$ = $1; }
 | cfun
 { $$ = $1; }
 | RETURN 
-{ $$ = quad_new_from_quadarg(0, return_void_op, NULL, NULL, NULL); }
+{ $$ = quad_new_from_quadarg(lineNumber, return_void_op, NULL, NULL, NULL); }
 | RETURN op_int
-{ $$ = quad_new_from_quadarg(0, return_int_op, $2->arg3, NULL, NULL); }
+{ $$ = quad_new_from_quadarg(lineNumber, return_int_op, $2->arg3, NULL, NULL); }
 | EXIT 
-{ $$ = quad_new_from_quadarg(0, exit_void_op, NULL, NULL, NULL); }
+{ $$ = quad_new_from_quadarg(lineNumber, exit_void_op, NULL, NULL, NULL); }
 | EXIT op_int
-{ $$ = quad_new_from_quadarg(0, exit_int_op, $2->arg3, NULL, NULL); }
+{ $$ = quad_new_from_quadarg(lineNumber, exit_int_op, $2->arg3, NULL, NULL); }
 ;
 
 maybe_else
 : ELIF testing THEN instructions maybe_else
-{ struct quad *marker = quad_new_from_quadarg(0, testing_op, $2->arg3, $4->arg3, quadarg_new_reg());
-  $$ = quad_new_from_quadarg(0, elif_op, marker->arg3, $4->arg3, quadarg_new_reg()); }
-| ELSE { quad_new_from_quadarg(0, else_op, NULL, NULL, quadarg_new_reg()); } instructions
-{ $$ = quad_new_from_quadarg(0, else_end_op, NULL, NULL, NULL); }
+{ struct quad *marker = quad_new_from_quadarg(lineNumber, testing_op, $2->arg3, $4->arg3, quadarg_new_reg());
+  $$ = quad_new_from_quadarg(lineNumber, elif_op, marker->arg3, $4->arg3, quadarg_new_reg()); }
+| ELSE { quad_new_from_quadarg(lineNumber, else_op, NULL, NULL, quadarg_new_reg()); } instructions
+{ $$ = quad_new_from_quadarg(lineNumber, else_end_op, NULL, NULL, NULL); }
 | %empty
 { $$ = NULL; }
 ;
@@ -162,10 +160,10 @@ cases
   $2->array_string = malloc(sizeof(char *)); 
   $2->size = 0; } 
   ')' instructions ';' ';'
-{ struct quad *marker = quad_new_from_quadarg(0, filter_instr, quadarg_new_array_str($2->array_string), $5->arg3, quadarg_new_reg()); 
-  $$ = quad_new_from_quadarg(0, cases_op, $1->arg3, marker->arg3, quadarg_new_reg()); }
+{ struct quad *marker = quad_new_from_quadarg(lineNumber, filter_instr, quadarg_new_array_str($2->array_string), $5->arg3, quadarg_new_reg()); 
+  $$ = quad_new_from_quadarg(lineNumber, cases_op, $1->arg3, marker->arg3, quadarg_new_reg()); }
 | filter ')' instructions ';' ';'
-{ $$ = quad_new_from_quadarg(0, filter_instr, quadarg_new_array_str($1->array_string), $3->arg3, quadarg_new_reg()); }
+{ $$ = quad_new_from_quadarg(lineNumber, filter_instr, quadarg_new_array_str($1->array_string), $3->arg3, quadarg_new_reg()); }
 ;
 
 filter
@@ -202,57 +200,55 @@ ops
 : ops op 
 { if ($2->arg1 != ALL_ARG) {
     quadarg_array_add($$, $2->arg3);
-    quad_new_from_quadarg(0, ops_add_op, $2->arg3, NULL, NULL);
+    quad_new_from_quadarg(lineNumber, ops_add_op, $2->arg3, NULL, NULL);
   } else {
-    quadarg_array_add($$, quadarg_new_id("$*"));
-    quadarg_array_add($$, ALL);
-    quad_new_from_quadarg(0, ops_add_op, ALL_ARG, NULL, NULL);
+    quadarg_array_add($$, ALL_ARG);
+    quad_new_from_quadarg(lineNumber, ops_add_op, ALL_ARG, NULL, NULL);
   }
 }
 | ops '$' '{' ID '[' '*' ']' '}'
 { quadarg_array_add($$, quadarg_new_id($4));
   quadarg_array_add($$, ALL); 
-  quad_new_from_quadarg(0, ops_array_op, quadarg_new_id($4), ALL, NULL); }
+  quad_new_from_quadarg(lineNumber, ops_array_op, quadarg_new_id($4), ALL, NULL); }
 | op
 { $$ = quadarg_array_new();
   if ($1->arg1 != ALL_ARG) {
     quadarg_array_add($$, $1->arg3);
-    quad_new_from_quadarg(0, ops_add_op, $1->arg3, NULL, NULL);
+    quad_new_from_quadarg(lineNumber, ops_add_op, $1->arg3, NULL, NULL);
   } else {
-    quadarg_array_add($$, quadarg_new_id("$*"));
     quadarg_array_add($$, ALL_ARG);
-    quad_new_from_quadarg(0, ops_add_op, ALL_ARG, NULL, NULL);
+    quad_new_from_quadarg(lineNumber, ops_add_op, ALL_ARG, NULL, NULL);
   }
 }
 | '$' '{' ID '[' '*' ']' '}'
 { $$ = quadarg_array_new();
   quadarg_array_add($$, quadarg_new_id($3));
   quadarg_array_add($$, ALL); 
-  quad_new_from_quadarg(0, ops_array_op, quadarg_new_id($3), ALL, NULL); }
+  quad_new_from_quadarg(lineNumber, ops_array_op, quadarg_new_id($3), ALL, NULL); }
 ;
 
 concat
 : concat op
-{ $$ = quad_new_from_quadarg(0, concat_op, $1->arg3, $2->arg3, quadarg_new_reg()); }
+{ $$ = quad_new_from_quadarg(lineNumber, concat_op, $1->arg3, $2->arg3, quadarg_new_reg()); }
 | op
 { $$ = $1; }
 ;
 
 testing
 : test test_expr
-{ $$ = quad_new_from_quadarg(0, test_op, $2->arg3, NULL, quadarg_new_reg()); }
+{ $$ = quad_new_from_quadarg(lineNumber, test_op, $2->arg3, NULL, quadarg_new_reg()); }
 ;
 
 test_expr
 : test_expr or test_expr2
-{ $$ = quad_new_from_quadarg(0, or_op, $1->arg3, $3->arg3, quadarg_new_reg()); }
+{ $$ = quad_new_from_quadarg(lineNumber, or_op, $1->arg3, $3->arg3, quadarg_new_reg()); }
 | test_expr2
 { $$ = $1; }
 ;
 
 test_expr2
 : test_expr2 and test_expr3
-{ $$ = quad_new_from_quadarg(0, and_op, $1->arg3, $3->arg3, quadarg_new_reg()); }
+{ $$ = quad_new_from_quadarg(lineNumber, and_op, $1->arg3, $3->arg3, quadarg_new_reg()); }
 | test_expr3
 { $$ = $1; }
 ;
@@ -261,43 +257,43 @@ test_expr3
 : '(' test_expr ')'
 { $$ = $2; }
 | '!' '(' test_expr ')'
-{ $$ = quad_new_from_quadarg(0, not_op, $3->arg3, NULL, quadarg_new_reg()); }
+{ $$ = quad_new_from_quadarg(lineNumber, not_op, $3->arg3, NULL, quadarg_new_reg()); }
 | test_instr
 { $$ = $1; }
 | '!' test_instr
-{ $$ = quad_new_from_quadarg(0, not_op, $2->arg3, NULL, quadarg_new_reg()); }
+{ $$ = quad_new_from_quadarg(lineNumber, not_op, $2->arg3, NULL, quadarg_new_reg()); }
 ;
 
 test_instr
 : concat eq concat
-{ $$ = quad_new_from_quadarg(0, eq_op, $1->arg3, $3->arg3, quadarg_new_reg()); }
+{ $$ = quad_new_from_quadarg(lineNumber, eq_op, $1->arg3, $3->arg3, quadarg_new_reg()); }
 | concat neq concat
-{ $$ = quad_new_from_quadarg(0, neq_op, $1->arg3, $3->arg3, quadarg_new_reg()); }
+{ $$ = quad_new_from_quadarg(lineNumber, neq_op, $1->arg3, $3->arg3, quadarg_new_reg()); }
 | operator1 concat
-{ $$ = quad_new_from_quadarg(0, $1, $2->arg3, NULL, quadarg_new_reg()); }
+{ $$ = quad_new_from_quadarg(lineNumber, $1, $2->arg3, NULL, quadarg_new_reg()); }
 | op operator2 op
-{ $$ = quad_new_from_quadarg(0, $2, $1->arg3, $3->arg3, quadarg_new_reg()); }
+{ $$ = quad_new_from_quadarg(lineNumber, $2, $1->arg3, $3->arg3, quadarg_new_reg()); }
 ;
 
 op
 : '$' '{' ID '}'
-{ $$ = quad_new_from_quadarg(0, assn_id_to_var_op, quadarg_new_id($3), NULL, quadarg_new_reg()); }
+{ $$ = quad_new_from_quadarg(lineNumber, assn_id_to_var_op, quadarg_new_id($3), NULL, quadarg_new_reg()); }
 | '$' '{' ID '[' op_int ']' '}'
-{ $$ = quad_new_from_quadarg(0, assn_id_to_var_op, quadarg_new_id($3), $5->arg3, quadarg_new_reg()); }
+{ $$ = quad_new_from_quadarg(lineNumber, assn_id_to_var_op, quadarg_new_id($3), $5->arg3, quadarg_new_reg()); }
 | '$' integer
-{ $$ = quad_new_from_quadarg(0, assn_arg_to_var_op, quadarg_new_int($2), NULL, quadarg_new_reg()); }
+{ $$ = quad_new_from_quadarg(lineNumber, assn_arg_to_var_op, quadarg_new_int($2), NULL, quadarg_new_reg()); }
 | '$' '*'
-{ $$ = quad_new_from_quadarg(0, assn_all_arg_to_var_op, ALL_ARG, NULL ,quadarg_new_reg()); }
+{ $$ = quad_new_from_quadarg(lineNumber, assn_all_arg_to_var_op, ALL_ARG, NULL ,quadarg_new_reg()); }
 | '$' '?'
-{ $$ = quad_new_from_quadarg(0, assn_status_to_var_op, NULL, NULL, quadarg_new_reg()); }
+{ $$ = quad_new_from_quadarg(lineNumber, assn_status_to_var_op, NULL, NULL, quadarg_new_reg()); }
 | string
-{ $$ = quad_new_from_quadarg(0, assn_string_to_var_op, quadarg_new_str($1), NULL, quadarg_new_reg()); }
+{ $$ = quad_new_from_quadarg(lineNumber, assn_string_to_var_op, quadarg_new_str($1), NULL, quadarg_new_reg()); }
 | '$' '(' expr sum_int ')'
-{ $$ = quad_new_from_quadarg(0, assn_expr_value_to_var_op, $4->arg3, NULL, quadarg_new_reg()); }
+{ $$ = quad_new_from_quadarg(lineNumber, assn_expr_value_to_var_op, $4->arg3, NULL, quadarg_new_reg()); }
 | '$' '(' cfun ')' 
-{ $$ = quad_new_from_quadarg(0, assn_cfun_to_var_op, $3->arg3, NULL, quadarg_new_reg()); }
+{ $$ = quad_new_from_quadarg(lineNumber, assn_cfun_to_var_op, $3->arg3, NULL, quadarg_new_reg()); }
 | integer 
-{ $$ = quad_new_from_quadarg(0, assn_int_to_var_op, quadarg_new_int($1), NULL, quadarg_new_reg()); }
+{ $$ = quad_new_from_quadarg(lineNumber, assn_int_to_var_op, quadarg_new_int($1), NULL, quadarg_new_reg()); }
 ;
 
 operator1
@@ -324,35 +320,35 @@ operator2
 
 sum_int
 : sum_int plus_minus prod_int
-{ $$ = quad_new_from_quadarg(0, $2, $1->arg3, $3->arg3, quadarg_new_reg()); }
+{ $$ = quad_new_from_quadarg(lineNumber, $2, $1->arg3, $3->arg3, quadarg_new_reg()); }
 | prod_int
 { $$ = $1; }
 ;
 
 prod_int
 : prod_int mult_div_mod op_int
-{ $$ = quad_new_from_quadarg(0, $2, $1->arg3, $3->arg3, quadarg_new_reg()); }
+{ $$ = quad_new_from_quadarg(lineNumber, $2, $1->arg3, $3->arg3, quadarg_new_reg()); }
 | op_int
 { $$ = $1; }
 ;
 
 op_int
 : '$' '{' ID '}' 
-{ $$ = quad_new_from_quadarg(0, assn_id_to_var_op, quadarg_new_id($3), NULL, quadarg_new_reg()); }
+{ $$ = quad_new_from_quadarg(lineNumber, assn_id_to_var_op, quadarg_new_id($3), NULL, quadarg_new_reg()); }
 | '$' '{' ID '[' op_int ']' '}' 
-{ $$ = quad_new_from_quadarg(0, assn_id_to_var_op, quadarg_new_id($3), $5->arg3, quadarg_new_reg()); }
+{ $$ = quad_new_from_quadarg(lineNumber, assn_id_to_var_op, quadarg_new_id($3), $5->arg3, quadarg_new_reg()); }
 | '$' integer 
-{ $$ = quad_new_from_quadarg(0, assn_arg_to_var_op, quadarg_new_int($2), NULL, quadarg_new_reg()); }
+{ $$ = quad_new_from_quadarg(lineNumber, assn_arg_to_var_op, quadarg_new_int($2), NULL, quadarg_new_reg()); }
 | plus_minus '$' '{' ID '}' 
-{ $$ = quad_new_from_quadarg(0, $1, quadarg_new_id($4), NULL, quadarg_new_reg());  }
+{ $$ = quad_new_from_quadarg(lineNumber, $1, quadarg_new_id($4), NULL, quadarg_new_reg());  }
 | plus_minus '$' '{' ID '[' op_int ']' '}' 
-{ $$ = quad_new_from_quadarg(0, $1, quadarg_new_id($4), $6->arg3, quadarg_new_reg()); }
+{ $$ = quad_new_from_quadarg(lineNumber, $1, quadarg_new_id($4), $6->arg3, quadarg_new_reg()); }
 | plus_minus '$' integer
-{ $$ = quad_new_from_quadarg(0, $1, quadarg_new_int($3), ARG, quadarg_new_reg()); }
+{ $$ = quad_new_from_quadarg(lineNumber, $1, quadarg_new_int($3), ARG, quadarg_new_reg()); }
 | integer
-{ $$ = quad_new_from_quadarg(0, assn_int_to_var_op, quadarg_new_int($1), NULL, quadarg_new_reg()); }
+{ $$ = quad_new_from_quadarg(lineNumber, assn_int_to_var_op, quadarg_new_int($1), NULL, quadarg_new_reg()); }
 | plus_minus integer 
-{ $$ = quad_new_from_quadarg(0,$1, quadarg_new_int($2), NULL, quadarg_new_reg()); }
+{ $$ = quad_new_from_quadarg(lineNumber,$1, quadarg_new_int($2), NULL, quadarg_new_reg()); }
 | '(' sum_int ')'
 { $$ = $2; }
 ;
@@ -375,23 +371,23 @@ mult_div_mod
 
 dfun
 : ID '(' ')' '{' declarations 
-{ quad_new_from_quadarg(0, dfun_init_op, quadarg_new_id($1), NULL, quadarg_new_reg()); } instructions '}'
-{ $$ = quad_new_from_quadarg(0, dfun_op, quadarg_new_id($1), NULL, quadarg_new_reg()); }
+{ quad_new_from_quadarg(lineNumber, dfun_init_op, quadarg_new_id($1), NULL, quadarg_new_reg()); } instructions '}'
+{ $$ = quad_new_from_quadarg(lineNumber, dfun_op, quadarg_new_id($1), NULL, quadarg_new_reg()); }
 ;
 
 declarations
 : declarations local ID '=' concat ';'
-{ $$ = quad_new_from_quadarg(0, local_decl_op, $1->arg3, quadarg_new_id($3), $5->arg3); }
+{ $$ = quad_new_from_quadarg(lineNumber, local_decl_op, $1->arg3, quadarg_new_id($3), $5->arg3); }
 | %empty
-{ $$ = quad_new_from_quadarg(0, decl_op, NULL, NULL, quadarg_new_reg()); }
+{ $$ = quad_new_from_quadarg(lineNumber, decl_op, NULL, NULL, quadarg_new_reg()); }
 ;
 
 cfun
-: ID  { quad_new_from_quadarg(0, ops_init_op, NULL, NULL, NULL); } ops
+: ID  { quad_new_from_quadarg(lineNumber, ops_init_op, NULL, NULL, NULL); } ops
 { quadarg_array_add($3,quadarg_new_id($1));
-  $$ = quad_new_from_vec(0, cfun_ops, $3); }
+  $$ = quad_new_from_vec(lineNumber, cfun_ops, $3); }
 | ID
-{ $$ = quad_new_from_quadarg(0, cfun_op, quadarg_new_id($1), NULL, quadarg_new_reg()); }
+{ $$ = quad_new_from_quadarg(lineNumber, cfun_op, quadarg_new_id($1), NULL, quadarg_new_reg()); }
 ;
 
 %%
