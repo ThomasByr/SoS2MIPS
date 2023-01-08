@@ -5,9 +5,11 @@
   "C_Cpp.clang_format_style": "{IndentWidth: 2, TabWidth: 2, ColumnLimit: 80, AlignEscapedNewlines: Left, AllowShortIfStatementsOnASingleLine: true}",
   "files.associations": {
     "*.s": "mips",
+    "Doxyfile": "plaintext",
     "*.lex": "lex",
     "*.l": "lex",
     "*.y": "yacc",
+    "protocol.h": "c"
   },
   "cSpell.words": [
     "dtype",
