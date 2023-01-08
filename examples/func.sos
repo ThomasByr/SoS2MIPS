@@ -1,0 +1,6 @@
+myfunc(){
+  return 22
+};
+
+echo $(myfunc);
+exit

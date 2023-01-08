@@ -2,35 +2,25 @@
 marp: true
 theme: dracula
 paginate: true
-size: 9:16
+size: A4
 ---
 
 # Rapport de Compilation
 
 > Rapport en français.
 > Auteurs : Thomas D., Ethan H., Mathieu M. et Thomas B.
+> GitHub Repo : <https://github.com/ThomasByr/SoS2MIPS>
+
+![logo](../assets/imgs/icon.png)
 
 1. [Introduction](#introduction)
 2. [Répartition du travail](#répartition-du-travail)
 3. [Structure du projet](#structure-du-projet)
 4. [Quelques structures en détail](#quelques-structures-en-détail)
-   1. [Vecteur `vec_t`](#vecteur-vec_t)
-   2. [Dictionnaire `dict_t`](#dictionnaire-dict_t)
-   3. [ThreadPool `threadpool_t`](#threadpool-threadpool_t)
-   4. [Pile d'instructions assembleur `astack_t`](#pile-dinstructions-assembleur-astack_t)
 5. [Tests](#tests)
 6. [Documentation et Utilisation](#documentation-et-utilisation)
 7. [Remarques générales sur la grammaire](#remarques-générales-sur-la-grammaire)
 8. [Milestones](#milestones)
-   1. [opérations arithmétiques](#opérations-arithmétiques)
-   2. [stockage de variables entières](#stockage-de-variables-entières)
-   3. [stockage de variables de type tableau d'entiers](#stockage-de-variables-de-type-tableau-dentiers)
-   4. [affichage en console avec `echo`](#affichage-en-console-avec-echo)
-   5. [lecture en console avec `read`](#lecture-en-console-avec-read)
-   6. [opérations logiques](#opérations-logiques)
-   7. [structures de contrôle](#structures-de-contrôle)
-   8. [ce qu'il reste à faire (et qu'on sait comment faire)](#ce-quil-reste-à-faire-et-quon-sait-comment-faire)
-   9. [ce qu'il reste à faire (et qui est pour l'instant obscure)](#ce-quil-reste-à-faire-et-qui-est-pour-linstant-obscure)
 9. [Licence](#licence)
 
 ---
@@ -313,30 +303,44 @@ Un exemple d'utilisation est disponible ci-dessous.
 
 ## Remarques générales sur la grammaire
 
-La remarque la plus générale sur ce projet porte sur les types de données qu'il est possible de traiter avec notre implémentation du compilateur SOS. Nous n'avons traité que le cas de variables stockant des entiers ou des tableaux d'entiers. Les chaînes de caractères peuvent être affichées mais doivent être statiques (entièrement définies au moment de la compilation).
+La remarque la plus générale sur ce projet porte sur les types de données qu'il est possible de traiter avec notre implémentation du compilateur SOS. Nous n'avons traité que le cas de variables stockant des entiers ou des tableaux d'entiers. Les chaînes de caractères peuvent être affichées mais doivent être statiques (entièrement définies au moment de la compilation). Les variables à virgule flottante à simple et double précision ne sont pas traitées.
 
 Les opérateurs logiques ont aussi été revus. Étant donné qu'il est possible d'avoir des opérations arithmétiques à l'intérieur d'un bloc de test, les opérateurs commençant par `-` provoquent des erreurs dans notre implémentation. Nous avons donc enlevé ce préfixe superflu.
 
----
+Par ailleurs, il est actuellement impossible d'utiliser `$*` pour une boucle `for` à l'intérieur d'une fonction.
 
 ## Milestones
 
-Nous allons maintenant détailler les différentes étapes de développement du projet. Les exemples de code ci-dessous sont pour la plupart issus de tests, et certains peuvent même être retrouvés dans le dossier [examples/](../examples/). Notez également que ces étapes reflètent l'avancement de notre projet uniquement à l'instant où nous avons écrit ce document.
+Nous allons maintenant détailler les différentes étapes de développement du projet. Les exemples de code ci-dessous sont pour la plupart issus de tests, et certains peuvent même être retrouvés dans le dossier [examples/](../examples/). Notez également que ces étapes reflètent l'avancement de notre projet uniquement à l'instant où nous avons écrit ce document. Vous pourrez remarquer que quelques tests assembleurs ont été implémentés, notamment lors d'accès mémoire ("Index out of array bounds" par exemple), pour entrer dans l'état erreur au moment de l'exécution du programme et pas avant.
 
 ### opérations arithmétiques
 
-La toute première étape du projet a été de faire fonctionner les opérations arithmétiques basiques (`+`, `-`, `*`, `/`, `%`) qui ne fonctionnent que sur les entiers.
+La toute première étape du projet a été de faire fonctionner les opérations arithmétiques basiques (`+`, `-`, `*`, `/`, `%`) qui ne fonctionnent que sur les entiers (le code suivant n'est syntaxiquement pas valide, il faut stocker le résultat de l'opération, le fichier assembleur a donc été tronqué).
 
 ```sos
-$( expr 1+2 );
-$( expr (1+2)*3 );
-$( expr 1+2*3 );
+$( expr (4-1)+2);
 exit
 ```
 
 ```asm
+li $t0, 4
+li $t1, 1
+sub $t2, $t0, $t1
+li $t0, 2
+add $t1, $t2, $t0
+sw $t1, i
+j _exit
 
+_exit:
+li $v0, 10
+syscall
+
+_exit2:
+li $v0, 17
+syscall
 ```
+
+---
 
 ### stockage de variables entières
 
@@ -349,8 +353,40 @@ exit
 ```
 
 ```asm
+.data
+error_msg0: .asciiz ""
+msg_space: .asciiz " "
+i: .word 0
 
+.text
+.globl main
+
+main:
+li $t0, 1
+sw $t0, i
+lw $t0, i
+li $t1, 1
+add $t2, $t0, $t1
+sw $t2, i
+j _exit
+
+_exit:
+li $v0, 10
+syscall
+
+_exit2:
+li $v0, 17
+syscall
+
+_error:
+li $v0, 4
+la $a0, error_msg0
+syscall
+li $v0, 10
+syscall
 ```
+
+---
 
 ### stockage de variables de type tableau d'entiers
 
@@ -363,7 +399,39 @@ exit
 ```
 
 ```asm
+.data
+error_msg0: .asciiz ""
+msg_space: .asciiz " "
+tab: .word 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+tab_size: .word 10
+error_msg1: .asciiz "Index out of array bounds (sos:2)\n"
 
+.text
+.globl main
+
+main:
+li $t0, 0
+li $t1, 1
+lw $t2, tab_size
+bge $t0, $t2, _error
+mul $t0, $t0, 4
+sw $t1, tab($t0)
+j _exit
+
+_exit:
+li $v0, 10
+syscall
+
+_exit2:
+li $v0, 17
+syscall
+
+_error:
+li $v0, 4
+la $a0, error_msg1
+syscall
+li $v0, 10
+syscall
 ```
 
 ---
@@ -378,7 +446,38 @@ exit
 ```
 
 ```asm
+.data
+error_msg0: .asciiz ""
+msg_space: .asciiz " "
+msg0: .asciiz "Hello, world!\n"
 
+.text
+.globl main
+
+main:
+li $v0, 9
+li $a0, 256
+syscall
+move $t0, $v0
+la $a0, msg0
+li $v0, 4
+syscall
+j _exit
+
+_exit:
+li $v0, 10
+syscall
+
+_exit2:
+li $v0, 17
+syscall
+
+_error:
+li $v0, 4
+la $a0, error_msg0
+syscall
+li $v0, 10
+syscall
 ```
 
 ### lecture en console avec `read`
@@ -398,6 +497,8 @@ echo "La valeur du tableau est : " ;
 echo ${tab[*]};
 exit
 ```
+
+---
 
 ### opérations logiques
 
@@ -424,7 +525,7 @@ test ( 1 ge 2 ) ; /* false */
 
 ### structures de contrôle
 
-Nous avons implémenté les structures de contrôle logiques suivantes : `if` et `if-else`. La structure de contrôle de flot `for` est aussi implémentée mais présente quelques imperfections. Grâce à la pile d'instructions, les structures de contrôles logiques reviennent à empiler successivement et à dépiler progressivement les noms des blocs sur la pile des blocs.
+Nous avons implémenté les structures de contrôle logiques suivantes : `if` et `if-else`. La structure de contrôle de flot `for` est aussi implémentée mais présente quelques imperfections. Grâce à la pile d'instructions, les structures de contrôles logiques reviennent à empiler successivement et à dépiler progressivement les noms des blocs sur la pile des blocs. La boucle `while` se programme facilement en combinant les structures de contrôle déjà présentes. La boucle `until` n'a pas été implémentée.
 
 ```sos
 echo "Enter a number : ";
@@ -439,10 +540,45 @@ exit 3
 ```
 
 ```asm
-
+.data                               | _instr0:
+error_msg0: .asciiz ""              | li $v0, 9
+msg_space: .asciiz " "              | li $a0, 256
+msg0: .asciiz "Enter a number : "   | syscall
+i: .word 0                          | move $t0, $v0
+msg1: .asciiz "\n"                  | la $a0, msg2
+msg2: .asciiz "true\n"              | li $v0, 4
+msg3: .asciiz "false\n"             | syscall
+                                    | j _instr2
+.text                               |
+.globl main                         | _instr1:
+                                    | li $v0, 9
+main:                               | li $a0, 256
+li $v0, 9                           | syscall
+li $a0, 256                         | move $t0, $v0
+syscall                             | la $a0, msg3
+move $t0, $v0                       | li $v0, 4
+la $a0, msg0                        | syscall
+li $v0, 4                           |
+syscall                             | _instr2:
+li $v0, 5                           | li $t0, 3
+syscall                             | move $a0, $t0
+sw $v0, i                           | j _exit2
+li $v0, 9                           |
+li $a0, 256                         | _exit:
+syscall                             | li $v0, 10
+move $t0, $v0                       | syscall
+la $a0, msg1                        |
+li $v0, 4                           | _exit2:
+syscall                             | li $v0, 17
+lw $t0, i                           | syscall
+li $t1, 12                          |
+sge $t2, $t0, $t1                   | _error:
+beq $t2, 1, _instr0                 | li $v0, 4
+j _instr1                           | la $a0, error_msg0
+                                    | syscall
+                                    | li $v0, 10
+                                    | syscall
 ```
-
----
 
 La syntaxe d'une boucle `for` est la suivante :
 
@@ -463,9 +599,172 @@ done;
 exit
 ```
 
+---
+
+Code assembleur de la deuxième boucle `for` :
+
+```asm
+.data
+error_msg0: .asciiz ""
+msg_space: .asciiz " "
+i: .word 0
+msg0: .asciiz "i = "
+msg1: .asciiz "\n"
+
+.text
+.globl main
+
+main:
+li $s0, 0
+li $v0, 9
+li $a0, 256
+syscall
+move $t0, $v0
+li $t1, 1
+sw $t1, 0($t0)
+li $t1, 2
+sw $t1, 4($t0)
+li $t1, 3
+sw $t1, 8($t0)
+li $t1, 4
+sw $t1, 12($t0)
+
+_for0:
+lw $t1, 0($t0)
+addi $t0, $t0, 4
+sw $t1, i
+addi $s0, $s0, 1
+li $v0, 9
+li $a0, 256
+syscall
+move $t1, $v0
+lw $t2, i
+sw $t2, 0($t1)
+la $a0, msg0
+li $v0, 4
+syscall
+la $a0, msg_space
+li $v0, 4
+syscall
+lw $a0, 0($t1)
+li $v0, 1
+syscall
+la $a0, msg_space
+li $v0, 4
+syscall
+la $a0, msg1
+li $v0, 4
+syscall
+ble $s0, 3, _for0
+
+_instr1:
+j _exit
+
+_exit:
+li $v0, 10
+syscall
+
+_exit2:
+li $v0, 17
+syscall
+
+_error:
+li $v0, 4
+la $a0, error_msg0
+syscall
+li $v0, 10
+syscall
+```
+
+---
+
+La syntaxe d'une boucle `while` est la suivante :
+
+```sos
+i = 0;
+while test ${i} le 12 do
+  echo ${i} "\n";
+  i= $(expr ${i} + 1)
+done;
+exit
+```
+
+```asm
+.data
+error_msg0: .asciiz ""
+msg_space: .asciiz " "
+i: .word 0
+msg0: .asciiz "\n"
+
+.text
+.globl main
+
+main:
+li $t0, 0
+sw $t0, i
+
+_instr0:
+lw $t0, i
+li $t1, 12
+sle $t2, $t0, $t1
+beq $t2, 1, _instr1
+j _instr2
+
+_instr1:
+li $v0, 9
+li $a0, 256
+syscall
+move $t0, $v0
+lw $t1, i
+sw $t1, 0($t0)
+lw $a0, 0($t0)
+li $v0, 1
+syscall
+la $a0, msg_space
+li $v0, 4
+syscall
+la $a0, msg0
+li $v0, 4
+syscall
+lw $t0, i
+li $t1, 1
+add $t3, $t0, $t1
+sw $t3, i
+j _instr0
+
+_instr2:
+j _exit
+
+_exit:
+li $v0, 10
+syscall
+
+_exit2:
+li $v0, 17
+syscall
+
+_error:
+li $v0, 4
+la $a0, error_msg0
+syscall
+li $v0, 10
+syscall
+```
+
+---
+
 ### ce qu'il reste à faire (et qu'on sait comment faire)
 
+- nombres négatifs
+- nombres à double précision
+- `concat` (les id sont que des entiers, on n'a pas encore fait l'assignation de tableaux)
+- until ... do
+- elif
+
 ### ce qu'il reste à faire (et qui est pour l'instant obscure)
+
+- typage (s'occuper des chaînes de caractères, stocker l'adresse de retour de sbrk dans la table des symboles)
+- case esac
 
 ---
 

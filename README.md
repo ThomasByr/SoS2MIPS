@@ -8,6 +8,7 @@
 
 [![C/C++ CI](https://github.com/ThomasByr/SoS2MIPS/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/ThomasByr/SoS2MIPS/actions/workflows/c-cpp.yml)
 [![CodeQL](https://github.com/ThomasByr/SoS2MIPS/actions/workflows/codeql.yml/badge.svg)](https://github.com/ThomasByr/SoS2MIPS/actions/workflows/codeql.yml)
+[![Publish](https://github.com/ThomasByr/SoS2MIPS/actions/workflows/publish.yml/badge.svg)](https://github.com/ThomasByr/SoS2MIPS/actions/workflows/publish.yml)
 
 [![GitHub version](https://badge.fury.io/gh/ThomasByr%2FSoS2MIPS.svg)](https://github.com/ThomasByr/SoS2MIPS)
 [![Author](https://img.shields.io/badge/author-@ThomasByr-blue)](https://github.com/ThomasByr)
@@ -159,6 +160,20 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 - more to assembly instructions stack for `j` and `jal`
 - wrote control flow structures and some more logical expressions
 - now we use `sbrk`
+- default `exit`, can be omitted
+
+**v1.5** looooooooooops
+
+- added `while` and `for` loops
+- rewrote `if` and `else`
+- some `echo` fixes
+
+**v1.6** functions
+
+- added `function` and `return` keywords
+- we can use loops inside functions now
+- some more `echo` fixes
+- runtime errors are now handled by `_error` block
 
 </details>
 
@@ -179,16 +194,16 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
       (that's a big fish, please send help) [v1.1]
 - [ ] improve error messages on `yylex` and `yyparse`
       (point the current line and make a suggestion)
-- [ ] standard console i/o
-      (`echo` and `read`) [`echo` v1.3 - pending]
+- [x] standard console i/o
+      (`echo` and `read`) [v1.4]
 - [ ] primitive types
       (`int`, `float`, `char` -> dynamic types)
 - [x] variable declaration
       (support scope : all variables are global by default [?](https://www.gnu.org/software/emacs/manual/html_node/elisp/Local-Variables.html), unless `local` is used) [v1.3]
-- [ ] function declaration
-      (no keywords, no arguments : `funname() { ... }`)
+- [x] function declaration
+      (no keywords, no arguments : `funname() { ... }`) [v1.6, no `local`]
 - [ ] first order keywords
-      (`if` `then` `for` `do` `done` `in` `while` `until` `case` `esac` `echo` `read` `return` `exit` `local` `elif` `else` `fi` `declare` `test` `expr`)
+      (`if` `then` `for` `do` `done` `in` `while` `until` `case` `esac` `echo` `read` `return` `exit` `local` `elif` `else` `fi` `declare` `test` `expr`) [v1.5 for some of them]
 - [x] comments
       (with `/**/` from `/*` until `*/`) [v1.2]
 - [ ] optimization level 1.0

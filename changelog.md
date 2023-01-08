@@ -55,3 +55,17 @@
 - more to assembly instructions stack for `j` and `jal`
 - wrote control flow structures and some more logical expressions
 - now we use `sbrk`
+- default `exit`, can be omitted
+
+**v1.5** looooooooooops
+
+- added `while` and `for` loops
+- rewrote `if` and `else`
+- some `echo` fixes
+  
+**v1.6** functions
+
+- added `function` and `return` keywords
+- we can use loops inside functions now
+- some more `echo` fixes
+- runtime errors are now handled by `_error` block
