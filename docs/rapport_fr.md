@@ -9,7 +9,7 @@ size: 9:16
 
 > Rapport en français.
 > Auteurs : Thomas D., Ethan H., Mathieu M. et Thomas B.
-> [GitHub Repo](https://github.com/ThomasByr/SoS2MIPS)
+> GitHub Repo : <https://github.com/ThomasByr/SoS2MIPS>
 
 1. [Introduction](#introduction)
 2. [Répartition du travail](#répartition-du-travail)
@@ -314,9 +314,11 @@ Un exemple d'utilisation est disponible ci-dessous.
 
 ## Remarques générales sur la grammaire
 
-La remarque la plus générale sur ce projet porte sur les types de données qu'il est possible de traiter avec notre implémentation du compilateur SOS. Nous n'avons traité que le cas de variables stockant des entiers ou des tableaux d'entiers. Les chaînes de caractères peuvent être affichées mais doivent être statiques (entièrement définies au moment de la compilation).
+La remarque la plus générale sur ce projet porte sur les types de données qu'il est possible de traiter avec notre implémentation du compilateur SOS. Nous n'avons traité que le cas de variables stockant des entiers ou des tableaux d'entiers. Les chaînes de caractères peuvent être affichées mais doivent être statiques (entièrement définies au moment de la compilation). Les variables à virgule flottante à simple et double précision ne sont pas traitées.
 
 Les opérateurs logiques ont aussi été revus. Étant donné qu'il est possible d'avoir des opérations arithmétiques à l'intérieur d'un bloc de test, les opérateurs commençant par `-` provoquent des erreurs dans notre implémentation. Nous avons donc enlevé ce préfixe superflu.
+
+Par ailleurs, il est actuellement impossible d'utiliser `$*` pour une boucle `for` à l'intérieur d'une fonction.
 
 ---
 
