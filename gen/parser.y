@@ -44,7 +44,7 @@
 
 %right '='
 %left '+' '-'
-%left '*' '/' '%'
+%left '*' '/' '%' '?'
 
 %left or
 %left and

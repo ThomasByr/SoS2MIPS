@@ -89,6 +89,7 @@ white [ \t\r]+
 \{               return '{';
 \}               return '}';
 \$               return '$';
+\?               return '?';
 
 <<EOF>>          return 0;
 
