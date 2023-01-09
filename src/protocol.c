@@ -214,12 +214,12 @@ void generate_asm(FILE *out) {
 
     case assn_arg_to_var_op:
 
-      astack_push_text(stack, asblock, "beqz $t9, _error");
-      astack_push_data(
-          stack,
-          "error_msg%d: .asciiz \"$i used outside of a function (sos:%d)\\n\"",
-          error_count, quad->lineno);
-      error_count++;
+      // astack_push_text(stack, asblock, "beqz $t9, _error");
+      // astack_push_data(
+      //     stack,
+      //     "error_msg%d: .asciiz \"$i used outside of a function
+      //     (sos:%d)\\n\"", error_count, quad->lineno);
+      // error_count++;
 
       // get the argument from the stack
       quad->arg3->type = int_arg;
@@ -233,12 +233,12 @@ void generate_asm(FILE *out) {
 
     case assn_all_arg_to_var_op:
 
-      astack_push_text(stack, asblock, "beqz $t9, _error");
-      astack_push_data(
-          stack,
-          "error_msg%d: .asciiz \"$i used outside of a function (sos:%d)\\n\"",
-          error_count, quad->lineno);
-      error_count++;
+      // astack_push_text(stack, asblock, "beqz $t9, _error");
+      // astack_push_data(
+      //     stack,
+      //     "error_msg%d: .asciiz \"$i used outside of a function
+      //     (sos:%d)\\n\"", error_count, quad->lineno);
+      // error_count++;
 
       break;
 
@@ -1063,12 +1063,13 @@ void generate_asm(FILE *out) {
 
     case return_void_op:
 
-      astack_push_text(stack, asblock, "beqz $t9, _error");
-      astack_push_data(stack,
-                       "error_msg%d: .asciiz \"$i used outside of a function "
-                       "(sos:%d)\\n\"",
-                       error_count, quad->lineno);
-      error_count++;
+      // astack_push_text(stack, asblock, "beqz $t9, _error");
+      // astack_push_data(stack,
+      //                  "error_msg%d: .asciiz \"$i used outside of a function
+      //                  "
+      //                  "(sos:%d)\\n\"",
+      //                  error_count, quad->lineno);
+      // error_count++;
 
       // set $v1 to 0
       astack_push_text(stack, asblock, "li $v1, 0");
@@ -1077,12 +1078,13 @@ void generate_asm(FILE *out) {
 
     case return_int_op:
 
-      astack_push_text(stack, asblock, "beqz $t9, _error");
-      astack_push_data(stack,
-                       "error_msg%d: .asciiz \"$i used outside of a function "
-                       "(sos:%d)\\n\"",
-                       error_count, quad->lineno);
-      error_count++;
+      // astack_push_text(stack, asblock, "beqz $t9, _error");
+      // astack_push_data(stack,
+      //                  "error_msg%d: .asciiz \"$i used outside of a function
+      //                  "
+      //                  "(sos:%d)\\n\"",
+      //                  error_count, quad->lineno);
+      // error_count++;
 
       // set $v1 to the return value
       astack_push_text(stack, asblock, "move $v1, %s",
