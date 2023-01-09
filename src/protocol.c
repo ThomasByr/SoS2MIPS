@@ -125,6 +125,7 @@ void generate_asm(FILE *out) {
   int index_alloc_count = 0;
 
 #define asblock ((const char *)vec_last(blocks)) // current block
+#define sbrk_size 0x100                          // 256 bytes
 
   astack_push_data(stack, "error_msg0: .asciiz \"\"");
   astack_push_data(stack, "msg_space: .asciiz \" \"");
@@ -561,8 +562,8 @@ void generate_asm(FILE *out) {
       reg_ops = find_free_reg();
 
       // initialiaze ops array with sbrk of 256 bytes
-      astack_push_text(stack, asblock, "li $v0, 9");
-      astack_push_text(stack, asblock, "li $a0, 256");
+      astack_push_text(stack, asblock, "li $v0, %d", sc_sbrk);
+      astack_push_text(stack, asblock, "li $a0, %d", sbrk_size);
       astack_push_text(stack, asblock, "syscall");
       astack_push_text(stack, asblock, "move %s, $v0", reg_name(reg_ops));
 
@@ -776,8 +777,7 @@ void generate_asm(FILE *out) {
           // display
           if (j != vec_size(quad->subarray) - 1) {
 
-            astack_push_text(stack, asblock, "la %s, msg_space",
-                             reg_name(reg_a0));
+            astack_push_text(stack, asblock, "la $a0, msg_space");
             astack_push_text(stack, asblock, "li $v0, %d", sc_print_string);
             astack_push_text(stack, asblock, "syscall");
           }
@@ -785,8 +785,7 @@ void generate_asm(FILE *out) {
         } else if (quadarg1 != ALL_ARG && quadarg1 != ALL && quadarg2 != ALL &&
                    quadarg1->type == str_arg) {
 
-          astack_push_text(stack, asblock, "la %s, msg%d", reg_name(reg_a0),
-                           msg_print);
+          astack_push_text(stack, asblock, "la $a0, msg%d", msg_print);
           astack_push_text(stack, asblock, "li $v0, %d", sc_print_string);
           astack_push_text(stack, asblock, "syscall");
           msg_print++;
@@ -794,8 +793,7 @@ void generate_asm(FILE *out) {
           // display
           if (j != vec_size(quad->subarray) - 1) {
 
-            astack_push_text(stack, asblock, "la %s, msg_space",
-                             reg_name(reg_a0));
+            astack_push_text(stack, asblock, "la $a0, msg_space");
             astack_push_text(stack, asblock, "li $v0, %d", sc_print_string);
             astack_push_text(stack, asblock, "syscall");
           }
@@ -817,8 +815,7 @@ void generate_asm(FILE *out) {
 
             if (ops_print != ops_count - 1) {
 
-              astack_push_text(stack, asblock, "la %s, msg_space",
-                               reg_name(reg_a0));
+              astack_push_text(stack, asblock, "la $a0, msg_space");
               astack_push_text(stack, asblock, "li $v0, %d", sc_print_string);
               astack_push_text(stack, asblock, "syscall");
             }
@@ -850,8 +847,7 @@ void generate_asm(FILE *out) {
           astack_push_text(stack, asblock, "lw $a0, 0($sp)", reg_name(reg3));
           astack_push_text(stack, asblock, "li $v0, %d", sc_print_int);
           astack_push_text(stack, asblock, "syscall");
-          astack_push_text(stack, asblock, "la %s, msg_space",
-                           reg_name(reg_a0));
+          astack_push_text(stack, asblock, "la $a0, msg_space");
           astack_push_text(stack, asblock, "li $v0, %d", sc_print_string);
           astack_push_text(stack, asblock, "syscall");
 
@@ -1152,7 +1148,7 @@ void generate_asm(FILE *out) {
 
     case exit_int_op:
 
-      astack_push_text(stack, asblock, "move %s, %s", reg_name(reg_a0),
+      astack_push_text(stack, asblock, "move $a0, %s",
                        reg_name(quad->arg1->reg_arg));
       astack_push_text(stack, asblock, "j _exit2");
 
@@ -1167,14 +1163,14 @@ void generate_asm(FILE *out) {
   buf = malloc(BUFSIZ);
   snprintf_s(buf, BUFSIZ, "_exit");
   vec_push(blocks, buf);
-  astack_push_text(stack, asblock, "li %s, %d", reg_name(reg_v0), sc_exit);
+  astack_push_text(stack, asblock, "li $v0, %d", sc_exit);
   astack_push_text(stack, asblock, "syscall");
 
   // declare exit2
   buf = malloc(BUFSIZ);
   snprintf_s(buf, BUFSIZ, "_exit2");
   vec_push(blocks, buf);
-  astack_push_text(stack, asblock, "li %s, %d", reg_name(reg_v0), sc_exit2);
+  astack_push_text(stack, asblock, "li $v0, %d", sc_exit2);
   astack_push_text(stack, asblock, "syscall");
 
   // error section
