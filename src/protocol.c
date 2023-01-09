@@ -1159,6 +1159,8 @@ void generate_asm(FILE *out) {
     }
   }
 
+  astack_push_text(stack, asblock, "\n# End of program");
+
   // default exit
   buf = malloc(BUFSIZ);
   snprintf_s(buf, BUFSIZ, "_exit");
