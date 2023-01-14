@@ -223,13 +223,6 @@ void generate_asm(FILE *out) {
 
     case assn_arg_to_var_op:
 
-      // astack_push_text(stack, asblock, "beqz $t9, _error");
-      // astack_push_data(
-      //     stack,
-      //     "error_msg%d: .asciiz \"$i used outside of a function
-      //     (sos:%d)\\n\"", error_count, quad->lineno);
-      // error_count++;
-
       // get the argument from the stack
       quad->arg3->type = int_arg;
       quad->arg3->reg_arg = find_free_reg();
@@ -241,13 +234,6 @@ void generate_asm(FILE *out) {
       break;
 
     case assn_all_arg_to_var_op:
-
-      // astack_push_text(stack, asblock, "beqz $t9, _error");
-      // astack_push_data(
-      //     stack,
-      //     "error_msg%d: .asciiz \"$i used outside of a function
-      //     (sos:%d)\\n\"", error_count, quad->lineno);
-      // error_count++;
 
       break;
 
@@ -284,6 +270,7 @@ void generate_asm(FILE *out) {
             quad->arg2->value.id_value->var_type == inttype))) {
 
         quad->arg3->reg_arg = find_free_reg();
+        quad->arg3->type = int_arg;
         astack_push_text(
             stack, asblock, "add %s, %s, %s", reg_name(quad->arg3->reg_arg),
             reg_name(quad->arg1->reg_arg), reg_name(quad->arg2->reg_arg));
@@ -293,8 +280,13 @@ void generate_asm(FILE *out) {
       }
 
       // plus_minus integer rule
-      else if (quad->arg1->type == int_arg && quad->arg2 == NULL) {
+      else if ((quad->arg1->type == int_arg ||
+                (quad->arg1->type == id_arg &&
+                 quad->arg1->value.id_value->var_type == inttype)) &&
+               quad->arg2 == NULL) {
+
         quad->arg3->reg_arg = find_free_reg();
+        quad->arg3->type = int_arg;
         astack_push_text(stack, asblock, "li %s, %d",
                          reg_name(quad->arg3->reg_arg),
                          quad->arg1->value.int_value);
@@ -325,6 +317,7 @@ void generate_asm(FILE *out) {
             quad->arg2->value.id_value->var_type == inttype))) {
 
         quad->arg3->reg_arg = find_free_reg();
+        quad->arg3->type = int_arg;
         astack_push_text(
             stack, asblock, "sub %s, %s, %s", reg_name(quad->arg3->reg_arg),
             reg_name(quad->arg1->reg_arg), reg_name(quad->arg2->reg_arg));
@@ -335,7 +328,9 @@ void generate_asm(FILE *out) {
 
       // plus_minus integer rule
       else if (quad->arg1->type == int_arg && quad->arg2 == NULL) {
+
         quad->arg3->reg_arg = find_free_reg();
+        quad->arg3->type = int_arg;
         astack_push_text(stack, asblock, "li %s, %d",
                          reg_name(quad->arg3->reg_arg),
                          quad->arg1->value.int_value);
@@ -366,6 +361,7 @@ void generate_asm(FILE *out) {
             quad->arg2->value.id_value->var_type == inttype))) {
 
         quad->arg3->reg_arg = find_free_reg();
+        quad->arg3->type = int_arg;
         astack_push_text(
             stack, asblock, "mul %s, %s, %s", reg_name(quad->arg3->reg_arg),
             reg_name(quad->arg1->reg_arg), reg_name(quad->arg2->reg_arg));
@@ -387,6 +383,7 @@ void generate_asm(FILE *out) {
             quad->arg2->value.id_value->var_type == inttype))) {
 
         quad->arg3->reg_arg = find_free_reg();
+        quad->arg3->type = int_arg;
         astack_push_text(
             stack, asblock, "div %s, %s, %s", reg_name(quad->arg3->reg_arg),
             reg_name(quad->arg1->reg_arg), reg_name(quad->arg2->reg_arg));
@@ -412,6 +409,7 @@ void generate_asm(FILE *out) {
                          reg_name(quad->arg2->reg_arg));
 
         quad->arg3->reg_arg = find_free_reg();
+        quad->arg3->type = int_arg;
         astack_push_text(stack, asblock, "mfhi %s",
                          reg_name(quad->arg3->reg_arg));
 
@@ -1102,6 +1100,7 @@ void generate_asm(FILE *out) {
 
       // assign value
       if (quad->arg2->type == int_arg) {
+
         astack_push_text(stack, asblock, "sw %s, %s",
                          reg_name(quad->arg2->reg_arg), node->name);
         free_reg(quad->arg2->reg_arg);

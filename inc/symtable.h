@@ -11,6 +11,7 @@ enum vartype {
   no_type,
   inttype,
   doubletype,
+  strtype,
   arrayinttype,
   voidtype,
 };
