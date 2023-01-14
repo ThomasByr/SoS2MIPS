@@ -507,6 +507,52 @@ void generate_asm(FILE *out) {
 
       break;
 
+    case null_op:
+
+      if (quad->arg1->type != str_arg) {
+        panic("null_op: arg1 is not a string");
+      }
+
+      reg1 = find_free_reg();
+      reg2 = find_free_reg();
+      quad->arg3->reg_arg = find_free_reg();
+
+      // Check if the first byte of the string is null
+      astack_push_text(stack, asblock, "li %s, 0", reg_name(reg1));
+      astack_push_text(stack, asblock, "lb %s, 0(%s)", reg_name(reg2),
+                       reg_name(quad->arg1->reg_arg));
+      astack_push_text(stack, asblock, "seq %s, %s, %s",
+                       reg_name(quad->arg3->reg_arg), reg_name(reg1),
+                       reg_name(reg2));
+
+      free_reg(reg1);
+      free_reg(reg2);
+
+      break;
+
+    case nnull_op:
+
+      if (quad->arg1->type != str_arg) {
+        panic("nnull_op: arg1 is not a string");
+      }
+
+      reg1 = find_free_reg();
+      reg2 = find_free_reg();
+      quad->arg3->reg_arg = find_free_reg();
+
+      // Check if the first byte of the string is null
+      astack_push_text(stack, asblock, "li %s, 0", reg_name(reg1));
+      astack_push_text(stack, asblock, "lb %s, 0(%s)", reg_name(reg2),
+                       reg_name(quad->arg1->reg_arg));
+      astack_push_text(stack, asblock, "sne %s, %s, %s",
+                       reg_name(quad->arg3->reg_arg), reg_name(reg1),
+                       reg_name(reg2));
+
+      free_reg(reg1);
+      free_reg(reg2);
+
+      break;
+
     case test_op:
 
       // block for if instruction
