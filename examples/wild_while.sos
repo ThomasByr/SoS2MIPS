@@ -1,0 +1,11 @@
+i = 0;
+k = 0;
+while test ${i} le 3 do
+    while test ${k} le 3 do
+        echo "i=" ${i} "\n";
+        echo "k=" ${k} "\n";
+        k= $(expr ${k} + 1)
+    done;
+    i= $(expr ${i} + 1)
+done;
+exit

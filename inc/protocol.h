@@ -6,6 +6,7 @@
 #define ARG (void *)0x42
 #define ALL (void *)0x43
 #define ALL_ARG (void *)0x44
+#define ELSE_OP (void *)0x45
 
 enum sys_call {
   sc_print_int = 1,    // $a0 = integer
@@ -73,6 +74,12 @@ enum reg {
   reg_sp = 29, // stack pointer
   reg_fp = 30, // frame pointer
   reg_ra = 31, // return address
+};
+
+enum loop_type {
+  none,
+  loop_while,
+  loop_if,
 };
 
 struct ops_s {

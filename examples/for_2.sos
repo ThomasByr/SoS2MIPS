@@ -1,6 +1,8 @@
 declare tab[10];
 for i in ${tab[*]}
 do 
-    echo "top\n"
+    if test 1 eq 1 then
+            echo "top\n"
+    fi
 done;
 exit

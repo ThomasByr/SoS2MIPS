@@ -1,0 +1,21 @@
+
+fact () { 
+    p = 1 ;
+    i = 2 ;
+    while test ${i} le $1
+    do
+        p = $(expr ${p} * ${i}) ;
+        i = $(expr ${i} + 1)
+    done ;
+    echo ${p}
+} ;
+
+choose () {
+    fn = $(fact $2) ;
+    fk = $(fact $1) ;
+    fnk = $(fact $(expr $2 - $1)) ;
+    echo $(expr ${fn} / ${fk} / ${fnk})
+} ;
+
+echo $(choose 3 5) "=10"
+

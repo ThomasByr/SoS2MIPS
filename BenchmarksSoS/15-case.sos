@@ -1,0 +1,9 @@
+
+s = "def" ;
+case ${s} in
+    "abc") echo "no abc" ;;
+    "def") echo "yes" ;;
+    "ghij") echo "no ghij" ;;
+    *) echo "no *" ;;
+esac
+

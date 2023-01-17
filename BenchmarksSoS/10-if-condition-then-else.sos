@@ -1,0 +1,7 @@
+id = "abc";
+if test z ${id}
+then
+    echo "yes"
+else
+    echo "no"
+fi

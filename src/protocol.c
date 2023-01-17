@@ -63,21 +63,6 @@ enum reg find_free_reg(void) {
   panic("no free registers");
 }
 
-/**
- * @brief function to free a temporary register
- *
- * @param reg
- */
-// void free_reg(enum reg reg) {
-//   if (reg < reg_t0 || reg > reg_t7) {
-//     panic("trying to free a non-temporary register");
-//   }
-//   if (!reg_use[reg]) {
-//     panic("trying to free an already free register");
-//   }
-//   reg_use[reg] = false;
-// }
-
 #define free_reg(reg)                                                       \
   do {                                                                      \
     if (reg < reg_t0 || reg > reg_t7) {                                     \
@@ -113,9 +98,11 @@ void generate_asm(FILE *out) {
   struct quadarg *quadarg1, *quadarg2;
   struct symnode *node;
 
-  char *buf, *jmp_name_if, *jmp_name_else, *jmp_name_next, *jmp_name_previous;
+  char *buf, *jmp_name_if, *jmp_name_else, *jmp_name_next;
   int msg_count = 0, msg_print = 0, jmp_count = 0, ops_count = 0, ops_print = 0,
       ops_size = 0, error_count = 1, fct_count = 0;
+
+  enum loop_type current_loop = none;
 
   enum reg reg1, reg2, reg3, reg4,
       reg_ops = reg_t8, // note : reg_t8 is used for ops in the case if all
@@ -600,6 +587,8 @@ void generate_asm(FILE *out) {
                        reg_name(quad->arg3->reg_arg), reg_name(reg1),
                        reg_name(reg2));
 
+      msg_print++;
+
       free_reg(reg1);
       free_reg(reg2);
 
@@ -625,38 +614,56 @@ void generate_asm(FILE *out) {
                        reg_name(quad->arg3->reg_arg), reg_name(reg1),
                        reg_name(reg2));
 
+      msg_print++;
+
       free_reg(reg1);
       free_reg(reg2);
 
       break;
 
+    case if_init_op:
+
+      current_loop = loop_if;
+
+      break;
+
+    case while_jmp_op:
+
+      break;
+
     case test_op:
 
-      // block for if instruction
-      jmp_name_if = malloc(100);
-      snprintf_s(jmp_name_if, 100, "_instr%d", jmp_count);
-      jmp_count++;
+      if (current_loop == loop_if) {
 
-      // test if the result of test_instr is true
-      astack_push_text(stack, asblock, "beq %s, 1, %s",
-                       reg_name(quad->arg1->reg_arg), jmp_name_if);
-      quad->arg3->reg_arg = quad->arg1->reg_arg;
+        current_loop = none;
 
-      // block for else instruction
-      jmp_name_else = malloc(100);
-      snprintf_s(jmp_name_else, 100, "_instr%d", jmp_count);
-      jmp_count++;
+        // create if, else and next block names
+        jmp_name_if = malloc(BUFSIZ);
+        snprintf_s(jmp_name_if, BUFSIZ, "_instr%d", jmp_count);
+        jmp_count++;
 
-      astack_push_text(stack, asblock, "j %s", jmp_name_else);
+        jmp_name_else = malloc(BUFSIZ);
+        snprintf_s(jmp_name_else, BUFSIZ, "_instr%d", jmp_count);
+        jmp_count++;
 
-      // block for the rest of the program
-      jmp_name_next = malloc(100);
-      snprintf_s(jmp_name_next, 100, "_instr%d", jmp_count);
-      jmp_count++;
+        jmp_name_next = malloc(BUFSIZ);
+        snprintf_s(jmp_name_next, BUFSIZ, "_instr%d", jmp_count);
+        jmp_count++;
 
-      vec_push(blocks, jmp_name_next);
-      vec_push(blocks, jmp_name_else);
-      vec_push(blocks, jmp_name_if);
+        // test if condition is true
+        astack_push_text(stack, asblock, "beq %s, 1, %s",
+                         reg_name(quad->arg1->reg_arg), jmp_name_if);
+        astack_push_text(stack, asblock, "j %s", jmp_name_else);
+
+        // push names to blocks vector
+        vec_push(blocks, jmp_name_next);
+        vec_push(blocks, jmp_name_else);
+        vec_push(blocks, jmp_name_if);
+      }
+
+      break;
+
+    case if_op:
 
       break;
 
@@ -666,15 +673,28 @@ void generate_asm(FILE *out) {
 
     case else_op:
 
+      // write jmp to next block
       jmp_name_next = vec_get(blocks, vec_size(blocks) - 3);
       astack_push_text(stack, asblock, "j %s", jmp_name_next);
+
       vec_pop(blocks);
+
       break;
 
     case if_instr_op:
 
-      free_reg(quad->arg1->reg_arg);
-      vec_pop(blocks);
+      // pop if block name
+      // vec_pop(blocks);
+
+      // if there is a else block, pop it
+      if (quad->arg2 == ELSE_OP) vec_pop(blocks);
+
+      // write next block name
+      // vec_pop(blocks);
+
+      break;
+
+    case while_instr_op:
 
       break;
 
@@ -695,9 +715,9 @@ void generate_asm(FILE *out) {
     case ops_add_op:
 
       // add the value to the ops array
-      if (quad->arg1 != ALL_ARG && quad->arg1->type != str_arg &&
-          (quad->arg1->type == id_arg &&
-           quad->arg1->value.id_value->var_type == inttype)) {
+      if (quad->arg1 != ALL_ARG && quad->arg1 != ALL &&
+          (quad->arg1->type == int_arg || quad->arg1->type == id_arg ||
+           quad->arg1->type == int_array_arg)) {
         astack_push_text(stack, asblock, "sw %s, %d(%s)",
                          reg_name(quad->arg1->reg_arg), ops_count * 4,
                          reg_name(reg_ops));
@@ -842,38 +862,6 @@ void generate_asm(FILE *out) {
 
       break;
 
-    case while_init_op:
-
-      /// put the instruction name to define the while condition section
-      jmp_name_next = malloc(BUFSIZ);
-      snprintf_s(jmp_name_next, BUFSIZ, "_instr%d", jmp_count);
-      jmp_count++;
-
-      vec_push(blocks, jmp_name_next);
-
-      break;
-
-    case while_instr_op:
-
-      // go back to the previous while condition
-      jmp_name_next = vec_last(blocks);
-      vec_pop(blocks);
-      jmp_name_else = vec_last(blocks);
-      vec_pop(blocks);
-      jmp_name_if = vec_last(blocks);
-      vec_pop(blocks);
-      jmp_name_previous = vec_last(blocks);
-
-      vec_push(blocks, jmp_name_if);
-      vec_push(blocks, jmp_name_else);
-      vec_push(blocks, jmp_name_next);
-
-      astack_push_text(stack, asblock, "j %s", jmp_name_previous);
-
-      vec_pop(blocks);
-
-      break;
-
     case echo_instr_op:
 
       ops_print = 0;
@@ -891,10 +879,9 @@ void generate_asm(FILE *out) {
 
         // int value
         if (quadarg1 != ALL_ARG && quadarg1 != ALL && quadarg2 != ALL &&
-            (quadarg1->type == int_arg ||
+            (quadarg1->type == int_arg || quadarg1->type == int_array_arg ||
              (quadarg1->type == id_arg &&
-              quadarg1->value.id_value->var_type == inttype) ||
-             quadarg1->type == int_array_arg)) {
+              quadarg1->value.id_value->var_type == inttype))) {
 
           // print the value store in sbrk
           astack_push_text(stack, asblock, "lw $a0, %d(%s)", (ops_print)*4,
@@ -1360,8 +1347,6 @@ void generate_asm(FILE *out) {
       break;
     }
   }
-
-  astack_push_text(stack, asblock, "\n# End of program");
 
   // default exit
   buf = malloc(BUFSIZ);

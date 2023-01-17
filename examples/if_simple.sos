@@ -1,0 +1,11 @@
+if test z "abc" then
+	if test 1 eq 1 then
+		echo "yes"
+	fi;
+	echo "yes"
+else	
+	if test 1 eq 2 then
+	echo "no"
+	fi
+fi;
+exit

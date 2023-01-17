@@ -39,7 +39,10 @@ enum quadop {
   test_op,
   test_while_op,
   // condition operations
+  if_init_op,
+  while_jmp_op,
   testing_op,
+  if_op,
   elif_op,
   else_op,
   else_end_op,

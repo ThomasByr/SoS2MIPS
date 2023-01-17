@@ -1,0 +1,12 @@
+
+x = 17 ;
+while test ${x} -ne 1
+do
+    r = $(expr ${x} % 2) ;
+    case ${r} in
+        0) x = $(expr ${x} / 2)  ;;
+        1) x = $(expr ${x} * 3 + 1) ;;
+    esac
+done ;
+exit 0
+

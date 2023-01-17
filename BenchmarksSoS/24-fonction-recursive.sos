@@ -1,0 +1,19 @@
+
+choose () {
+    x = 0 ;
+    y = 0 ;
+    if test $2 lt 0 o $1 lt 0 o !$1 le $2
+    then
+        echo 0
+    elif test $2 eq 0 a $1 eq 0
+    then
+        echo 1
+    else
+        x = $(choose $(expr $1 - 1) $(expr $2 - 1)) ;
+        y = $(choose $1 $(expr $2 - 1)) ;
+        echo $(expr ${x} + ${y})
+    fi
+} ;
+
+echo $(choose 3 5) "=10"
+

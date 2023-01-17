@@ -1,0 +1,5 @@
+
+greeting = 'Hello' ;
+msg = ${greeting} " " 'world!' ;
+echo ${msg}
+

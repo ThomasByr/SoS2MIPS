@@ -1,0 +1,13 @@
+
+fact () { 
+    p = 1 ;
+    i = 2 ;
+    while test ${i} le $1
+    do
+        p = $(expr ${p} * ${i}) ;
+        i = $(expr ${i} + 1)
+    done ;
+    echo ${p}; 
+    return 1
+} ;
+echo $(fact 5) "=120"
