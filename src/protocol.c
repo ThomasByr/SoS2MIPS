@@ -111,6 +111,8 @@ void generate_asm(FILE *out) {
 
   int index_alloc_count = 0;
 
+  vec_t loop = vec_new();
+
 #define asblock ((const char *)vec_last(blocks)) // current block
 #define sbrk_size 0x100                          // 256 bytes
 
@@ -629,6 +631,16 @@ void generate_asm(FILE *out) {
 
     case while_jmp_op:
 
+      current_loop = loop_while;
+
+      // write while block
+      jmp_name_if = malloc(BUFSIZ);
+      snprintf_s(jmp_name_if, BUFSIZ, "_instr%d", jmp_count);
+      jmp_count++;
+      astack_push_text(stack, asblock, "\n%s:", jmp_name_if);
+
+      vec_push(loop, jmp_name_if);
+
       break;
 
     case test_op:
@@ -656,45 +668,81 @@ void generate_asm(FILE *out) {
         astack_push_text(stack, asblock, "j %s", jmp_name_else);
 
         // push names to blocks vector
-        vec_push(blocks, jmp_name_next);
-        vec_push(blocks, jmp_name_else);
-        vec_push(blocks, jmp_name_if);
+        vec_push(loop, jmp_name_next);
+        vec_push(loop, jmp_name_else);
+        vec_push(loop, jmp_name_if);
+
+      } else if (current_loop == loop_while) {
+
+        current_loop = none;
+
+        jmp_name_next = malloc(BUFSIZ);
+        snprintf_s(jmp_name_next, BUFSIZ, "_instr%d", jmp_count);
+        jmp_count++;
+
+        // test if condition is true
+        astack_push_text(stack, asblock, "beq %s, 0, %s",
+                         reg_name(quad->arg1->reg_arg), jmp_name_next);
+
+        vec_push(loop, jmp_name_next);
       }
 
       break;
 
     case if_op:
 
+      // write if block name
+      jmp_name_if = vec_last(loop);
+      astack_push_text(stack, asblock, "\n%s:", jmp_name_if);
+      vec_pop(loop);
+
       break;
 
     case elif_op:
+
+      // write if block name
+      jmp_name_if = vec_last(loop);
+      astack_push_text(stack, asblock, "\n%s:", jmp_name_if);
+      vec_pop(loop);
 
       break;
 
     case else_op:
 
-      // write jmp to next block
-      jmp_name_next = vec_get(blocks, vec_size(blocks) - 3);
+      jmp_name_else = vec_last(loop);
+      vec_pop(loop);
+
+      // write jump to next block at the end of if block
+      jmp_name_next = vec_last(loop);
       astack_push_text(stack, asblock, "j %s", jmp_name_next);
 
-      vec_pop(blocks);
+      // write else block name
+      astack_push_text(stack, asblock, "\n%s:", jmp_name_else);
 
       break;
 
     case if_instr_op:
 
-      // pop if block name
-      // vec_pop(blocks);
-
-      // if there is a else block, pop it
-      if (quad->arg2 == ELSE_OP) vec_pop(blocks);
-
       // write next block name
-      // vec_pop(blocks);
+      jmp_name_next = vec_last(loop);
+      astack_push_text(stack, asblock, "\n%s:", jmp_name_next);
+      vec_pop(loop);
+      vec_pop(loop);
 
       break;
 
     case while_instr_op:
+
+      // write next block name
+      jmp_name_next = vec_last(loop);
+      vec_pop(loop);
+
+      // jmp to while block
+      jmp_name_if = vec_last(loop);
+      vec_pop(loop);
+
+      astack_push_text(stack, asblock, "j %s", jmp_name_if);
+      astack_push_text(stack, asblock, "\n%s:", jmp_name_next);
 
       break;
 
@@ -1250,28 +1298,12 @@ void generate_asm(FILE *out) {
 
     case return_void_op:
 
-      // astack_push_text(stack, asblock, "beqz $t9, _error");
-      // astack_push_data(stack,
-      //                  "error_msg%d: .asciiz \"$i used outside of a function
-      //                  "
-      //                  "(sos:%d)\\n\"",
-      //                  error_count, quad->lineno);
-      // error_count++;
-
       // set $v1 to 0
       astack_push_text(stack, asblock, "li $v1, 0");
 
       break;
 
     case return_int_op:
-
-      // astack_push_text(stack, asblock, "beqz $t9, _error");
-      // astack_push_data(stack,
-      //                  "error_msg%d: .asciiz \"$i used outside of a function
-      //                  "
-      //                  "(sos:%d)\\n\"",
-      //                  error_count, quad->lineno);
-      // error_count++;
 
       // set $v1 to the return value
       astack_push_text(stack, asblock, "move $v1, %s",
