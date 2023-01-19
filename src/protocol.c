@@ -107,7 +107,7 @@ void generate_asm(FILE *out) {
   enum loop_type current_loop = none;
 
   enum reg reg1, reg2, reg3, reg4,
-      reg_ops = reg_t8, // note : reg_t8 is used for ops in the case if all
+      reg_ops = reg_a0, // note : reg_a0 is used for ops in the case if all
                         // other reg are used
       reg_index_for = reg_s0; // note : reg_s"i" is used for index in for loop
 
@@ -232,11 +232,11 @@ void generate_asm(FILE *out) {
 
     case assn_status_to_var_op:
 
-      // get the return from a function store in $v1
+      // get the return from a function store in $t9
       quad->arg3->type = int_arg;
       quad->arg3->reg_arg = find_free_reg();
 
-      astack_push_text(stack, asblock, "move %s, $v1",
+      astack_push_text(stack, asblock, "move %s, $t8",
                        reg_name(quad->arg3->reg_arg));
 
       break;
@@ -259,7 +259,7 @@ void generate_asm(FILE *out) {
            (quad->arg1->type == id_arg &&
             quad->arg1->value.id_value->var_type == inttype)) &&
           (quad->arg2->type == int_arg ||
-           (quad->arg2->type == int_arg &&
+           (quad->arg2->type == id_arg &&
             quad->arg2->value.id_value->var_type == inttype))) {
 
         quad->arg3->reg_arg = find_free_reg();
@@ -306,7 +306,7 @@ void generate_asm(FILE *out) {
            (quad->arg1->type == id_arg &&
             quad->arg1->value.id_value->var_type == inttype)) &&
           (quad->arg2->type == int_arg ||
-           (quad->arg2->type == int_arg &&
+           (quad->arg2->type == id_arg &&
             quad->arg2->value.id_value->var_type == inttype))) {
 
         quad->arg3->reg_arg = find_free_reg();
@@ -350,7 +350,7 @@ void generate_asm(FILE *out) {
            (quad->arg1->type == id_arg &&
             quad->arg1->value.id_value->var_type == inttype)) &&
           (quad->arg2->type == int_arg ||
-           (quad->arg2->type == int_arg &&
+           (quad->arg2->type == id_arg &&
             quad->arg2->value.id_value->var_type == inttype))) {
 
         quad->arg3->reg_arg = find_free_reg();
@@ -372,7 +372,7 @@ void generate_asm(FILE *out) {
            (quad->arg1->type == id_arg &&
             quad->arg1->value.id_value->var_type == inttype)) &&
           (quad->arg2->type == int_arg ||
-           (quad->arg2->type == int_arg &&
+           (quad->arg2->type == id_arg &&
             quad->arg2->value.id_value->var_type == inttype))) {
 
         quad->arg3->reg_arg = find_free_reg();
@@ -394,7 +394,7 @@ void generate_asm(FILE *out) {
            (quad->arg1->type == id_arg &&
             quad->arg1->value.id_value->var_type == inttype)) &&
           (quad->arg2->type == int_arg ||
-           (quad->arg2->type == int_arg &&
+           (quad->arg2->type == id_arg &&
             quad->arg2->value.id_value->var_type == inttype))) {
 
         astack_push_text(stack, asblock, "div %s, %s",
@@ -418,7 +418,7 @@ void generate_asm(FILE *out) {
            (quad->arg1->type == id_arg &&
             quad->arg1->value.id_value->var_type == inttype)) &&
           (quad->arg2->type == int_arg ||
-           (quad->arg2->type == int_arg &&
+           (quad->arg2->type == id_arg &&
             quad->arg2->value.id_value->var_type == inttype))) {
 
         quad->arg3->reg_arg = find_free_reg();
@@ -439,7 +439,7 @@ void generate_asm(FILE *out) {
            (quad->arg1->type == id_arg &&
             quad->arg1->value.id_value->var_type == inttype)) &&
           (quad->arg2->type == int_arg ||
-           (quad->arg2->type == int_arg &&
+           (quad->arg2->type == id_arg &&
             quad->arg2->value.id_value->var_type == inttype))) {
 
         quad->arg3->reg_arg = find_free_reg();
@@ -460,7 +460,7 @@ void generate_asm(FILE *out) {
            (quad->arg1->type == id_arg &&
             quad->arg1->value.id_value->var_type == inttype)) &&
           (quad->arg2->type == int_arg ||
-           (quad->arg2->type == int_arg &&
+           (quad->arg2->type == id_arg &&
             quad->arg2->value.id_value->var_type == inttype))) {
 
         quad->arg3->reg_arg = find_free_reg();
@@ -481,7 +481,7 @@ void generate_asm(FILE *out) {
            (quad->arg1->type == id_arg &&
             quad->arg1->value.id_value->var_type == inttype)) &&
           (quad->arg2->type == int_arg ||
-           (quad->arg2->type == int_arg &&
+           (quad->arg2->type == id_arg &&
             quad->arg2->value.id_value->var_type == inttype))) {
 
         quad->arg3->reg_arg = find_free_reg();
@@ -502,7 +502,7 @@ void generate_asm(FILE *out) {
            (quad->arg1->type == id_arg &&
             quad->arg1->value.id_value->var_type == inttype)) &&
           (quad->arg2->type == int_arg ||
-           (quad->arg2->type == int_arg &&
+           (quad->arg2->type == id_arg &&
             quad->arg2->value.id_value->var_type == inttype))) {
 
         quad->arg3->reg_arg = find_free_reg();
@@ -523,7 +523,7 @@ void generate_asm(FILE *out) {
            (quad->arg1->type == id_arg &&
             quad->arg1->value.id_value->var_type == inttype)) &&
           (quad->arg2->type == int_arg ||
-           (quad->arg2->type == int_arg &&
+           (quad->arg2->type == id_arg &&
             quad->arg2->value.id_value->var_type == inttype))) {
 
         quad->arg3->reg_arg = find_free_reg();
@@ -991,6 +991,10 @@ void generate_asm(FILE *out) {
              (quadarg1->type == id_arg &&
               quadarg1->value.id_value->var_type == inttype))) {
 
+          // save the return value for function
+          astack_push_text(stack, asblock, "lw $t9, %d(%s)", (ops_print)*4,
+                           reg_name(reg_ops));
+
           // print the value store in sbrk
           astack_push_text(stack, asblock, "lw $a0, %d(%s)", (ops_print)*4,
                            reg_name(reg_ops));
@@ -1005,6 +1009,7 @@ void generate_asm(FILE *out) {
             astack_push_text(stack, asblock, "li $v0, %d", sc_print_string);
             astack_push_text(stack, asblock, "syscall");
           }
+
           // string value
         } else if (quadarg1 != ALL_ARG && quadarg1 != ALL && quadarg2 != ALL &&
                    (quadarg1->type == str_arg ||
@@ -1114,6 +1119,10 @@ void generate_asm(FILE *out) {
           free_reg(reg3);
         }
       }
+
+      // to have this, we need to have the vector save with str, int, id etc
+      // save the return value
+      // astack_push_text(stack, asblock, "move $t9, %s", reg_name(reg_ops));
 
       free_reg(reg_ops);
 
@@ -1358,15 +1367,21 @@ void generate_asm(FILE *out) {
 
     case return_void_op:
 
-      // set $v1 to 0
-      astack_push_text(stack, asblock, "li $v1, 0");
+      // save the return value in $t9 into $v1
+      astack_push_text(stack, asblock, "move $v1, $t9");
+
+      // set the status to 0 in $t8
+      astack_push_text(stack, asblock, "li $t8, 0");
 
       break;
 
     case return_int_op:
 
-      // set $v1 to the return value
-      astack_push_text(stack, asblock, "move $v1, %s",
+      // save the return value in $t9 into $v1
+      astack_push_text(stack, asblock, "move $v1, $t9");
+
+      // set the status to the return argument in $t8
+      astack_push_text(stack, asblock, "move $t8, %s",
                        reg_name(quad->arg1->reg_arg));
 
       break;
@@ -1387,17 +1402,11 @@ void generate_asm(FILE *out) {
       }
       free_reg(reg1);
 
-      // set the $t9 to true to know that we are in a function
-      astack_push_text(stack, asblock, "li $t9, 1");
-
       // jump to the function code
       astack_push_text(stack, asblock, "jal %s",
                        ((struct quadarg *)vec_get(quad->subarray,
                                                   vec_size(quad->subarray) - 1))
                            ->value.id_value->name);
-
-      // set the flag to false to know that we are not in a function
-      astack_push_text(stack, asblock, "li $t9, 0");
 
       break;
 
@@ -1409,15 +1418,9 @@ void generate_asm(FILE *out) {
       astack_push_text(stack, asblock, "sw %s, 4($sp)", reg_name(reg1));
       free_reg(reg1);
 
-      // set the flag to false to know that we are in a function
-      astack_push_text(stack, asblock, "li $t9, 1");
-
       // jump to the function code
       astack_push_text(stack, asblock, "jal %s",
                        quad->arg1->value.id_value->name);
-
-      // set the flag to false to know that we are not in a function
-      astack_push_text(stack, asblock, "li $t9, 0");
 
       break;
 

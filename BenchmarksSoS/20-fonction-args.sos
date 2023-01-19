@@ -10,4 +10,5 @@ fact () {
     echo ${p}; 
     return 1
 } ;
-echo $(fact 5) "=120"
+echo $(fact 5) "=120";
+echo $?
