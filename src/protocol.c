@@ -101,6 +101,8 @@ void generate_asm(FILE *out) {
   char *buf, *jmp_name_if, *jmp_name_else, *jmp_name_next;
   int msg_count = 0, msg_print = 0, jmp_count = 0, ops_count = 0, ops_print = 0,
       ops_size = 0, error_count = 1, fct_count = 0;
+  // for display in mips file
+  int for_count = 0, while_count = 0, until_count = 0, if_count = 0;
 
   enum loop_type current_loop = none;
 
@@ -111,7 +113,9 @@ void generate_asm(FILE *out) {
 
   int index_alloc_count = 0;
 
-  vec_t loop = vec_new();
+  vec_t stack_while = vec_new(), stack_if = vec_new(), stack_for = vec_new(),
+        stack_until = vec_new();
+  // stack_switch = vec_new();
 
 #define asblock ((const char *)vec_last(blocks)) // current block
 #define sbrk_size 0x100                          // 256 bytes
@@ -627,19 +631,42 @@ void generate_asm(FILE *out) {
 
       current_loop = loop_if;
 
+      if_count++;
+      astack_push_text(stack, asblock, "# if condition %d", if_count);
+
       break;
 
-    case while_jmp_op:
+    case while_init_op:
 
       current_loop = loop_while;
 
+      while_count++;
+      astack_push_text(stack, asblock, "# while condition %d", while_count);
+
       // write while block
       jmp_name_if = malloc(BUFSIZ);
-      snprintf_s(jmp_name_if, BUFSIZ, "_instr%d", jmp_count);
+      snprintf_s(jmp_name_if, BUFSIZ, "_while%d", jmp_count);
       jmp_count++;
-      astack_push_text(stack, asblock, "\n%s:", jmp_name_if);
+      astack_push_text(stack, asblock, "%s:", jmp_name_if);
 
-      vec_push(loop, jmp_name_if);
+      vec_push(stack_while, jmp_name_if);
+
+      break;
+
+    case until_init_op:
+
+      current_loop = loop_until;
+
+      until_count++;
+      astack_push_text(stack, asblock, "# until condition %d", until_count);
+
+      // write until block
+      jmp_name_if = malloc(BUFSIZ);
+      snprintf_s(jmp_name_if, BUFSIZ, "_until%d", jmp_count);
+      jmp_count++;
+      astack_push_text(stack, asblock, "%s:", jmp_name_if);
+
+      vec_push(stack_until, jmp_name_if);
 
       break;
 
@@ -668,9 +695,9 @@ void generate_asm(FILE *out) {
         astack_push_text(stack, asblock, "j %s", jmp_name_else);
 
         // push names to blocks vector
-        vec_push(loop, jmp_name_next);
-        vec_push(loop, jmp_name_else);
-        vec_push(loop, jmp_name_if);
+        vec_push(stack_if, jmp_name_next);
+        vec_push(stack_if, jmp_name_else);
+        vec_push(stack_if, jmp_name_if);
 
       } else if (current_loop == loop_while) {
 
@@ -684,7 +711,24 @@ void generate_asm(FILE *out) {
         astack_push_text(stack, asblock, "beq %s, 0, %s",
                          reg_name(quad->arg1->reg_arg), jmp_name_next);
 
-        vec_push(loop, jmp_name_next);
+        vec_push(stack_while, jmp_name_next);
+
+      } else if (current_loop == loop_until) {
+
+        current_loop = none;
+
+        jmp_name_next = malloc(BUFSIZ);
+        snprintf_s(jmp_name_next, BUFSIZ, "_instr%d", jmp_count);
+        jmp_count++;
+
+        // test if condition is true
+        astack_push_text(stack, asblock, "beq %s, 1, %s",
+                         reg_name(quad->arg1->reg_arg), jmp_name_next);
+
+        vec_push(stack_until, jmp_name_next);
+
+      } else {
+        panic("test_op: no loop");
       }
 
       break;
@@ -692,28 +736,28 @@ void generate_asm(FILE *out) {
     case if_op:
 
       // write if block name
-      jmp_name_if = vec_last(loop);
+      jmp_name_if = vec_last(stack_if);
       astack_push_text(stack, asblock, "\n%s:", jmp_name_if);
-      vec_pop(loop);
+      vec_pop(stack_if);
 
       break;
 
     case elif_op:
 
       // write if block name
-      jmp_name_if = vec_last(loop);
+      jmp_name_if = vec_last(stack_if);
       astack_push_text(stack, asblock, "\n%s:", jmp_name_if);
-      vec_pop(loop);
+      vec_pop(stack_if);
 
       break;
 
     case else_op:
 
-      jmp_name_else = vec_last(loop);
-      vec_pop(loop);
+      jmp_name_else = vec_last(stack_if);
+      vec_pop(stack_if);
 
       // write jump to next block at the end of if block
-      jmp_name_next = vec_last(loop);
+      jmp_name_next = vec_last(stack_if);
       astack_push_text(stack, asblock, "j %s", jmp_name_next);
 
       // write else block name
@@ -724,22 +768,37 @@ void generate_asm(FILE *out) {
     case if_instr_op:
 
       // write next block name
-      jmp_name_next = vec_last(loop);
+      jmp_name_next = vec_last(stack_if);
       astack_push_text(stack, asblock, "\n%s:", jmp_name_next);
-      vec_pop(loop);
-      vec_pop(loop);
+      if (quad->arg3 != ELSE_OP) vec_pop(stack_if);
+      vec_pop(stack_if);
 
       break;
 
     case while_instr_op:
 
       // write next block name
-      jmp_name_next = vec_last(loop);
-      vec_pop(loop);
+      jmp_name_next = vec_last(stack_while);
+      vec_pop(stack_while);
 
       // jmp to while block
-      jmp_name_if = vec_last(loop);
-      vec_pop(loop);
+      jmp_name_if = vec_last(stack_while);
+      vec_pop(stack_while);
+
+      astack_push_text(stack, asblock, "j %s", jmp_name_if);
+      astack_push_text(stack, asblock, "\n%s:", jmp_name_next);
+
+      break;
+
+    case until_instr_op:
+
+      // write next block name
+      jmp_name_next = vec_last(stack_until);
+      vec_pop(stack_until);
+
+      // jmp to until block
+      jmp_name_if = vec_last(stack_until);
+      vec_pop(stack_until);
 
       astack_push_text(stack, asblock, "j %s", jmp_name_if);
       astack_push_text(stack, asblock, "\n%s:", jmp_name_next);
@@ -843,12 +902,14 @@ void generate_asm(FILE *out) {
         error_count++;
       }
 
-      // block for each "for" instruction
-      jmp_name_next = malloc(BUFSIZ);
-      snprintf_s(jmp_name_next, BUFSIZ, "_for%d", index_alloc_count - 1);
-      jmp_count++;
+      for_count++;
+      astack_push_text(stack, asblock, "# for loop %d", for_count);
 
-      vec_push(blocks, jmp_name_next);
+      jmp_name_if = malloc(BUFSIZ);
+      snprintf_s(jmp_name_if, BUFSIZ, "_instr%d", jmp_count);
+      jmp_count++;
+      astack_push_text(stack, asblock, "%s:", jmp_name_if);
+      vec_push(stack_for, jmp_name_if);
 
       // assign the value of reg_ops first element to the variable
       quadarg1 = vec_get(quad->subarray, vec_size(quad->subarray) - 1);
@@ -897,12 +958,11 @@ void generate_asm(FILE *out) {
       }
 
       // go back to the good "for" block
-      buf = malloc(BUFSIZ);
-      snprintf_s(buf, BUFSIZ, "_for%d", index_alloc_count - 1);
-
+      jmp_name_if = vec_last(stack_for);
+      vec_pop(stack_for);
       astack_push_text(stack, asblock, "ble %s, %d, %s",
                        reg_name(reg_index_for + index_alloc_count - 1),
-                       ops_size - 1, buf);
+                       ops_size - 1, jmp_name_if);
       index_alloc_count--;
 
       astack_push_text(stack, asblock, "\n_instr%d:", jmp_count);

@@ -124,11 +124,11 @@ instruction
   quad_new_from_vec(lineNumber, for_assn_op, $6); } DO instructions DONE
 { $$ = quad_new_from_vec(lineNumber, for_instr_op, $6);}
 
-| WHILE {quad_new_from_quadarg(lineNumber, while_jmp_op, NULL, NULL, NULL); } testing DO instructions DONE
+| WHILE {quad_new_from_quadarg(lineNumber, while_init_op, NULL, NULL, NULL); } testing DO instructions DONE
 { $$ = quad_new_from_quadarg(lineNumber, while_instr_op, NULL, NULL, NULL); }
 
-| UNTIL testing DO instructions DONE
-{ $$ = quad_new_from_quadarg(lineNumber, until_instr_op, $2->arg3, $4->arg3, NULL); }
+| UNTIL {quad_new_from_quadarg(lineNumber, until_init_op, NULL, NULL, NULL); } testing DO instructions DONE
+{ $$ = quad_new_from_quadarg(lineNumber, until_instr_op, $3->arg3, NULL, NULL); }
 
 | CASE op IN cases ESAC
 { $$ = quad_new_from_quadarg(lineNumber, case_instr_op, $2->arg3, $4->arg3, NULL); }
@@ -162,11 +162,12 @@ instruction
 ;
 
 maybe_else
-: ELIF { quad_new_from_quadarg(lineNumber, elif_op, NULL, NULL, NULL); } testing THEN instructions maybe_else
-{ if ($6 == NULL)
-    $$ = quad_new_from_quadarg(lineNumber, elif_op, $3->arg3, NULL, NULL); 
-  else 
-    $$ = quad_new_from_quadarg(lineNumber, elif_op, $3->arg3, $6->arg3, NULL); }
+: ELIF  { quad_new_from_quadarg(lineNumber, elif_init_op, NULL, NULL, NULL); }  testing THEN 
+{ quad_new_from_quadarg(lineNumber, elif_op, NULL, NULL, NULL); } instructions maybe_else
+{ if ($7 == NULL)
+    $$ = quad_new_from_quadarg(lineNumber, elif_instr_op, $3->arg3, NULL, NULL); 
+  else if ($7 == ELSE_OP)
+    $$ = quad_new_from_quadarg(lineNumber, elif_instr_op, $3->arg3, ELSE_OP, NULL); }
 | ELSE { quad_new_from_quadarg(lineNumber, else_op, NULL, NULL, quadarg_new_reg()); } instructions
 { $$ = (struct quad *)ELSE_OP; }
 | %empty
@@ -179,10 +180,10 @@ cases
   $2->array_string = malloc(sizeof(char *)); 
   $2->size = 0; } 
   ')' instructions ';' ';'
-{ struct quad *marker = quad_new_from_quadarg(lineNumber, filter_instr, quadarg_new_array_str($2->array_string), $5->arg3, quadarg_new_reg()); 
+{ struct quad *marker = quad_new_from_quadarg(lineNumber, filter_op, quadarg_new_array_str($2->array_string), $5->arg3, quadarg_new_reg()); 
   $$ = quad_new_from_quadarg(lineNumber, cases_op, $1->arg3, marker->arg3, quadarg_new_reg()); }
 | filter ')' instructions ';' ';'
-{ $$ = quad_new_from_quadarg(lineNumber, filter_instr, quadarg_new_array_str($1->array_string), $3->arg3, quadarg_new_reg()); }
+{ $$ = quad_new_from_quadarg(lineNumber, filter_op, quadarg_new_array_str($1->array_string), $3->arg3, quadarg_new_reg()); }
 ;
 
 filter

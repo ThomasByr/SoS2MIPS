@@ -79,6 +79,7 @@ enum reg {
 enum loop_type {
   none,
   loop_while,
+  loop_until,
   loop_if,
 };
 
