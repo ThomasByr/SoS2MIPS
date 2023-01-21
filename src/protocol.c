@@ -106,7 +106,7 @@ void generate_asm(FILE *out) {
 
   enum loop_type current_loop = none;
 
-  enum reg reg1, reg2, reg3, reg4,
+  enum reg reg1, reg2, reg3,
       reg_ops = reg_a0, // note : reg_a0 is used for ops in the case if all
                         // other reg are used
       reg_index_for = reg_s0; // note : reg_s"i" is used for index in for loop
@@ -850,6 +850,86 @@ void generate_asm(FILE *out) {
 
       break;
 
+    case concat_op:
+
+      // concat strings
+      if ((quad->arg1->type == str_arg ||
+           (quad->arg1->type == id_arg &&
+            quad->arg1->value.id_value->var_type == strtype)) &&
+          (quad->arg2->type == str_arg ||
+           (quad->arg2->type == id_arg &&
+            quad->arg2->value.id_value->var_type == strtype))) {
+
+        // create the string result in data section
+        astack_push_data(stack, "msg%d: .space 256", msg_count);
+        reg3 = find_free_reg();
+        astack_push_text(stack, asblock, "la %s, msg%d", reg_name(reg3),
+                         msg_count);
+
+        // first string is store in quad->arg1->reg_arg and second string in
+        // quad->arg2->reg_arg
+        reg1 = find_free_reg();
+        reg2 = find_free_reg();
+
+        // copy the first string in the result string
+        astack_push_text(stack, asblock, "\n_instr%d:", jmp_count);
+        jmp_count++;
+
+        astack_push_text(stack, asblock, "lb %s, 0(%s)", reg_name(reg1),
+                         reg_name(quad->arg1->reg_arg));
+        astack_push_text(stack, asblock, "sb %s, 0(%s)", reg_name(reg1),
+                         reg_name(reg3));
+
+        astack_push_text(stack, asblock, "beq %s, 0, _instr%d", reg_name(reg1),
+                         jmp_count);
+
+        astack_push_text(stack, asblock, "addi %s, %s, 1", reg_name(reg3),
+                         reg_name(reg3));
+        astack_push_text(stack, asblock, "addi %s, %s, 1",
+                         reg_name(quad->arg1->reg_arg),
+                         reg_name(quad->arg1->reg_arg));
+
+        astack_push_text(stack, asblock, "j _instr%d", jmp_count - 1);
+
+        // copy the second string in the result string
+        astack_push_text(stack, asblock, "\n_instr%d:", jmp_count);
+        jmp_count++;
+
+        astack_push_text(stack, asblock, "lb %s, 0(%s)", reg_name(reg2),
+                         reg_name(quad->arg2->reg_arg));
+        astack_push_text(stack, asblock, "sb %s, 0(%s)", reg_name(reg2),
+                         reg_name(reg3));
+
+        astack_push_text(stack, asblock, "beq %s, 0, _instr%d", reg_name(reg2),
+                         jmp_count);
+
+        astack_push_text(stack, asblock, "addi %s, %s, 1", reg_name(reg3),
+                         reg_name(reg3));
+        astack_push_text(stack, asblock, "addi %s, %s, 1",
+                         reg_name(quad->arg2->reg_arg),
+                         reg_name(quad->arg2->reg_arg));
+
+        astack_push_text(stack, asblock, "j _instr%d", jmp_count - 1);
+
+        astack_push_text(stack, asblock, "\n_instr%d:", jmp_count);
+        jmp_count++;
+
+        free_reg(reg1);
+        free_reg(reg2);
+        free_reg(reg3);
+
+        // store the result in the quad->result->reg_arg
+        quad->arg3->reg_arg = find_free_reg();
+        quad->arg3->type = str_arg;
+
+        astack_push_text(stack, asblock, "la %s, msg%d",
+                         reg_name(quad->arg3->reg_arg), msg_count);
+
+        msg_count++;
+      }
+
+      break;
+
     case ops_init_op:
 
       ops_count = 0;
@@ -951,7 +1031,7 @@ void generate_asm(FILE *out) {
       astack_push_text(stack, asblock, "# for loop %d", for_count);
 
       jmp_name_if = malloc(BUFSIZ);
-      snprintf_s(jmp_name_if, BUFSIZ, "_instr%d", jmp_count);
+      snprintf_s(jmp_name_if, BUFSIZ, "%d", jmp_count);
       jmp_count++;
       astack_push_text(stack, asblock, "%s:", jmp_name_if);
       vec_push(stack_for, jmp_name_if);
@@ -1234,12 +1314,8 @@ void generate_asm(FILE *out) {
           node->var_addr = 1;
 
         } else if (quad->arg2->type == str_arg) {
-          // TODO: fix this
-          // big string because when we modify we cannot go after this
-          // definition
-          astack_push_data(
-              stack, "%s: .asciiz \"                                    \"",
-              node->name);
+
+          astack_push_data(stack, "%s: .space 256", node->name);
           node->var_type = strtype;
           node->var_addr = 1;
 
@@ -1260,41 +1336,48 @@ void generate_asm(FILE *out) {
         reg1 = find_free_reg();
         reg2 = find_free_reg();
         reg3 = find_free_reg();
-        reg4 = find_free_reg();
 
-        astack_push_text(stack, asblock, "la %s, %s", reg_name(reg4),
+        astack_push_text(stack, asblock, "la %s, %s", reg_name(reg3),
                          quad->arg1->value.id_value->name);
 
         astack_push_text(stack, asblock, "li %s, 0", reg_name(reg1));
-        astack_push_text(stack, asblock, "li %s, 0", reg_name(reg2));
 
-        astack_push_text(stack, asblock, "_instr%d:", jmp_count);
+        astack_push_text(stack, asblock, "\n_instr%d:", jmp_count);
         jmp_count++;
 
-        astack_push_text(stack, asblock, "lb %s, 0(%s)", reg_name(reg3),
+        astack_push_text(stack, asblock, "lb %s, 0(%s)", reg_name(reg2),
                          reg_name(quad->arg2->reg_arg));
-        astack_push_text(stack, asblock, "sb %s, 0(%s)", reg_name(reg3),
-                         reg_name(reg4));
+        astack_push_text(stack, asblock, "sb %s, 0(%s)", reg_name(reg2),
+                         reg_name(reg3));
 
         astack_push_text(stack, asblock, "addi %s, %s, 1",
                          reg_name(quad->arg2->reg_arg),
                          reg_name(quad->arg2->reg_arg));
-        astack_push_text(stack, asblock, "addi %s, %s, 1", reg_name(reg4),
-                         reg_name(reg4));
+        astack_push_text(stack, asblock, "addi %s, %s, 1", reg_name(reg3),
+                         reg_name(reg3));
         astack_push_text(stack, asblock, "addi %s, %s, 1", reg_name(reg1),
                          reg_name(reg1));
 
-        astack_push_text(stack, asblock, "beq %s, %s, _instr%d", reg_name(reg3),
-                         reg_name(reg2), jmp_count);
+        astack_push_text(stack, asblock, "beq %s, 0, _instr%d", reg_name(reg2),
+                         jmp_count);
         astack_push_text(stack, asblock, "j _instr%d", jmp_count - 1);
 
-        astack_push_text(stack, asblock, "_instr%d:", jmp_count);
+        astack_push_text(stack, asblock, "\n_instr%d:", jmp_count);
         jmp_count++;
 
         free_reg(reg1);
         free_reg(reg2);
         free_reg(reg3);
-        free_reg(reg4);
+        free_reg(quad->arg2->reg_arg);
+
+      } else if (quad->arg2->type == id_arg) {
+
+        astack_push_text(stack, asblock, "lw %s, %s",
+                         reg_name(quad->arg2->reg_arg),
+                         quad->arg2->value.id_value->name);
+        astack_push_text(stack, asblock, "sw %s, %s",
+                         reg_name(quad->arg2->reg_arg), node->name);
+        free_reg(quad->arg2->reg_arg);
 
       } else {
         panic("Cannot assign to undeclared variable");

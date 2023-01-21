@@ -1,5 +1,5 @@
 
-greeting = 'Hello' ;
-msg = ${greeting} " " 'world!' ;
+greeting = "Hello" ;
+msg = ${greeting} " " "world!" ;
 echo ${msg}
 
