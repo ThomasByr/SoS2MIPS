@@ -81,6 +81,7 @@ enum loop_type {
   loop_while,
   loop_until,
   loop_if,
+  loop_elif,
 };
 
 struct ops_s {

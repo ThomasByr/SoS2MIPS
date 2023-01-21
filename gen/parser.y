@@ -105,58 +105,42 @@ instructions
 instruction
 : ID '=' concat
 { $$ = quad_new_from_quadarg(lineNumber, assn_instr_op, quadarg_new_id($1), $3->arg3, NULL); }
-
 | ID '[' op_int ']' '=' concat
 { $$ = quad_new_from_quadarg(lineNumber, assn_array_instr_op, quadarg_new_id($1), $3->arg3, $6->arg3); }
-
 | declare ID '[' integer ']'
 { $$ = quad_new_from_quadarg(lineNumber, declare_array_instr_op, quadarg_new_id($2), quadarg_new_int($4), NULL); }
-
 | IF { quad_new_from_quadarg(lineNumber, if_init_op, NULL, NULL, NULL); } testing THEN 
 { quad_new_from_quadarg(lineNumber, if_op, NULL, NULL, NULL); } instructions maybe_else instructions FI
 { if ($7 == NULL)
-    $$ = quad_new_from_quadarg(lineNumber, if_instr_op, $3->arg3, NULL, NULL); 
+    $$ = quad_new_from_quadarg(lineNumber, if_instr_op, NULL, NULL, NULL); 
   else if ($7 == ELSE_OP)
-    $$ = quad_new_from_quadarg(lineNumber, if_instr_op, $3->arg3, ELSE_OP, NULL); }
-
+    $$ = quad_new_from_quadarg(lineNumber, if_instr_op, ELSE_OP, NULL, NULL); }
 | FOR ID { quad_new_from_quadarg(lineNumber, for_init_op, quadarg_new_id($2), NULL, NULL); } IN 
 { quad_new_from_quadarg(lineNumber, ops_init_op, NULL, NULL, NULL); } ops { quadarg_array_add($6, quadarg_new_id($2));
   quad_new_from_vec(lineNumber, for_assn_op, $6); } DO instructions DONE
 { $$ = quad_new_from_vec(lineNumber, for_instr_op, $6);}
-
 | WHILE {quad_new_from_quadarg(lineNumber, while_init_op, NULL, NULL, NULL); } testing DO instructions DONE
 { $$ = quad_new_from_quadarg(lineNumber, while_instr_op, NULL, NULL, NULL); }
-
 | UNTIL {quad_new_from_quadarg(lineNumber, until_init_op, NULL, NULL, NULL); } testing DO instructions DONE
 { $$ = quad_new_from_quadarg(lineNumber, until_instr_op, $3->arg3, NULL, NULL); }
-
 | CASE op IN cases ESAC
 { $$ = quad_new_from_quadarg(lineNumber, case_instr_op, $2->arg3, $4->arg3, NULL); }
-
 | EKKO { quad_new_from_quadarg(lineNumber, ops_init_op, NULL, NULL, NULL); } ops
 { $$ = quad_new_from_vec(lineNumber, echo_instr_op, $3); }
-
 | READ  ID 
 { $$ = quad_new_from_quadarg(lineNumber, read_instr_op, quadarg_new_id($2), NULL, NULL); }
-
 | READ  ID '[' op_int ']'
 { $$ = quad_new_from_quadarg(lineNumber, read_array_instr_op, quadarg_new_id($2), $4->arg3, NULL); }
-
 | dfun
 { $$ = $1; }
-
 | cfun
 { $$ = $1; }
-
 | RETURN 
 { $$ = quad_new_from_quadarg(lineNumber, return_void_op, NULL, NULL, NULL); }
-
 | RETURN op_int
 { $$ = quad_new_from_quadarg(lineNumber, return_int_op, $2->arg3, NULL, NULL); }
-
 | EXIT 
 { $$ = quad_new_from_quadarg(lineNumber, exit_void_op, NULL, NULL, NULL); }
-
 | EXIT op_int
 { $$ = quad_new_from_quadarg(lineNumber, exit_int_op, $2->arg3, NULL, NULL); }
 ;
@@ -165,9 +149,9 @@ maybe_else
 : ELIF  { quad_new_from_quadarg(lineNumber, elif_init_op, NULL, NULL, NULL); }  testing THEN 
 { quad_new_from_quadarg(lineNumber, elif_op, NULL, NULL, NULL); } instructions maybe_else
 { if ($7 == NULL)
-    $$ = quad_new_from_quadarg(lineNumber, elif_instr_op, $3->arg3, NULL, NULL); 
+    $$ = quad_new_from_quadarg(lineNumber, elif_instr_op, NULL, NULL, NULL); 
   else if ($7 == ELSE_OP)
-    $$ = quad_new_from_quadarg(lineNumber, elif_instr_op, $3->arg3, ELSE_OP, NULL); }
+    $$ = quad_new_from_quadarg(lineNumber, elif_instr_op, ELSE_OP, NULL, NULL); }
 | ELSE { quad_new_from_quadarg(lineNumber, else_op, NULL, NULL, quadarg_new_reg()); } instructions
 { $$ = (struct quad *)ELSE_OP; }
 | %empty

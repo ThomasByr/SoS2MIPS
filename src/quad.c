@@ -135,9 +135,6 @@ void quadarg_display(struct quadarg *quadarg) {
   case int_arg:
     printf("int: %d", quadarg->value.int_value);
     break;
-  case dbl_arg:
-    printf("dbl: %f", quadarg->value.dbl_value);
-    break;
   case id_arg:
     printf("id: %s", quadarg->value.id_value->name);
     break;
@@ -231,13 +228,6 @@ struct quadarg *quadarg_new_int(int value) {
   struct quadarg *quadarg = calloc(1, sizeof(struct quadarg));
   quadarg->type = int_arg;
   quadarg->value.int_value = value;
-  return quadarg;
-}
-
-struct quadarg *quadarg_new_dbl(double value) {
-  struct quadarg *quadarg = calloc(1, sizeof(struct quadarg));
-  quadarg->type = dbl_arg;
-  quadarg->value.dbl_value = value;
   return quadarg;
 }
 

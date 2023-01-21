@@ -79,11 +79,10 @@ enum quadop {
 enum quadargtype {
   no_arg_type,
   int_arg,
-  dbl_arg,
   str_arg,
-  array_str_arg,
   int_array_arg,
   id_arg,
+  array_str_arg,
   quad_arg,
 };
 
