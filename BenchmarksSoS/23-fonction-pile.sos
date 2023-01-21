@@ -7,7 +7,8 @@ fact () {
         p = $(expr ${p} * ${i}) ;
         i = $(expr ${i} + 1)
     done ;
-    echo ${p}
+    echo ${p};
+    return
 } ;
 
 choose () {
@@ -15,6 +16,7 @@ choose () {
     fk = $(fact $1) ;
     fnk = $(fact $(expr $2 - $1)) ;
     echo $(expr ${fn} / ${fk} / ${fnk})
+    return
 } ;
 
 echo $(choose 3 5) "=10"

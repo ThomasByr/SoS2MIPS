@@ -11,11 +11,12 @@ search () {
     do
         if test ${tab[${i}]} eq $1
         then
-            echo ${i} ;
-            return 1
-        fi
+            echo ${i} "\n";
+            return 0
+        fi;
+        i = $(expr ${i} + 1)
     done ;
-    return 0
+    return 1
 } ;
 
 x = $(search 7) ;

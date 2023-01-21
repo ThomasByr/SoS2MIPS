@@ -7,8 +7,8 @@ fact () {
         p = $(expr ${p} * ${i}) ;
         i = $(expr ${i} + 1)
     done ;
-    echo ${p}; 
+    echo ${p} "\n"; 
     return 1
 } ;
-echo $(fact 5) "=120";
-echo $?
+k = $(fact 5);
+echo ${k}  "= 120\n"
