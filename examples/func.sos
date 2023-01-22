@@ -2,7 +2,7 @@ recursive() {
     if test $1 eq 0 then
         echo 1
     else
-        i = $(expr $1 - 1);
+        local i = $(expr $1 - 1);
         echo $1 "\n";
         recursive ${i}
     fi;

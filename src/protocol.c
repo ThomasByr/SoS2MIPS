@@ -100,18 +100,20 @@ void generate_asm(FILE *out) {
 
   char *buf, *jmp_name_if, *jmp_name_else, *jmp_name_next;
   int msg_count = 0, msg_print = 0, jmp_count = 0, ops_count = 0, ops_print = 0,
-      ops_size = 0, error_count = 1, fct_count = 0;
+      ops_size = 0, error_count = 1, fct_count = 0, case_count = 0,
+      switch_count = 0;
   // for display in mips file
   int for_count = 0, while_count = 0, until_count = 0, if_count = 0;
 
   enum loop_type current_loop = none;
 
-  enum reg reg1, reg2, reg3,
+  enum reg reg1, reg2, reg3, reg4,
       reg_ops = reg_a0, // note : reg_a0 is used for ops in the case if all
                         // other reg are used
       reg_index_for = reg_s0; // note : reg_s"i" is used for index in for loop
 
-  int index_alloc_count = 0;
+  // overlap for "for" and "case"
+  int index_for_count = 0, index_case_count = 0;
 
   vec_t stack_while = vec_new(), stack_if = vec_new(), stack_for = vec_new(),
         stack_until = vec_new();
@@ -996,8 +998,10 @@ void generate_asm(FILE *out) {
 
       // initialize the index
       astack_push_text(stack, asblock, "li %s, 0",
-                       reg_name(reg_index_for + index_alloc_count));
-      index_alloc_count++;
+                       reg_name(reg_index_for + index_for_count));
+      index_for_count++;
+
+      if (index_for_count >= 8) panic("index_for_count >= 4");
 
       quad->arg1->value.id_value->var_type = inttype;
       quad->arg1->value.id_value->var_addr = 1;
@@ -1053,8 +1057,8 @@ void generate_asm(FILE *out) {
                        quadarg1->value.id_value->name);
 
       astack_push_text(stack, asblock, "addi %s, %s, 1",
-                       reg_name(reg_index_for + index_alloc_count - 1),
-                       reg_name(reg_index_for + index_alloc_count - 1));
+                       reg_name(reg_index_for + index_for_count - 1),
+                       reg_name(reg_index_for + index_for_count - 1));
 
       free_reg(reg1);
 
@@ -1086,10 +1090,122 @@ void generate_asm(FILE *out) {
       jmp_name_if = vec_last(stack_for);
       vec_pop(stack_for);
       astack_push_text(stack, asblock, "ble %s, %d, %s",
-                       reg_name(reg_index_for + index_alloc_count - 1),
+                       reg_name(reg_index_for + index_for_count - 1),
                        ops_size - 1, jmp_name_if);
-      index_alloc_count--;
+      index_for_count--;
 
+      astack_push_text(stack, asblock, "\n_instr%d:", jmp_count);
+      jmp_count++;
+
+      break;
+
+    case case_init_op:
+
+      // create the string result in data section
+      astack_push_data(stack, "swtch%d: .space 256", switch_count);
+      switch_count++;
+
+      reg1 = find_free_reg();
+      reg2 = find_free_reg();
+      reg3 = find_free_reg();
+
+      astack_push_text(stack, asblock, "la %s, swtch%d", reg_name(reg3),
+                       switch_count - 1);
+
+      astack_push_text(stack, asblock, "\n_instr%d:", jmp_count);
+      jmp_count++;
+
+      astack_push_text(stack, asblock, "lb %s, 0(%s)", reg_name(reg1),
+                       reg_name(quad->arg1->reg_arg));
+      astack_push_text(stack, asblock, "sb %s, 0(%s)", reg_name(reg1),
+                       reg_name(reg3));
+
+      astack_push_text(stack, asblock, "beq %s, 0, _instr%d", reg_name(reg1),
+                       jmp_count);
+
+      astack_push_text(stack, asblock, "addi %s, %s, 1",
+                       reg_name(quad->arg1->reg_arg),
+                       reg_name(quad->arg1->reg_arg));
+      astack_push_text(stack, asblock, "addi %s, %s, 1", reg_name(reg3),
+                       reg_name(reg3));
+
+      astack_push_text(stack, asblock, "j _instr%d", jmp_count - 1);
+
+      free_reg(reg1);
+      free_reg(reg2);
+      free_reg(reg3);
+      free_reg(quad->arg1->reg_arg);
+
+      index_case_count++;
+      msg_print++;
+
+      if (index_case_count >= 4) panic("index_case_count >= 4");
+
+      break;
+
+    case case_set_name:
+
+      astack_push_text(stack, asblock, "\n_instr%d:", jmp_count);
+      jmp_count++;
+
+      reg1 = find_free_reg();
+      reg2 = find_free_reg();
+      reg3 = find_free_reg();
+      reg4 = find_free_reg();
+
+      for (j = 0; j < (size_t)quad->arg1->value.filters->size; j++) {
+
+        if (strcmp(quad->arg1->value.filters->array_string[j], "*") == 0) {
+          astack_push_text(stack, asblock, "j _case%d", case_count);
+          break;
+        }
+
+        astack_push_data(stack, "msg%d: .asciiz \"%s\"", msg_count,
+                         quad->arg1->value.filters->array_string[j]);
+        msg_count++;
+        astack_push_text(stack, asblock, "la %s, msg%d", reg_name(reg1),
+                         msg_print);
+        msg_print++;
+
+        astack_push_text(stack, asblock, "la %s, swtch%d", reg_name(reg2),
+                         switch_count - 1);
+
+        astack_push_text(stack, asblock, "\n_instr%d:", jmp_count);
+        jmp_count++;
+
+        astack_push_text(stack, asblock, "lb %s, 0(%s)", reg_name(reg3),
+                         reg_name(reg2));
+        astack_push_text(stack, asblock, "lb %s, 0(%s)", reg_name(reg4),
+                         reg_name(reg1));
+        // if caracters different, go to next string in the array
+        astack_push_text(stack, asblock, "bne %s, %s, _instr%d", reg_name(reg3),
+                         reg_name(reg4), jmp_count);
+        // if caracters equal, go to the good case
+        astack_push_text(stack, asblock, "beq %s, $zero, _case%d",
+                         reg_name(reg3), case_count);
+
+        astack_push_text(stack, asblock, "addi %s, %s, 1", reg_name(reg2),
+                         reg_name(reg2));
+        astack_push_text(stack, asblock, "addi %s, %s, 1", reg_name(reg1),
+                         reg_name(reg1));
+
+        astack_push_text(stack, asblock, "j _instr%d", jmp_count - 1);
+      }
+
+      free_reg(reg1);
+      free_reg(reg2);
+      free_reg(reg3);
+      free_reg(reg4);
+
+      astack_push_text(stack, asblock, "\n_case%d:", case_count);
+      case_count++;
+
+      break;
+
+    case case_instr_op:
+
+      switch_count--;
+      index_case_count--;
       astack_push_text(stack, asblock, "\n_instr%d:", jmp_count);
       jmp_count++;
 
@@ -1481,10 +1597,6 @@ void generate_asm(FILE *out) {
       // write the left part of the program in a new instruction
       astack_push_text(stack, asblock, "\nend_fct%d:", fct_count);
       fct_count++;
-
-      break;
-
-    case decl_op:
 
       break;
 

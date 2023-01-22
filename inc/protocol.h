@@ -89,6 +89,11 @@ struct ops_s {
   vec_t array;
 };
 
+struct filter_s {
+  int size;            // number of filters
+  char **array_string; // filters name
+};
+
 const char *reg_name(enum reg reg);
 
 // Iterate through the quad_array and generates assembly for each quad,

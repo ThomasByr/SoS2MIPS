@@ -64,6 +64,8 @@ char *quad_op_string[] = {
     "elif_op",
     "else_op",
     "filter_op",
+    "case_set_name",
+    "case_attribute_name",
     "cases_op",
     // instruction operations
     "concat_op",
@@ -80,6 +82,7 @@ char *quad_op_string[] = {
     "for_instr_op",
     "while_instr_op",
     "until_instr_op",
+    "case_init_op",
     "case_instr_op",
     "echo_instr_op",
     "read_instr_op",
@@ -249,10 +252,10 @@ struct quadarg *quadarg_new_id(char *value) {
   return quadarg;
 }
 
-struct quadarg *quadarg_new_array_str(char **value) {
+struct quadarg *quadarg_new_filters(struct filter_s *value) {
   struct quadarg *quadarg = calloc(1, sizeof(struct quadarg));
-  quadarg->type = array_str_arg;
-  quadarg->value.array_str_value = value;
+  quadarg->type = filter_arg;
+  quadarg->value.filters = value;
   return quadarg;
 }
 

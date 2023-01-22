@@ -42,6 +42,8 @@ enum quadop {
   elif_op,
   else_op,
   filter_op,
+  case_set_name,
+  case_attribute_name,
   cases_op,
   // instruction operations
   concat_op,
@@ -58,6 +60,7 @@ enum quadop {
   for_instr_op,
   while_instr_op,
   until_instr_op,
+  case_init_op,
   case_instr_op,
   echo_instr_op,
   read_instr_op,
@@ -82,7 +85,7 @@ enum quadargtype {
   str_arg,
   int_array_arg,
   id_arg,
-  array_str_arg,
+  filter_arg,
   quad_arg,
 };
 
@@ -96,7 +99,7 @@ struct quadarg {
     int int_value;
     double dbl_value;
     char *str_value;
-    char **array_str_value;
+    struct filter_s *filters;
     struct symnode *id_value;
   } value;
   enum quadargtype type;
@@ -160,7 +163,7 @@ struct quadarg *quadarg_new_int(int value);
 struct quadarg *quadarg_new_dbl(double value);
 struct quadarg *quadarg_new_id(char *value);
 struct quadarg *quadarg_new_str(char *value);
-struct quadarg *quadarg_new_array_str(char **value);
+struct quadarg *quadarg_new_filters(struct filter_s *value);
 struct quadarg *quadarg_new_reg(void);
 
 /**
