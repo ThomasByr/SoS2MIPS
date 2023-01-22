@@ -101,11 +101,12 @@ void generate_asm(FILE *out) {
   char *buf, *jmp_name_if, *jmp_name_else, *jmp_name_next;
   int msg_count = 0, msg_print = 0, jmp_count = 0, ops_count = 0, ops_print = 0,
       ops_size = 0, error_count = 1, fct_count = 0, case_count = 0,
-      switch_count = 0;
+      switch_count = 0, switch_in_case_count = 0, intoa_count = 0;
   // for display in mips file
   int for_count = 0, while_count = 0, until_count = 0, if_count = 0;
 
   enum loop_type current_loop = none;
+  int switch_type = 0;
 
   enum reg reg1, reg2, reg3, reg4,
       reg_ops = reg_a0, // note : reg_a0 is used for ops in the case if all
@@ -682,6 +683,8 @@ void generate_asm(FILE *out) {
       jmp_count++;
       astack_push_text(stack, asblock, "%s:", jmp_name_if);
 
+      vec_push(stack_until, jmp_name_if);
+
       break;
 
     case test_op:
@@ -854,6 +857,86 @@ void generate_asm(FILE *out) {
 
     case concat_op:
 
+      if ((quad->arg1->type == str_arg && quad->arg2->type != str_arg) ||
+          (quad->arg1->type != str_arg && quad->arg2->type == str_arg)) {
+
+        reg1 = find_free_reg();
+
+        if (quad->arg1->type == int_arg) {
+          reg2 = quad->arg1->reg_arg;
+          quad->arg1->type = str_arg;
+        } else if (quad->arg2->type == int_arg) {
+          reg2 = quad->arg2->reg_arg;
+          quad->arg2->type = str_arg;
+        } else if (quad->arg1->type == id_arg &&
+                   quad->arg1->value.id_value->var_type == inttype) {
+          reg2 = quad->arg1->reg_arg;
+          quad->arg1->type = str_arg;
+        } else if (quad->arg2->type == id_arg &&
+                   quad->arg2->value.id_value->var_type == inttype) {
+          reg2 = quad->arg2->reg_arg;
+          quad->arg2->type = str_arg;
+        } else {
+          panic("concat_op: invalid arg type");
+        }
+
+        reg3 = find_free_reg();
+
+        // create the string result in data section
+        astack_push_data(stack, "intoa%d: .space 256", intoa_count);
+        astack_push_text(stack, asblock, "la %s, intoa%d", reg_name(reg1),
+                         intoa_count);
+        intoa_count++;
+
+        astack_push_text(stack, asblock, "\n_instr%d:", jmp_count);
+        jmp_count++;
+
+        // divide by 10
+        astack_push_text(stack, asblock, "div %s, %s, 10", reg_name(reg2),
+                         reg_name(reg2));
+        astack_push_text(stack, asblock, "mfhi %s", reg_name(reg3));
+
+        // convert digit to ASCII
+        astack_push_text(stack, asblock, "addi %s, %s, 48", reg_name(reg3),
+                         reg_name(reg3));
+        astack_push_text(stack, asblock, "sb %s, 0(%s)", reg_name(reg3),
+                         reg_name(reg1));
+        astack_push_text(stack, asblock, "mflo %s", reg_name(reg2));
+
+        astack_push_text(stack, asblock, "addi %s, %s, 1", reg_name(reg1),
+                         reg_name(reg1));
+
+        astack_push_text(stack, asblock, "beq %s, $zero, _instr%d",
+                         reg_name(reg2), jmp_count);
+
+        astack_push_text(stack, asblock, "j _instr%d", jmp_count - 1);
+
+        astack_push_text(stack, asblock, "\n_instr%d:", jmp_count);
+        jmp_count++;
+
+        astack_push_text(stack, asblock, "sb $zero, 0(%s)", reg_name(reg1));
+
+        free_reg(reg1);
+        free_reg(reg2);
+        free_reg(reg3);
+
+        reg1 = find_free_reg();
+        // go back to the beginning of the string
+        astack_push_text(stack, asblock, "la %s, intoa%d", reg_name(reg1),
+                         intoa_count - 1);
+
+        if (quad->arg1->type == int_arg)
+          quad->arg1->reg_arg = reg1;
+        else if (quad->arg2->type == int_arg)
+          quad->arg2->reg_arg = reg1;
+        else if (quad->arg1->type == id_arg &&
+                 quad->arg1->value.id_value->var_type == inttype)
+          quad->arg1->reg_arg = reg1;
+        else if (quad->arg2->type == id_arg &&
+                 quad->arg2->value.id_value->var_type == inttype)
+          quad->arg2->reg_arg = reg1;
+      }
+
       // concat strings
       if ((quad->arg1->type == str_arg ||
            (quad->arg1->type == id_arg &&
@@ -928,6 +1011,7 @@ void generate_asm(FILE *out) {
                          reg_name(quad->arg3->reg_arg), msg_count);
 
         msg_count++;
+        msg_print++;
       }
 
       break;
@@ -1035,9 +1119,9 @@ void generate_asm(FILE *out) {
       astack_push_text(stack, asblock, "# for loop %d", for_count);
 
       jmp_name_if = malloc(BUFSIZ);
-      snprintf_s(jmp_name_if, BUFSIZ, "%d", jmp_count);
+      snprintf_s(jmp_name_if, BUFSIZ, "_for%d", jmp_count);
       jmp_count++;
-      astack_push_text(stack, asblock, "%s:", jmp_name_if);
+      astack_push_text(stack, asblock, "\n%s:", jmp_name_if);
       vec_push(stack_for, jmp_name_if);
 
       // assign the value of reg_ops first element to the variable
@@ -1102,44 +1186,70 @@ void generate_asm(FILE *out) {
     case case_init_op:
 
       // create the string result in data section
-      astack_push_data(stack, "swtch%d: .space 256", switch_count);
+      astack_push_data(stack, "default%d: .word 0",
+                       switch_count + switch_in_case_count);
+
+      if ((quad->arg1->type == id_arg &&
+           quad->arg1->value.id_value->var_type == strtype) ||
+          quad->arg1->type == str_arg) {
+
+        switch_type = 0;
+
+        reg1 = find_free_reg();
+        reg2 = find_free_reg();
+        reg3 = find_free_reg();
+
+        astack_push_data(stack, "swtch%d: .space 256",
+                         switch_count + switch_in_case_count);
+        astack_push_text(stack, asblock, "la %s, swtch%d", reg_name(reg3),
+                         switch_count + switch_in_case_count);
+
+        astack_push_text(stack, asblock, "\n_instr%d:", jmp_count);
+        jmp_count++;
+
+        astack_push_text(stack, asblock, "lb %s, 0(%s)", reg_name(reg1),
+                         reg_name(quad->arg1->reg_arg));
+        astack_push_text(stack, asblock, "sb %s, 0(%s)", reg_name(reg1),
+                         reg_name(reg3));
+
+        astack_push_text(stack, asblock, "beq %s, 0, _instr%d", reg_name(reg1),
+                         jmp_count);
+
+        astack_push_text(stack, asblock, "addi %s, %s, 1",
+                         reg_name(quad->arg1->reg_arg),
+                         reg_name(quad->arg1->reg_arg));
+        astack_push_text(stack, asblock, "addi %s, %s, 1", reg_name(reg3),
+                         reg_name(reg3));
+
+        astack_push_text(stack, asblock, "j _instr%d", jmp_count - 1);
+
+        free_reg(reg1);
+        free_reg(reg2);
+        free_reg(reg3);
+        free_reg(quad->arg1->reg_arg);
+
+        msg_print++;
+
+      } else if ((quad->arg1->type == id_arg &&
+                  quad->arg1->value.id_value->var_type == inttype) ||
+                 quad->arg1->type == int_arg) {
+
+        switch_type = 1;
+
+        reg1 = find_free_reg();
+
+        astack_push_data(stack, "swtch%d: .word 0",
+                         switch_count + switch_in_case_count);
+        astack_push_text(stack, asblock, "la %s, swtch%d", reg_name(reg1),
+                         switch_count + switch_in_case_count);
+
+        astack_push_text(stack, asblock, "sw %s, 0(%s)",
+                         reg_name(quad->arg1->reg_arg), reg_name(reg1));
+      }
+
       switch_count++;
-
-      reg1 = find_free_reg();
-      reg2 = find_free_reg();
-      reg3 = find_free_reg();
-
-      astack_push_text(stack, asblock, "la %s, swtch%d", reg_name(reg3),
-                       switch_count - 1);
-
-      astack_push_text(stack, asblock, "\n_instr%d:", jmp_count);
-      jmp_count++;
-
-      astack_push_text(stack, asblock, "lb %s, 0(%s)", reg_name(reg1),
-                       reg_name(quad->arg1->reg_arg));
-      astack_push_text(stack, asblock, "sb %s, 0(%s)", reg_name(reg1),
-                       reg_name(reg3));
-
-      astack_push_text(stack, asblock, "beq %s, 0, _instr%d", reg_name(reg1),
-                       jmp_count);
-
-      astack_push_text(stack, asblock, "addi %s, %s, 1",
-                       reg_name(quad->arg1->reg_arg),
-                       reg_name(quad->arg1->reg_arg));
-      astack_push_text(stack, asblock, "addi %s, %s, 1", reg_name(reg3),
-                       reg_name(reg3));
-
-      astack_push_text(stack, asblock, "j _instr%d", jmp_count - 1);
-
-      free_reg(reg1);
-      free_reg(reg2);
-      free_reg(reg3);
-      free_reg(quad->arg1->reg_arg);
-
+      switch_in_case_count++;
       index_case_count++;
-      msg_print++;
-
-      if (index_case_count >= 4) panic("index_case_count >= 4");
 
       break;
 
@@ -1156,56 +1266,80 @@ void generate_asm(FILE *out) {
       for (j = 0; j < (size_t)quad->arg1->value.filters->size; j++) {
 
         if (strcmp(quad->arg1->value.filters->array_string[j], "*") == 0) {
-          astack_push_text(stack, asblock, "j _case%d", case_count);
+          astack_push_text(stack, asblock, "lw %s, default%d", reg_name(reg1),
+                           switch_count + switch_in_case_count - 2);
+          astack_push_text(stack, asblock, "beq %s, 0, _case%d", reg_name(reg1),
+                           case_count);
+          astack_push_text(stack, asblock, "j _instr%d", jmp_count);
           break;
         }
 
-        astack_push_data(stack, "msg%d: .asciiz \"%s\"", msg_count,
-                         quad->arg1->value.filters->array_string[j]);
-        msg_count++;
-        astack_push_text(stack, asblock, "la %s, msg%d", reg_name(reg1),
-                         msg_print);
-        msg_print++;
+        if (switch_type == 0) {
 
-        astack_push_text(stack, asblock, "la %s, swtch%d", reg_name(reg2),
-                         switch_count - 1);
+          astack_push_data(stack, "msg%d: .asciiz \"%s\"", msg_count,
+                           quad->arg1->value.filters->array_string[j]);
+          msg_count++;
+          astack_push_text(stack, asblock, "la %s, msg%d", reg_name(reg1),
+                           msg_print);
+          msg_print++;
 
-        astack_push_text(stack, asblock, "\n_instr%d:", jmp_count);
-        jmp_count++;
+          astack_push_text(stack, asblock, "la %s, swtch%d", reg_name(reg2),
+                           switch_count + switch_in_case_count - 2);
 
-        astack_push_text(stack, asblock, "lb %s, 0(%s)", reg_name(reg3),
-                         reg_name(reg2));
-        astack_push_text(stack, asblock, "lb %s, 0(%s)", reg_name(reg4),
-                         reg_name(reg1));
-        // if caracters different, go to next string in the array
-        astack_push_text(stack, asblock, "bne %s, %s, _instr%d", reg_name(reg3),
-                         reg_name(reg4), jmp_count);
-        // if caracters equal, go to the good case
-        astack_push_text(stack, asblock, "beq %s, $zero, _case%d",
-                         reg_name(reg3), case_count);
+          astack_push_text(stack, asblock, "\n_instr%d:", jmp_count);
+          jmp_count++;
 
-        astack_push_text(stack, asblock, "addi %s, %s, 1", reg_name(reg2),
-                         reg_name(reg2));
-        astack_push_text(stack, asblock, "addi %s, %s, 1", reg_name(reg1),
-                         reg_name(reg1));
+          astack_push_text(stack, asblock, "lb %s, 0(%s)", reg_name(reg3),
+                           reg_name(reg2));
+          astack_push_text(stack, asblock, "lb %s, 0(%s)", reg_name(reg4),
+                           reg_name(reg1));
+          // if caracters different, go to next string in the array
+          astack_push_text(stack, asblock, "bne %s, %s, _instr%d",
+                           reg_name(reg3), reg_name(reg4), jmp_count);
+          // if caracters equal, go to the good case
+          astack_push_text(stack, asblock, "beq %s, $zero, _case%d",
+                           reg_name(reg3), case_count);
 
-        astack_push_text(stack, asblock, "j _instr%d", jmp_count - 1);
+          astack_push_text(stack, asblock, "addi %s, %s, 1", reg_name(reg2),
+                           reg_name(reg2));
+          astack_push_text(stack, asblock, "addi %s, %s, 1", reg_name(reg1),
+                           reg_name(reg1));
+
+          astack_push_text(stack, asblock, "j _instr%d", jmp_count - 1);
+
+        } else if (switch_type == 1) {
+
+          astack_push_text(stack, asblock, "lw %s, swtch%d", reg_name(reg1),
+                           switch_count + switch_in_case_count - 2);
+
+          astack_push_text(stack, asblock, "li %s, %d", reg_name(reg2),
+                           atoi(quad->arg1->value.filters->array_string[j]));
+
+          astack_push_text(stack, asblock, "beq %s, %s, _case%d",
+                           reg_name(reg1), reg_name(reg2), case_count);
+
+          astack_push_text(stack, asblock, "j _instr%d", jmp_count);
+        }
       }
+
+      astack_push_text(stack, asblock, "\n_case%d:", case_count);
+      astack_push_text(stack, asblock, "li %s, 1", reg_name(reg3));
+      astack_push_text(stack, asblock, "la %s, default%d", reg_name(reg4),
+                       switch_count + switch_in_case_count - 2);
+      astack_push_text(stack, asblock, "sw %s, 0(%s)", reg_name(reg3),
+                       reg_name(reg4));
+      case_count++;
 
       free_reg(reg1);
       free_reg(reg2);
       free_reg(reg3);
       free_reg(reg4);
 
-      astack_push_text(stack, asblock, "\n_case%d:", case_count);
-      case_count++;
-
       break;
 
     case case_instr_op:
 
-      switch_count--;
-      index_case_count--;
+      switch_in_case_count--;
       astack_push_text(stack, asblock, "\n_instr%d:", jmp_count);
       jmp_count++;
 
@@ -1257,13 +1391,14 @@ void generate_asm(FILE *out) {
                     (quadarg1->type == id_arg &&
                      quadarg1->value.id_value->var_type == strtype))) {
 
-          if (quadarg1->type == str_arg) {
+          if (quadarg1->type == str_arg)
             astack_push_text(stack, asblock, "la $a0, msg%d", msg_print);
-            msg_print++;
 
-          } else if (quadarg1->type == id_arg)
+          else if (quadarg1->type == id_arg)
             astack_push_text(stack, asblock, "la $a0, %s",
                              quadarg1->value.id_value->name);
+
+          msg_print++;
 
           astack_push_text(stack, asblock, "li $v0, %d", sc_print_string);
           astack_push_text(stack, asblock, "syscall");

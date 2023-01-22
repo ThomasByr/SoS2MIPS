@@ -1,6 +1,6 @@
 
 x = 17 ;
-while test ${x} -ne 1
+while test ${x} ne 1
 do
     r = $(expr ${x} % 2) ;
     case ${r} in

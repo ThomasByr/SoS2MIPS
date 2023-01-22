@@ -12,6 +12,8 @@
   extern void yyerror(const char *s);
   extern vec_t quad_array;
   extern struct symtable *id_name_table;
+
+  char *buf;
 %}
 
 %union {
@@ -167,10 +169,25 @@ filter
   $$->size = 0; 
   $$->array_string[$$->size] = strdup($1);
   $$->size++; }
+| integer 
+{ $$ = calloc(1, sizeof(struct filter_s));
+  $$->array_string = malloc(sizeof(char *)); 
+  $$->size = 0; 
+  buf = malloc(9);
+  sprintf(buf, "%d", $1);
+  $$->array_string[$$->size] = strdup(buf);
+  $$->size++; }
 | filter '|' string 
 { $$ = $1;
   $$->array_string = realloc($$->array_string, sizeof(char *) * ($$->size + 1));
   $$->array_string[$$->size] = strdup($3);
+  $$->size++; }
+| filter '|' integer 
+{ $$ = $1;
+  $$->array_string = realloc($$->array_string, sizeof(char *) * ($$->size + 1));
+  buf = malloc(9);
+  sprintf(buf, "%d", $3);
+  $$->array_string[$$->size] = strdup(buf);
   $$->size++; }
 | '*'
 { $$ = calloc(1, sizeof(struct filter_s));

@@ -1,7 +1,15 @@
-str = "ab" ;
+str = "def" ;
 case ${str} in
     "abc" ) echo "no abc" ;;
     "def" ) echo "yes" ;;
     "ghij" ) echo "no ghij" ;;
     * ) echo "no *" ;;
+esac;
+echo "\n";
+i = 1 ;
+case ${i} in
+    2 ) echo "no" ;;
+    3 ) echo "no" ;;
+    4 ) echo "no" ;;
+    * ) echo "yes" ;;
 esac
