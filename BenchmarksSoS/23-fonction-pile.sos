@@ -15,9 +15,9 @@ choose () {
     fn = $(fact $2) ;
     fk = $(fact $1) ;
     fnk = $(fact $(expr $2 - $1)) ;
-    echo $(expr ${fn} / ${fk} / ${fnk})
+    echo $(expr ${fn} / ${fk} / ${fnk});
     return
 } ;
-
-echo $(choose 3 5) "=10"
+k = $(choose 3 5);
+echo ${k} "=10"
 

@@ -1,6 +1,8 @@
-    myfunc(){
-        local i = "hello world, happy new year";
-        echo ${i} $1;
-        return 1
-    };
-    myfunc 1
+myfunc(){
+    return
+};
+myfunc2(){
+    myfunc;
+    return 
+};
+myfunc2 1 2

@@ -80,6 +80,7 @@ white [ \t\r]+
 \<               return '<';
 >                return '>';
 =                return '=';
+\|               return '|';
 ;                return ';';
 ,                return ',';
 \(               return '(';

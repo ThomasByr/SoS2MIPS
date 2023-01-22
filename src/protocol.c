@@ -857,8 +857,19 @@ void generate_asm(FILE *out) {
 
     case concat_op:
 
-      if ((quad->arg1->type == str_arg && quad->arg2->type != str_arg) ||
-          (quad->arg1->type != str_arg && quad->arg2->type == str_arg)) {
+      if (((quad->arg1->type == str_arg ||
+            (quad->arg1->type == id_arg &&
+             quad->arg1->value.id_value->var_type == strtype)) &&
+           (quad->arg2->type != str_arg &&
+            (quad->arg2->type == id_arg &&
+             quad->arg2->value.id_value->var_type != strtype))) ||
+
+          ((quad->arg1->type != str_arg &&
+            (quad->arg1->type == id_arg &&
+             quad->arg1->value.id_value->var_type != strtype)) &&
+           (quad->arg2->type == str_arg ||
+            (quad->arg2->type == id_arg &&
+             quad->arg2->value.id_value->var_type == strtype)))) {
 
         reg1 = find_free_reg();
 
@@ -1034,7 +1045,11 @@ void generate_asm(FILE *out) {
 
       // add the value to the ops array
       if (quad->arg1 != ALL_ARG && quad->arg1 != ALL &&
-          (quad->arg1->type == int_arg || quad->arg1->type == id_arg ||
+          (quad->arg1->type == int_arg ||
+           (quad->arg1->type == id_arg &&
+            quad->arg1->value.id_value->var_type == inttype) ||
+           (quad->arg1->type == id_arg &&
+            quad->arg1->value.id_value->var_type == arrayinttype) ||
            quad->arg1->type == int_array_arg)) {
         astack_push_text(stack, asblock, "sw %s, %d(%s)",
                          reg_name(quad->arg1->reg_arg), ops_count * 4,
@@ -1192,7 +1207,6 @@ void generate_asm(FILE *out) {
       if ((quad->arg1->type == id_arg &&
            quad->arg1->value.id_value->var_type == strtype) ||
           quad->arg1->type == str_arg) {
-
         switch_type = 0;
 
         reg1 = find_free_reg();
@@ -1233,7 +1247,6 @@ void generate_asm(FILE *out) {
       } else if ((quad->arg1->type == id_arg &&
                   quad->arg1->value.id_value->var_type == inttype) ||
                  quad->arg1->type == int_arg) {
-
         switch_type = 1;
 
         reg1 = find_free_reg();
@@ -1255,15 +1268,14 @@ void generate_asm(FILE *out) {
 
     case case_set_name:
 
-      astack_push_text(stack, asblock, "\n_instr%d:", jmp_count);
-      jmp_count++;
-
       reg1 = find_free_reg();
       reg2 = find_free_reg();
       reg3 = find_free_reg();
       reg4 = find_free_reg();
 
       for (j = 0; j < (size_t)quad->arg1->value.filters->size; j++) {
+        astack_push_text(stack, asblock, "\n_instr%d:", jmp_count);
+        jmp_count++;
 
         if (strcmp(quad->arg1->value.filters->array_string[j], "*") == 0) {
           astack_push_text(stack, asblock, "lw %s, default%d", reg_name(reg1),
@@ -1351,7 +1363,6 @@ void generate_asm(FILE *out) {
 
       // make echo instruction according to the type of the arguments
       for (j = 0; j < vec_size(quad->subarray); j++) {
-
         if ((quadarg1 = vec_get(quad->subarray, j)) == NULL)
           panic("quadarg1 is NULL");
         if (j != vec_size(quad->subarray) - 1) {
@@ -1497,10 +1508,6 @@ void generate_asm(FILE *out) {
         }
       }
 
-      // to have this, we need to have the vector save with str, int, id etc
-      // save the return value
-      // astack_push_text(stack, asblock, "move $t9, %s", reg_name(reg_ops));
-
       free_reg(reg_ops);
 
       break;
@@ -1560,6 +1567,7 @@ void generate_asm(FILE *out) {
       node = quad->arg1->value.id_value;
       if (node->var_addr == 0) {
         if (quad->arg2->type == int_arg) {
+
           astack_push_data(stack, "%s: .word 0", node->name);
           node->var_type = inttype;
           node->var_addr = 1;
@@ -1577,13 +1585,11 @@ void generate_asm(FILE *out) {
 
       // assign value
       if (quad->arg2->type == int_arg) {
-
         astack_push_text(stack, asblock, "sw %s, %s",
                          reg_name(quad->arg2->reg_arg), node->name);
         free_reg(quad->arg2->reg_arg);
 
       } else if (quad->arg2->type == str_arg) {
-
         reg1 = find_free_reg();
         reg2 = find_free_reg();
         reg3 = find_free_reg();
@@ -1622,7 +1628,6 @@ void generate_asm(FILE *out) {
         free_reg(quad->arg2->reg_arg);
 
       } else if (quad->arg2->type == id_arg) {
-
         astack_push_text(stack, asblock, "lw %s, %s",
                          reg_name(quad->arg2->reg_arg),
                          quad->arg2->value.id_value->name);
@@ -1722,6 +1727,8 @@ void generate_asm(FILE *out) {
                        quad->arg1->value.id_value->name);
       astack_push_text(stack, asblock, "%s:", quad->arg1->value.id_value->name);
 
+      astack_push_text(stack, asblock, "addi $sp, $sp, -4");
+
       // write the prologue
       astack_push_text(stack, asblock, "sw $ra, 0($sp)");
 
@@ -1745,6 +1752,7 @@ void generate_asm(FILE *out) {
 
       // jmp to the end of the function
       astack_push_text(stack, asblock, "lw $ra, 0($sp)");
+      astack_push_text(stack, asblock, "addi $sp, $sp, 4");
       astack_push_text(stack, asblock, "jr $ra");
 
       break;
@@ -1759,6 +1767,7 @@ void generate_asm(FILE *out) {
                        reg_name(quad->arg1->reg_arg));
 
       astack_push_text(stack, asblock, "lw $ra, 0($sp)");
+      astack_push_text(stack, asblock, "addi $sp, $sp, 4");
       astack_push_text(stack, asblock, "jr $ra");
 
       break;
@@ -1769,13 +1778,13 @@ void generate_asm(FILE *out) {
       reg1 = find_free_reg();
       astack_push_text(stack, asblock, "li %s, %zu", reg_name(reg1),
                        vec_size(quad->subarray) - 1);
-      astack_push_text(stack, asblock, "sw %s, 4($sp)", reg_name(reg1));
+      astack_push_text(stack, asblock, "sw %s, 0($sp)", reg_name(reg1));
       // load the arguments in the stack
       for (j = 0; j < vec_size(quad->subarray) - 1; j++) {
         astack_push_text(stack, asblock, "lw %s, %zu(%s)", reg_name(reg1),
                          j * 4, reg_name(reg_ops));
         astack_push_text(stack, asblock, "sw %s, %zu($sp)", reg_name(reg1),
-                         (j + 2) * 4);
+                         (j + 1) * 4);
       }
       free_reg(reg1);
 

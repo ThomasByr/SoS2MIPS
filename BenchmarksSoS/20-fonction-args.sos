@@ -1,7 +1,7 @@
 
 fact () { 
-    p = 1 ;
-    i = 2 ;
+    local p = 1 ;
+    local i = 2 ;
     while test ${i} le $1
     do
         p = $(expr ${p} * ${i}) ;
@@ -11,4 +11,5 @@ fact () {
     return 1
 } ;
 k = $(fact 5);
+/*$(fact 5) makes a sbrk, that removes the sbrk of the echo*/
 echo ${k}  "= 120\n"
