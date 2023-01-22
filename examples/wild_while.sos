@@ -1,0 +1,12 @@
+i = 0;
+k = 0;
+while test ${i} lt 3 do
+    while test ${k} lt 3 do
+        if test 1 eq 1 then
+            echo "yes\n"
+        fi;
+        k = $(expr ${k} + 1) 
+    done;
+    i= $(expr ${i} + 1)
+done;
+exit

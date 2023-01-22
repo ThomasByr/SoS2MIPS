@@ -1,0 +1,13 @@
+
+x = 17 ;
+while test ${x} ne 1
+do
+    if test $(expr ${x} % 2) eq 0
+    then
+        x = $(expr ${x} / 2)
+    else
+        x = $(expr ${x} * 3 + 1)
+    fi
+done ;
+exit 0
+

@@ -1,0 +1,9 @@
+for i in 1 2 3 4 5 
+do
+    case ${i} in
+        1|2|3) echo ${i} "\n" ;;
+        4|5) echo ${i} "\n" ;;
+        *) echo "end\n";;
+    esac
+done
+

@@ -1,0 +1,30 @@
+
+declare tab [10] ;
+for i in 0 1 2 3 4 5 6 7 8 9
+do
+    tab[${i}] = ${i}
+done ;
+
+search () { 
+    i=0 ;
+    while test ${i} lt 10
+    do
+        if test ${tab[${i}]} eq $1
+        then
+            echo ${i} "\n";
+            return 0
+        fi;
+        i = $(expr ${i} + 1)
+    done ;
+    return 1
+} ;
+
+x = $(search 7) ;
+
+if test $? eq 0
+then
+    echo "yes at" ${x}
+else
+    echo "no"
+fi
+

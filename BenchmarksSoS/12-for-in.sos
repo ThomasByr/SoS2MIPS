@@ -1,0 +1,10 @@
+
+declare tab [6] ;
+s = 0 ;
+for i in 0 1 2 3 4 5
+do
+    tab[${i}] = ${i} ;
+    s = $(expr ${s} + ${tab[${i}]})
+done ;
+echo ${s} "=15"
+

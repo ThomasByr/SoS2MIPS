@@ -1,0 +1,8 @@
+if test n "abc" then
+	if test 1 eq 1 then
+	echo "yes"
+	fi
+else 
+	echo "no"
+fi;
+exit
