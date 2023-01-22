@@ -1,0 +1,8 @@
+myfunc(){
+    return
+};
+myfunc2(){
+    myfunc;
+    return 
+};
+myfunc2 1 2

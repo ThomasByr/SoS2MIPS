@@ -12,10 +12,8 @@
   extern void yyerror(const char *s);
   extern vec_t quad_array;
   extern struct symtable *id_name_table;
-  struct filter_s {
-    int size;
-    char **array_string;
-  };
+
+  char *buf;
 %}
 
 %union {
@@ -24,6 +22,7 @@
   char *string;
   struct quad *quad;
   struct vec_s *quadarg_array;
+  struct cases_s *cases_t;
   struct filter_s *filter_t;
 }
 
@@ -64,7 +63,6 @@
 %type <quad> instructions
 %type <quad> instruction
 %type <quad> maybe_else
-%type <quad> cases
 %type <filter_t> filter
 %type <quadarg_array> ops
 %type <quad> concat
@@ -109,21 +107,22 @@ instruction
 { $$ = quad_new_from_quadarg(lineNumber, assn_array_instr_op, quadarg_new_id($1), $3->arg3, $6->arg3); }
 | declare ID '[' integer ']'
 { $$ = quad_new_from_quadarg(lineNumber, declare_array_instr_op, quadarg_new_id($2), quadarg_new_int($4), NULL); }
-| IF testing THEN instructions maybe_else instructions FI
-{ if ($5 == NULL)
-    $$ = quad_new_from_quadarg(lineNumber, if_instr_op, $2->arg3, NULL, NULL); 
-  else 
-    $$ = quad_new_from_quadarg(lineNumber, if_instr_op, $2->arg3, $5->arg3, NULL); }
+| IF { quad_new_from_quadarg(lineNumber, if_init_op, NULL, NULL, NULL); } testing THEN 
+{ quad_new_from_quadarg(lineNumber, if_op, NULL, NULL, NULL); } instructions maybe_else instructions FI
+{ if ($7 == NULL)
+    $$ = quad_new_from_quadarg(lineNumber, if_instr_op, NULL, NULL, NULL); 
+  else if ($7 == ELSE_OP)
+    $$ = quad_new_from_quadarg(lineNumber, if_instr_op, ELSE_OP, NULL, NULL); }
 | FOR ID { quad_new_from_quadarg(lineNumber, for_init_op, quadarg_new_id($2), NULL, NULL); } IN 
 { quad_new_from_quadarg(lineNumber, ops_init_op, NULL, NULL, NULL); } ops { quadarg_array_add($6, quadarg_new_id($2));
   quad_new_from_vec(lineNumber, for_assn_op, $6); } DO instructions DONE
 { $$ = quad_new_from_vec(lineNumber, for_instr_op, $6);}
 | WHILE {quad_new_from_quadarg(lineNumber, while_init_op, NULL, NULL, NULL); } testing DO instructions DONE
 { $$ = quad_new_from_quadarg(lineNumber, while_instr_op, NULL, NULL, NULL); }
-| UNTIL testing DO instructions DONE
-{ $$ = quad_new_from_quadarg(lineNumber, until_instr_op, $2->arg3, $4->arg3, NULL); }
-| CASE op IN cases ESAC
-{ $$ = quad_new_from_quadarg(lineNumber, case_instr_op, $2->arg3, $4->arg3, NULL); }
+| UNTIL {quad_new_from_quadarg(lineNumber, until_init_op, NULL, NULL, NULL); } testing DO instructions DONE
+{ $$ = quad_new_from_quadarg(lineNumber, until_instr_op, $3->arg3, NULL, NULL); }
+| CASE op { quad_new_from_quadarg(lineNumber, case_init_op, $2->arg3, NULL, NULL); } IN cases ESAC
+{ $$ = quad_new_from_quadarg(lineNumber, case_instr_op, NULL, NULL, NULL); }
 | EKKO { quad_new_from_quadarg(lineNumber, ops_init_op, NULL, NULL, NULL); } ops
 { $$ = quad_new_from_vec(lineNumber, echo_instr_op, $3); }
 | READ  ID 
@@ -145,54 +144,56 @@ instruction
 ;
 
 maybe_else
-: ELIF testing THEN instructions maybe_else
-{ struct quad *marker = quad_new_from_quadarg(lineNumber, testing_op, $2->arg3, $4->arg3, quadarg_new_reg());
-  $$ = quad_new_from_quadarg(lineNumber, elif_op, marker->arg3, $4->arg3, quadarg_new_reg()); }
+: ELIF  { quad_new_from_quadarg(lineNumber, elif_init_op, NULL, NULL, NULL); }  testing THEN 
+{ quad_new_from_quadarg(lineNumber, elif_op, NULL, NULL, NULL); } instructions maybe_else
+{ if ($7 == NULL)
+    $$ = quad_new_from_quadarg(lineNumber, elif_instr_op, NULL, NULL, NULL); 
+  else if ($7 == ELSE_OP)
+    $$ = quad_new_from_quadarg(lineNumber, elif_instr_op, ELSE_OP, NULL, NULL); }
 | ELSE { quad_new_from_quadarg(lineNumber, else_op, NULL, NULL, quadarg_new_reg()); } instructions
-{ $$ = quad_new_from_quadarg(lineNumber, else_end_op, NULL, NULL, NULL); }
+{ $$ = (struct quad *)ELSE_OP; }
 | %empty
 { $$ = NULL; }
 ;
 
 cases
-: cases filter 
-{ $2 = calloc(1, sizeof(struct filter_s));
-  $2->array_string = malloc(sizeof(char *)); 
-  $2->size = 0; } 
-  ')' instructions ';' ';'
-{ struct quad *marker = quad_new_from_quadarg(lineNumber, filter_instr, quadarg_new_array_str($2->array_string), $5->arg3, quadarg_new_reg()); 
-  $$ = quad_new_from_quadarg(lineNumber, cases_op, $1->arg3, marker->arg3, quadarg_new_reg()); }
-| filter ')' instructions ';' ';'
-{ $$ = quad_new_from_quadarg(lineNumber, filter_instr, quadarg_new_array_str($1->array_string), $3->arg3, quadarg_new_reg()); }
+: cases filter { quad_new_from_quadarg(lineNumber, case_set_name, quadarg_new_filters($2), NULL, NULL); }
+')' instructions ';' ';'
+| filter ')' { quad_new_from_quadarg(lineNumber, case_set_name, quadarg_new_filters($1), NULL, NULL); } instructions ';' ';'
 ;
 
 filter
-: word 
-{ $$->array_string[$$->size] = strdup($1);
+: string 
+{ $$ = calloc(1, sizeof(struct filter_s));
+  $$->array_string = malloc(sizeof(char *)); 
+  $$->size = 0; 
+  $$->array_string[$$->size] = strdup($1);
   $$->size++; }
-| '"' string '"'
-{ $$->array_string[$$->size] = strdup($2);
+| integer 
+{ $$ = calloc(1, sizeof(struct filter_s));
+  $$->array_string = malloc(sizeof(char *)); 
+  $$->size = 0; 
+  buf = malloc(9);
+  sprintf(buf, "%d", $1);
+  $$->array_string[$$->size] = strdup(buf);
   $$->size++; }
-| '\'' string '\''
-{ $$->array_string[$$->size] = strdup($2);
-  $$->size++; }
-| filter '|' word
+| filter '|' string 
 { $$ = $1;
   $$->array_string = realloc($$->array_string, sizeof(char *) * ($$->size + 1));
   $$->array_string[$$->size] = strdup($3);
   $$->size++; }
-| filter '|' '"' string '"'
+| filter '|' integer 
 { $$ = $1;
   $$->array_string = realloc($$->array_string, sizeof(char *) * ($$->size + 1));
-  $$->array_string[$$->size] = strdup($4);
-  $$->size++; }
-| filter '|' '\'' string '\''
-{ $$ = $1;
-  $$->array_string = realloc($$->array_string, sizeof(char *) * ($$->size + 1));
-  $$->array_string[$$->size] = strdup($4);
+  buf = malloc(9);
+  sprintf(buf, "%d", $3);
+  $$->array_string[$$->size] = strdup(buf);
   $$->size++; }
 | '*'
-{ $$->array_string[$$->size] = "*"; 
+{ $$ = calloc(1, sizeof(struct filter_s));
+  $$->array_string = malloc(sizeof(char *)); 
+  $$->size = 0; 
+  $$->array_string[$$->size] = "*";
   $$->size++; }
 ;
 
@@ -377,9 +378,9 @@ dfun
 
 declarations
 : declarations local ID '=' concat ';'
-{ $$ = quad_new_from_quadarg(lineNumber, local_decl_op, $1->arg3, quadarg_new_id($3), $5->arg3); }
+{ $$ = quad_new_from_quadarg(lineNumber, assn_instr_op, quadarg_new_id($3), $5->arg3, NULL); }
 | %empty
-{ $$ = quad_new_from_quadarg(lineNumber, decl_op, NULL, NULL, quadarg_new_reg()); }
+{ $$ = NULL; }
 ;
 
 cfun

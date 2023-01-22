@@ -1,0 +1,20 @@
+
+if test 17 gt 42 o 17 le 42
+then
+    echo "yes"
+else
+    echo "no"
+fi ;
+if test 17 lt 42 a 42 ge 17
+then
+    echo "yes"
+else
+    echo "no"
+fi ;
+if test 17 ge 42 o 17 le 42 a 42 ge 17
+then
+    echo "yes"
+else
+    echo "no"
+fi
+

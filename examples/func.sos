@@ -1,6 +1,12 @@
-myfunc(){
-  return 22
+recursive() {
+    if test $1 eq 0 then
+        echo 1
+    else
+        local i = $(expr $1 - 1);
+        echo $1 "\n";
+        recursive ${i}
+    fi;
+    return 0
 };
 
-echo $(myfunc);
-exit
+recursive 5

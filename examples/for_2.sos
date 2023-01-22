@@ -1,6 +1,9 @@
-declare tab[10];
-for i in ${tab[*]}
+for i in 1 2 
 do 
-    echo "top\n"
+    for k in 1 2  do
+    if test 1 eq 1 then
+            echo "top\n"
+    fi
+    done 
 done;
 exit

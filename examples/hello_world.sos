@@ -1,2 +1,3 @@
-echo "Hello World in SOS !\n";
+id = "world";
+echo "Hello" ${id} "in SOS !\n";
 exit

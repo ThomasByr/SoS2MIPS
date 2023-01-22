@@ -11,6 +11,7 @@ enum vartype {
   no_type,
   inttype,
   doubletype,
+  strtype,
   arrayinttype,
   voidtype,
 };
@@ -41,9 +42,8 @@ struct symnode {
   int var_size;          // size of a variable or return type of a function
                          // (irrelevant for the string table)
 
-  int var_addr;      // assembly index for functions
-                     // irrelevant for string constants
-  enum reg reg_temp; // register for the result of assignment
+  int var_addr; // assembly index for functions
+                // irrelevant for string constants
 
   enum nodetype node_type; // the thing that the identifier identifies
                            // (irrelevant for the string table)

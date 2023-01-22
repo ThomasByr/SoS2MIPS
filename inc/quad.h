@@ -7,16 +7,12 @@
 enum quadop {
   // assignation operations
   assn_int_to_var_op,
-  assn_float_to_var_op,
-  assn_float_from_arraysub_op,
   assn_string_to_var_op,
   assn_arg_to_var_op,
   assn_id_to_var_op,
   assn_all_arg_to_var_op,
   assn_status_to_var_op,
   assn_expr_value_to_var_op,
-  assn_elem_array_to_var_op,
-  assn_array_to_var_ops,
   assn_cfun_to_var_op,
   // arithmetic operations
   plus_op,
@@ -37,33 +33,34 @@ enum quadop {
   and_op,
   or_op,
   test_op,
-  test_while_op,
   // condition operations
-  testing_op,
+  if_init_op,
+  elif_init_op,
+  while_init_op,
+  until_init_op,
+  if_op,
   elif_op,
   else_op,
-  else_end_op,
-  empty_op,
-  filter_instr,
+  filter_op,
+  case_set_name,
+  case_attribute_name,
   cases_op,
   // instruction operations
   concat_op,
   ops_init_op,
   ops_add_op,
-  ops_first_op,
   ops_array_op,
   assn_instr_op,
   assn_array_instr_op,
   declare_array_instr_op,
-  test_instr_op,
-  maybe_else_instr_op,
   if_instr_op,
+  elif_instr_op,
   for_init_op,
   for_assn_op,
   for_instr_op,
-  while_init_op,
   while_instr_op,
   until_instr_op,
+  case_init_op,
   case_instr_op,
   echo_instr_op,
   read_instr_op,
@@ -74,7 +71,6 @@ enum quadop {
   exit_int_op,
   instr_op,
   // function operations
-  cont_func_op,
   dfun_init_op,
   dfun_op,
   local_decl_op,
@@ -86,11 +82,10 @@ enum quadop {
 enum quadargtype {
   no_arg_type,
   int_arg,
-  dbl_arg,
   str_arg,
-  array_str_arg,
   int_array_arg,
   id_arg,
+  filter_arg,
   quad_arg,
 };
 
@@ -104,7 +99,7 @@ struct quadarg {
     int int_value;
     double dbl_value;
     char *str_value;
-    char **array_str_value;
+    struct filter_s *filters;
     struct symnode *id_value;
   } value;
   enum quadargtype type;
@@ -168,7 +163,7 @@ struct quadarg *quadarg_new_int(int value);
 struct quadarg *quadarg_new_dbl(double value);
 struct quadarg *quadarg_new_id(char *value);
 struct quadarg *quadarg_new_str(char *value);
-struct quadarg *quadarg_new_array_str(char **value);
+struct quadarg *quadarg_new_filters(struct filter_s *value);
 struct quadarg *quadarg_new_reg(void);
 
 /**

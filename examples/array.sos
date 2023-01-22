@@ -3,10 +3,6 @@ array[5]=42;
 array[2]=3;
 array[9]=9;
 
-echo "\nArray[9] = " ${array[9]};
-echo "\nArray[2] = " ${array[2]};
-echo "\nArray[5] = " ${array[5]};
-
 echo "\n";
 echo "Array[:] = ";
 echo "\n\t";
@@ -30,7 +26,5 @@ echo ${array[*]};
 echo "\nArray[9] = " ${array[9]};
 echo "\nArray[2] = " ${array[2]};
 echo "\nArray[5] = " ${array[5]};
-
-
 
 exit

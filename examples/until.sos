@@ -1,0 +1,6 @@
+i=1;
+until test ${i} gt 5 do
+    echo ${i} "\n";
+    i=$(expr ${i} + 1)
+done;
+exit

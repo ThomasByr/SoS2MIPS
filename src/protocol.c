@@ -63,21 +63,6 @@ enum reg find_free_reg(void) {
   panic("no free registers");
 }
 
-/**
- * @brief function to free a temporary register
- *
- * @param reg
- */
-// void free_reg(enum reg reg) {
-//   if (reg < reg_t0 || reg > reg_t7) {
-//     panic("trying to free a non-temporary register");
-//   }
-//   if (!reg_use[reg]) {
-//     panic("trying to free an already free register");
-//   }
-//   reg_use[reg] = false;
-// }
-
 #define free_reg(reg)                                                       \
   do {                                                                      \
     if (reg < reg_t0 || reg > reg_t7) {                                     \
@@ -113,16 +98,27 @@ void generate_asm(FILE *out) {
   struct quadarg *quadarg1, *quadarg2;
   struct symnode *node;
 
-  char *buf, *jmp_name_if, *jmp_name_else, *jmp_name_next, *jmp_name_previous;
+  char *buf, *jmp_name_if, *jmp_name_else, *jmp_name_next;
   int msg_count = 0, msg_print = 0, jmp_count = 0, ops_count = 0, ops_print = 0,
-      ops_size = 0, error_count = 1, fct_count = 0;
+      ops_size = 0, error_count = 1, fct_count = 0, case_count = 0,
+      switch_count = 0, switch_in_case_count = 0, intoa_count = 0;
+  // for display in mips file
+  int for_count = 0, while_count = 0, until_count = 0, if_count = 0;
 
-  enum reg reg1, reg2, reg3,
-      reg_ops = reg_t8, // note : reg_t8 is used for ops in the case if all
+  enum loop_type current_loop = none;
+  int switch_type = 0;
+
+  enum reg reg1, reg2, reg3, reg4,
+      reg_ops = reg_a0, // note : reg_a0 is used for ops in the case if all
                         // other reg are used
       reg_index_for = reg_s0; // note : reg_s"i" is used for index in for loop
 
-  int index_alloc_count = 0;
+  // overlap for "for" and "case"
+  int index_for_count = 0, index_case_count = 0;
+
+  vec_t stack_while = vec_new(), stack_if = vec_new(), stack_for = vec_new(),
+        stack_until = vec_new();
+  // stack_switch = vec_new();
 
 #define asblock ((const char *)vec_last(blocks)) // current block
 #define sbrk_size 0x100                          // 256 bytes
@@ -150,6 +146,8 @@ void generate_asm(FILE *out) {
       quad->arg3->reg_arg = find_free_reg();
       astack_push_data(stack, "msg%d: .asciiz \"%s\"", msg_count,
                        quad->arg1->value.str_value);
+      astack_push_text(stack, asblock, "la %s, msg%d",
+                       reg_name(quad->arg3->reg_arg), msg_count);
 
       msg_count++;
 
@@ -159,8 +157,8 @@ void generate_asm(FILE *out) {
 
       if (quad->arg2 == NULL) {
 
-        quad->arg1->value.id_value->var_type = inttype;
         quad->arg3->type = id_arg;
+        quad->arg3->value.id_value = quad->arg1->value.id_value;
         quad->arg3->reg_arg = find_free_reg();
         node = quad->arg1->value.id_value;
 
@@ -168,8 +166,15 @@ void generate_asm(FILE *out) {
           panic("variable not declared");
         }
 
-        astack_push_text(stack, asblock, "lw %s, %s",
-                         reg_name(quad->arg3->reg_arg), node->name);
+        if (node->var_type == inttype) {
+          astack_push_text(stack, asblock, "lw %s, %s",
+                           reg_name(quad->arg3->reg_arg), node->name);
+        } else if (node->var_type == strtype) {
+          astack_push_text(stack, asblock, "la %s, %s",
+                           reg_name(quad->arg3->reg_arg), node->name);
+        } else {
+          panic("unknown type");
+        }
       } else {
 
         // check if the index is less than the size of the array
@@ -182,7 +187,6 @@ void generate_asm(FILE *out) {
                          reg_name(quad->arg2->reg_arg), reg_name(reg1),
                          "_error");
         free_reg(reg1);
-        free_reg(quad->arg2->reg_arg);
 
         // setup the error message
         astack_push_data(
@@ -193,8 +197,8 @@ void generate_asm(FILE *out) {
 
         // assign the value in the id given by quad->arg1 at the index given by
         // quad->arg2
-        quad->arg1->value.id_value->var_type = arrayinttype;
-        quad->arg3->type = int_array_arg;
+        quad->arg1->value.id_value->var_type = inttype;
+        quad->arg3->type = int_arg;
         quad->arg3->reg_arg = find_free_reg();
         astack_push_text(stack, asblock, "mul %s, %s, 4",
                          reg_name(quad->arg2->reg_arg),
@@ -202,24 +206,13 @@ void generate_asm(FILE *out) {
         astack_push_text(
             stack, asblock, "lw %s, %s(%s)", reg_name(quad->arg3->reg_arg),
             quad->arg1->value.id_value->name, reg_name(quad->arg2->reg_arg));
+
+        free_reg(quad->arg2->reg_arg);
       }
-      break;
-
-    case assn_expr_value_to_var_op:
-
-      quad->arg3->type = int_arg;
-      quad->arg3->reg_arg = quad->arg1->reg_arg;
 
       break;
 
     case assn_arg_to_var_op:
-
-      // astack_push_text(stack, asblock, "beqz $t9, _error");
-      // astack_push_data(
-      //     stack,
-      //     "error_msg%d: .asciiz \"$i used outside of a function
-      //     (sos:%d)\\n\"", error_count, quad->lineno);
-      // error_count++;
 
       // get the argument from the stack
       quad->arg3->type = int_arg;
@@ -231,24 +224,13 @@ void generate_asm(FILE *out) {
 
       break;
 
-    case assn_all_arg_to_var_op:
-
-      // astack_push_text(stack, asblock, "beqz $t9, _error");
-      // astack_push_data(
-      //     stack,
-      //     "error_msg%d: .asciiz \"$i used outside of a function
-      //     (sos:%d)\\n\"", error_count, quad->lineno);
-      // error_count++;
-
-      break;
-
     case assn_status_to_var_op:
 
-      // get the return from a function store in $v1
+      // get the return from a function store in $t9
       quad->arg3->type = int_arg;
       quad->arg3->reg_arg = find_free_reg();
 
-      astack_push_text(stack, asblock, "move %s, $v1",
+      astack_push_text(stack, asblock, "move %s, $t8",
                        reg_name(quad->arg3->reg_arg));
 
       break;
@@ -264,11 +246,25 @@ void generate_asm(FILE *out) {
 
       break;
 
+    case assn_expr_value_to_var_op:
+
+      quad->arg3->type = int_arg;
+      quad->arg3->reg_arg = quad->arg1->reg_arg;
+
+      break;
+
     case plus_op:
 
       // sum int rule
-      if (quad->arg1->type != str_arg && quad->arg2->type != str_arg) {
+      if ((quad->arg1->type == int_arg ||
+           (quad->arg1->type == id_arg &&
+            quad->arg1->value.id_value->var_type == inttype)) &&
+          (quad->arg2->type == int_arg ||
+           (quad->arg2->type == id_arg &&
+            quad->arg2->value.id_value->var_type == inttype))) {
+
         quad->arg3->reg_arg = find_free_reg();
+        quad->arg3->type = int_arg;
         astack_push_text(
             stack, asblock, "add %s, %s, %s", reg_name(quad->arg3->reg_arg),
             reg_name(quad->arg1->reg_arg), reg_name(quad->arg2->reg_arg));
@@ -278,8 +274,13 @@ void generate_asm(FILE *out) {
       }
 
       // plus_minus integer rule
-      else if (quad->arg1->type == int_arg && quad->arg2 == NULL) {
+      else if ((quad->arg1->type == int_arg ||
+                (quad->arg1->type == id_arg &&
+                 quad->arg1->value.id_value->var_type == inttype)) &&
+               quad->arg2 == NULL) {
+
         quad->arg3->reg_arg = find_free_reg();
+        quad->arg3->type = int_arg;
         astack_push_text(stack, asblock, "li %s, %d",
                          reg_name(quad->arg3->reg_arg),
                          quad->arg1->value.int_value);
@@ -302,8 +303,15 @@ void generate_asm(FILE *out) {
     case minus_op:
 
       // sum int rule
-      if (quad->arg1->type != str_arg && quad->arg2->type != str_arg) {
+      if ((quad->arg1->type == int_arg ||
+           (quad->arg1->type == id_arg &&
+            quad->arg1->value.id_value->var_type == inttype)) &&
+          (quad->arg2->type == int_arg ||
+           (quad->arg2->type == id_arg &&
+            quad->arg2->value.id_value->var_type == inttype))) {
+
         quad->arg3->reg_arg = find_free_reg();
+        quad->arg3->type = int_arg;
         astack_push_text(
             stack, asblock, "sub %s, %s, %s", reg_name(quad->arg3->reg_arg),
             reg_name(quad->arg1->reg_arg), reg_name(quad->arg2->reg_arg));
@@ -314,7 +322,9 @@ void generate_asm(FILE *out) {
 
       // plus_minus integer rule
       else if (quad->arg1->type == int_arg && quad->arg2 == NULL) {
+
         quad->arg3->reg_arg = find_free_reg();
+        quad->arg3->type = int_arg;
         astack_push_text(stack, asblock, "li %s, %d",
                          reg_name(quad->arg3->reg_arg),
                          quad->arg1->value.int_value);
@@ -337,8 +347,15 @@ void generate_asm(FILE *out) {
     case mult_op:
 
       // prod int rule
-      if (quad->arg1->type != str_arg && quad->arg2->type != str_arg) {
+      if ((quad->arg1->type == int_arg ||
+           (quad->arg1->type == id_arg &&
+            quad->arg1->value.id_value->var_type == inttype)) &&
+          (quad->arg2->type == int_arg ||
+           (quad->arg2->type == id_arg &&
+            quad->arg2->value.id_value->var_type == inttype))) {
+
         quad->arg3->reg_arg = find_free_reg();
+        quad->arg3->type = int_arg;
         astack_push_text(
             stack, asblock, "mul %s, %s, %s", reg_name(quad->arg3->reg_arg),
             reg_name(quad->arg1->reg_arg), reg_name(quad->arg2->reg_arg));
@@ -352,8 +369,15 @@ void generate_asm(FILE *out) {
     case div_op:
 
       // prod int rule
-      if (quad->arg1->type != str_arg && quad->arg2->type != str_arg) {
+      if ((quad->arg1->type == int_arg ||
+           (quad->arg1->type == id_arg &&
+            quad->arg1->value.id_value->var_type == inttype)) &&
+          (quad->arg2->type == int_arg ||
+           (quad->arg2->type == id_arg &&
+            quad->arg2->value.id_value->var_type == inttype))) {
+
         quad->arg3->reg_arg = find_free_reg();
+        quad->arg3->type = int_arg;
         astack_push_text(
             stack, asblock, "div %s, %s, %s", reg_name(quad->arg3->reg_arg),
             reg_name(quad->arg1->reg_arg), reg_name(quad->arg2->reg_arg));
@@ -367,12 +391,19 @@ void generate_asm(FILE *out) {
     case mod_op:
 
       // prod int rule
-      if (quad->arg1->type != str_arg && quad->arg2->type != str_arg) {
+      if ((quad->arg1->type == int_arg ||
+           (quad->arg1->type == id_arg &&
+            quad->arg1->value.id_value->var_type == inttype)) &&
+          (quad->arg2->type == int_arg ||
+           (quad->arg2->type == id_arg &&
+            quad->arg2->value.id_value->var_type == inttype))) {
+
         astack_push_text(stack, asblock, "div %s, %s",
                          reg_name(quad->arg1->reg_arg),
                          reg_name(quad->arg2->reg_arg));
 
         quad->arg3->reg_arg = find_free_reg();
+        quad->arg3->type = int_arg;
         astack_push_text(stack, asblock, "mfhi %s",
                          reg_name(quad->arg3->reg_arg));
 
@@ -384,7 +415,13 @@ void generate_asm(FILE *out) {
 
     case eq_op:
 
-      if (quad->arg1->type != str_arg && quad->arg2->type != str_arg) {
+      if ((quad->arg1->type == int_arg ||
+           (quad->arg1->type == id_arg &&
+            quad->arg1->value.id_value->var_type == inttype)) &&
+          (quad->arg2->type == int_arg ||
+           (quad->arg2->type == id_arg &&
+            quad->arg2->value.id_value->var_type == inttype))) {
+
         quad->arg3->reg_arg = find_free_reg();
 
         astack_push_text(
@@ -399,7 +436,13 @@ void generate_asm(FILE *out) {
 
     case neq_op:
 
-      if (quad->arg1->type != str_arg && quad->arg2->type != str_arg) {
+      if ((quad->arg1->type == int_arg ||
+           (quad->arg1->type == id_arg &&
+            quad->arg1->value.id_value->var_type == inttype)) &&
+          (quad->arg2->type == int_arg ||
+           (quad->arg2->type == id_arg &&
+            quad->arg2->value.id_value->var_type == inttype))) {
+
         quad->arg3->reg_arg = find_free_reg();
 
         astack_push_text(
@@ -414,7 +457,13 @@ void generate_asm(FILE *out) {
 
     case lt_op:
 
-      if (quad->arg1->type != str_arg && quad->arg2->type != str_arg) {
+      if ((quad->arg1->type == int_arg ||
+           (quad->arg1->type == id_arg &&
+            quad->arg1->value.id_value->var_type == inttype)) &&
+          (quad->arg2->type == int_arg ||
+           (quad->arg2->type == id_arg &&
+            quad->arg2->value.id_value->var_type == inttype))) {
+
         quad->arg3->reg_arg = find_free_reg();
 
         astack_push_text(
@@ -429,7 +478,13 @@ void generate_asm(FILE *out) {
 
     case gt_op:
 
-      if (quad->arg1->type != str_arg && quad->arg2->type != str_arg) {
+      if ((quad->arg1->type == int_arg ||
+           (quad->arg1->type == id_arg &&
+            quad->arg1->value.id_value->var_type == inttype)) &&
+          (quad->arg2->type == int_arg ||
+           (quad->arg2->type == id_arg &&
+            quad->arg2->value.id_value->var_type == inttype))) {
+
         quad->arg3->reg_arg = find_free_reg();
 
         astack_push_text(
@@ -444,7 +499,13 @@ void generate_asm(FILE *out) {
 
     case le_op:
 
-      if (quad->arg1->type != str_arg && quad->arg2->type != str_arg) {
+      if ((quad->arg1->type == int_arg ||
+           (quad->arg1->type == id_arg &&
+            quad->arg1->value.id_value->var_type == inttype)) &&
+          (quad->arg2->type == int_arg ||
+           (quad->arg2->type == id_arg &&
+            quad->arg2->value.id_value->var_type == inttype))) {
+
         quad->arg3->reg_arg = find_free_reg();
 
         astack_push_text(
@@ -459,7 +520,13 @@ void generate_asm(FILE *out) {
 
     case ge_op:
 
-      if (quad->arg1->type != str_arg && quad->arg2->type != str_arg) {
+      if ((quad->arg1->type == int_arg ||
+           (quad->arg1->type == id_arg &&
+            quad->arg1->value.id_value->var_type == inttype)) &&
+          (quad->arg2->type == int_arg ||
+           (quad->arg2->type == id_arg &&
+            quad->arg2->value.id_value->var_type == inttype))) {
+
         quad->arg3->reg_arg = find_free_reg();
 
         astack_push_text(
@@ -507,51 +574,456 @@ void generate_asm(FILE *out) {
 
       break;
 
+    case null_op:
+
+      if (quad->arg1->type != str_arg && quad->arg1->type != id_arg &&
+          (quad->arg1->type == id_arg &&
+           quad->arg1->value.id_value->var_type != strtype)) {
+        panic("nnull_op: arg1 is not a string");
+      }
+
+      reg1 = find_free_reg();
+      reg2 = find_free_reg();
+      quad->arg3->reg_arg = find_free_reg();
+
+      // Check if the first byte of the string is null
+      astack_push_text(stack, asblock, "li %s, 0", reg_name(reg1));
+      astack_push_text(stack, asblock, "lb %s, 0(%s)", reg_name(reg2),
+                       reg_name(quad->arg1->reg_arg));
+      astack_push_text(stack, asblock, "seq %s, %s, %s",
+                       reg_name(quad->arg3->reg_arg), reg_name(reg1),
+                       reg_name(reg2));
+
+      msg_print++;
+
+      free_reg(reg1);
+      free_reg(reg2);
+
+      break;
+
+    case nnull_op:
+
+      if (quad->arg1->type != str_arg && quad->arg1->type != id_arg &&
+          (quad->arg1->type == id_arg &&
+           quad->arg1->value.id_value->var_type != strtype)) {
+        panic("nnull_op: arg1 is not a string");
+      }
+
+      reg1 = find_free_reg();
+      reg2 = find_free_reg();
+      quad->arg3->reg_arg = find_free_reg();
+
+      // Check if the first byte of the string is null
+      astack_push_text(stack, asblock, "li %s, 0", reg_name(reg1));
+      astack_push_text(stack, asblock, "lb %s, 0(%s)", reg_name(reg2),
+                       reg_name(quad->arg1->reg_arg));
+      astack_push_text(stack, asblock, "sne %s, %s, %s",
+                       reg_name(quad->arg3->reg_arg), reg_name(reg1),
+                       reg_name(reg2));
+
+      msg_print++;
+
+      free_reg(reg1);
+      free_reg(reg2);
+
+      break;
+
+    case if_init_op:
+
+      current_loop = loop_if;
+
+      if_count++;
+      astack_push_text(stack, asblock, "# if condition %d", if_count);
+
+      break;
+
+    case elif_init_op:
+
+      current_loop = loop_elif;
+
+      jmp_name_else = vec_last(stack_if);
+      vec_pop(stack_if);
+
+      // write jump to next block at the end of if block
+      jmp_name_next = vec_last(stack_if);
+      astack_push_text(stack, asblock, "j %s", jmp_name_next);
+
+      // write else block name that corresponds to else if test block
+      astack_push_text(stack, asblock, "\n%s:", jmp_name_else);
+
+      break;
+
+    case while_init_op:
+
+      current_loop = loop_while;
+
+      while_count++;
+      astack_push_text(stack, asblock, "# while condition %d", while_count);
+
+      // write while block
+      jmp_name_if = malloc(BUFSIZ);
+      snprintf_s(jmp_name_if, BUFSIZ, "_while%d", jmp_count);
+      jmp_count++;
+      astack_push_text(stack, asblock, "%s:", jmp_name_if);
+
+      vec_push(stack_while, jmp_name_if);
+
+      break;
+
+    case until_init_op:
+
+      current_loop = loop_until;
+
+      until_count++;
+      astack_push_text(stack, asblock, "# until condition %d", until_count);
+
+      // write until block
+      jmp_name_if = malloc(BUFSIZ);
+      snprintf_s(jmp_name_if, BUFSIZ, "_until%d", jmp_count);
+      jmp_count++;
+      astack_push_text(stack, asblock, "%s:", jmp_name_if);
+
+      vec_push(stack_until, jmp_name_if);
+
+      break;
+
     case test_op:
 
-      // block for if instruction
-      jmp_name_if = malloc(100);
-      snprintf_s(jmp_name_if, 100, "_instr%d", jmp_count);
-      jmp_count++;
+      if (current_loop == loop_if) {
 
-      // test if the result of test_instr is true
-      astack_push_text(stack, asblock, "beq %s, 1, %s",
-                       reg_name(quad->arg1->reg_arg), jmp_name_if);
-      quad->arg3->reg_arg = quad->arg1->reg_arg;
+        current_loop = none;
 
-      // block for else instruction
-      jmp_name_else = malloc(100);
-      snprintf_s(jmp_name_else, 100, "_instr%d", jmp_count);
-      jmp_count++;
+        // create if, else and next block names
+        jmp_name_if = malloc(BUFSIZ);
+        snprintf_s(jmp_name_if, BUFSIZ, "_instr%d", jmp_count);
+        jmp_count++;
 
-      astack_push_text(stack, asblock, "j %s", jmp_name_else);
+        jmp_name_else = malloc(BUFSIZ);
+        snprintf_s(jmp_name_else, BUFSIZ, "_instr%d", jmp_count);
+        jmp_count++;
 
-      // block for the rest of the program
-      jmp_name_next = malloc(100);
-      snprintf_s(jmp_name_next, 100, "_instr%d", jmp_count);
-      jmp_count++;
+        jmp_name_next = malloc(BUFSIZ);
+        snprintf_s(jmp_name_next, BUFSIZ, "_instr%d", jmp_count);
+        jmp_count++;
 
-      vec_push(blocks, jmp_name_next);
-      vec_push(blocks, jmp_name_else);
-      vec_push(blocks, jmp_name_if);
+        // test if condition is true
+        astack_push_text(stack, asblock, "beq %s, 1, %s",
+                         reg_name(quad->arg1->reg_arg), jmp_name_if);
+        astack_push_text(stack, asblock, "j %s", jmp_name_else);
+
+        // push names to blocks vector
+        vec_push(stack_if, jmp_name_next);
+        vec_push(stack_if, jmp_name_else);
+        vec_push(stack_if, jmp_name_if);
+
+      } else if (current_loop == loop_elif) {
+
+        current_loop = none;
+
+        jmp_name_next = malloc(BUFSIZ);
+        snprintf_s(jmp_name_next, BUFSIZ, "_instr%d", jmp_count);
+        jmp_count++;
+
+        jmp_name_else = malloc(BUFSIZ);
+        snprintf_s(jmp_name_else, BUFSIZ, "_instr%d", jmp_count);
+        jmp_count++;
+
+        // test if condition is true
+        astack_push_text(stack, asblock, "beq %s, 1, %s",
+                         reg_name(quad->arg1->reg_arg), jmp_name_next);
+        astack_push_text(stack, asblock, "j %s", jmp_name_else);
+
+        vec_push(stack_if, jmp_name_else);
+        vec_push(stack_if, jmp_name_next);
+      }
+
+      else if (current_loop == loop_while) {
+
+        current_loop = none;
+
+        jmp_name_next = malloc(BUFSIZ);
+        snprintf_s(jmp_name_next, BUFSIZ, "_instr%d", jmp_count);
+        jmp_count++;
+
+        // test if condition is true
+        astack_push_text(stack, asblock, "beq %s, 0, %s",
+                         reg_name(quad->arg1->reg_arg), jmp_name_next);
+
+        vec_push(stack_while, jmp_name_next);
+      } else if (current_loop == loop_until) {
+
+        current_loop = none;
+
+        jmp_name_next = malloc(BUFSIZ);
+        snprintf_s(jmp_name_next, BUFSIZ, "_instr%d", jmp_count);
+        jmp_count++;
+
+        // test if condition is true
+        astack_push_text(stack, asblock, "beq %s, 1, %s",
+                         reg_name(quad->arg1->reg_arg), jmp_name_next);
+
+        vec_push(stack_until, jmp_name_next);
+      }
+
+      else {
+        panic("test_op: no loop");
+      }
+
+      free_reg(quad->arg1->reg_arg);
+
+      break;
+
+    case if_op:
+
+      // write if block name
+      jmp_name_if = vec_last(stack_if);
+      astack_push_text(stack, asblock, "\n%s:", jmp_name_if);
+      vec_pop(stack_if);
 
       break;
 
     case elif_op:
 
+      // write elif block name
+      jmp_name_else = vec_last(stack_if);
+      astack_push_text(stack, asblock, "\n%s:", jmp_name_else);
+      vec_pop(stack_if);
+
       break;
 
     case else_op:
 
-      jmp_name_next = vec_get(blocks, vec_size(blocks) - 3);
+      jmp_name_else = vec_last(stack_if);
+      vec_pop(stack_if);
+
+      // write jump to next block at the end of if block
+      jmp_name_next = vec_last(stack_if);
       astack_push_text(stack, asblock, "j %s", jmp_name_next);
-      vec_pop(blocks);
+
+      // write else block name
+      astack_push_text(stack, asblock, "\n%s:", jmp_name_else);
+
       break;
 
     case if_instr_op:
 
-      free_reg(quad->arg1->reg_arg);
-      vec_pop(blocks);
+      // write next block name
+      jmp_name_next = vec_last(stack_if);
+      astack_push_text(stack, asblock, "\n%s:", jmp_name_next);
+      if (quad->arg1 != ELSE_OP) vec_pop(stack_if);
+      vec_pop(stack_if);
+
+      break;
+
+    case elif_instr_op:
+
+      // write next block name
+      jmp_name_next = vec_last(stack_if);
+      astack_push_text(stack, asblock, "\n%s:", jmp_name_next);
+      if (quad->arg1 != ELSE_OP) vec_pop(stack_if);
+      vec_pop(stack_if);
+
+      break;
+
+    case while_instr_op:
+
+      // write next block name
+      jmp_name_next = vec_last(stack_while);
+      vec_pop(stack_while);
+
+      // jmp to while block
+      jmp_name_if = vec_last(stack_while);
+      vec_pop(stack_while);
+
+      astack_push_text(stack, asblock, "j %s", jmp_name_if);
+      astack_push_text(stack, asblock, "\n%s:", jmp_name_next);
+
+      break;
+
+    case until_instr_op:
+
+      // write next block name
+      jmp_name_next = vec_last(stack_until);
+      vec_pop(stack_until);
+
+      // jmp to until block
+      jmp_name_if = vec_last(stack_until);
+      vec_pop(stack_until);
+
+      astack_push_text(stack, asblock, "j %s", jmp_name_if);
+      astack_push_text(stack, asblock, "\n%s:", jmp_name_next);
+
+      break;
+
+    case concat_op:
+
+      if (((quad->arg1->type == str_arg ||
+            (quad->arg1->type == id_arg &&
+             quad->arg1->value.id_value->var_type == strtype)) &&
+           (quad->arg2->type != str_arg &&
+            (quad->arg2->type == id_arg &&
+             quad->arg2->value.id_value->var_type != strtype))) ||
+
+          ((quad->arg1->type != str_arg &&
+            (quad->arg1->type == id_arg &&
+             quad->arg1->value.id_value->var_type != strtype)) &&
+           (quad->arg2->type == str_arg ||
+            (quad->arg2->type == id_arg &&
+             quad->arg2->value.id_value->var_type == strtype)))) {
+
+        reg1 = find_free_reg();
+
+        if (quad->arg1->type == int_arg) {
+          reg2 = quad->arg1->reg_arg;
+          quad->arg1->type = str_arg;
+        } else if (quad->arg2->type == int_arg) {
+          reg2 = quad->arg2->reg_arg;
+          quad->arg2->type = str_arg;
+        } else if (quad->arg1->type == id_arg &&
+                   quad->arg1->value.id_value->var_type == inttype) {
+          reg2 = quad->arg1->reg_arg;
+          quad->arg1->type = str_arg;
+        } else if (quad->arg2->type == id_arg &&
+                   quad->arg2->value.id_value->var_type == inttype) {
+          reg2 = quad->arg2->reg_arg;
+          quad->arg2->type = str_arg;
+        } else {
+          panic("concat_op: invalid arg type");
+        }
+
+        reg3 = find_free_reg();
+
+        // create the string result in data section
+        astack_push_data(stack, "intoa%d: .space 256", intoa_count);
+        astack_push_text(stack, asblock, "la %s, intoa%d", reg_name(reg1),
+                         intoa_count);
+        intoa_count++;
+
+        astack_push_text(stack, asblock, "\n_instr%d:", jmp_count);
+        jmp_count++;
+
+        // divide by 10
+        astack_push_text(stack, asblock, "div %s, %s, 10", reg_name(reg2),
+                         reg_name(reg2));
+        astack_push_text(stack, asblock, "mfhi %s", reg_name(reg3));
+
+        // convert digit to ASCII
+        astack_push_text(stack, asblock, "addi %s, %s, 48", reg_name(reg3),
+                         reg_name(reg3));
+        astack_push_text(stack, asblock, "sb %s, 0(%s)", reg_name(reg3),
+                         reg_name(reg1));
+        astack_push_text(stack, asblock, "mflo %s", reg_name(reg2));
+
+        astack_push_text(stack, asblock, "addi %s, %s, 1", reg_name(reg1),
+                         reg_name(reg1));
+
+        astack_push_text(stack, asblock, "beq %s, $zero, _instr%d",
+                         reg_name(reg2), jmp_count);
+
+        astack_push_text(stack, asblock, "j _instr%d", jmp_count - 1);
+
+        astack_push_text(stack, asblock, "\n_instr%d:", jmp_count);
+        jmp_count++;
+
+        astack_push_text(stack, asblock, "sb $zero, 0(%s)", reg_name(reg1));
+
+        free_reg(reg1);
+        free_reg(reg2);
+        free_reg(reg3);
+
+        reg1 = find_free_reg();
+        // go back to the beginning of the string
+        astack_push_text(stack, asblock, "la %s, intoa%d", reg_name(reg1),
+                         intoa_count - 1);
+
+        if (quad->arg1->type == int_arg)
+          quad->arg1->reg_arg = reg1;
+        else if (quad->arg2->type == int_arg)
+          quad->arg2->reg_arg = reg1;
+        else if (quad->arg1->type == id_arg &&
+                 quad->arg1->value.id_value->var_type == inttype)
+          quad->arg1->reg_arg = reg1;
+        else if (quad->arg2->type == id_arg &&
+                 quad->arg2->value.id_value->var_type == inttype)
+          quad->arg2->reg_arg = reg1;
+      }
+
+      // concat strings
+      if ((quad->arg1->type == str_arg ||
+           (quad->arg1->type == id_arg &&
+            quad->arg1->value.id_value->var_type == strtype)) &&
+          (quad->arg2->type == str_arg ||
+           (quad->arg2->type == id_arg &&
+            quad->arg2->value.id_value->var_type == strtype))) {
+
+        // create the string result in data section
+        astack_push_data(stack, "msg%d: .space 256", msg_count);
+        reg3 = find_free_reg();
+        astack_push_text(stack, asblock, "la %s, msg%d", reg_name(reg3),
+                         msg_count);
+
+        // first string is store in quad->arg1->reg_arg and second string in
+        // quad->arg2->reg_arg
+        reg1 = find_free_reg();
+        reg2 = find_free_reg();
+
+        // copy the first string in the result string
+        astack_push_text(stack, asblock, "\n_instr%d:", jmp_count);
+        jmp_count++;
+
+        astack_push_text(stack, asblock, "lb %s, 0(%s)", reg_name(reg1),
+                         reg_name(quad->arg1->reg_arg));
+        astack_push_text(stack, asblock, "sb %s, 0(%s)", reg_name(reg1),
+                         reg_name(reg3));
+
+        astack_push_text(stack, asblock, "beq %s, 0, _instr%d", reg_name(reg1),
+                         jmp_count);
+
+        astack_push_text(stack, asblock, "addi %s, %s, 1", reg_name(reg3),
+                         reg_name(reg3));
+        astack_push_text(stack, asblock, "addi %s, %s, 1",
+                         reg_name(quad->arg1->reg_arg),
+                         reg_name(quad->arg1->reg_arg));
+
+        astack_push_text(stack, asblock, "j _instr%d", jmp_count - 1);
+
+        // copy the second string in the result string
+        astack_push_text(stack, asblock, "\n_instr%d:", jmp_count);
+        jmp_count++;
+
+        astack_push_text(stack, asblock, "lb %s, 0(%s)", reg_name(reg2),
+                         reg_name(quad->arg2->reg_arg));
+        astack_push_text(stack, asblock, "sb %s, 0(%s)", reg_name(reg2),
+                         reg_name(reg3));
+
+        astack_push_text(stack, asblock, "beq %s, 0, _instr%d", reg_name(reg2),
+                         jmp_count);
+
+        astack_push_text(stack, asblock, "addi %s, %s, 1", reg_name(reg3),
+                         reg_name(reg3));
+        astack_push_text(stack, asblock, "addi %s, %s, 1",
+                         reg_name(quad->arg2->reg_arg),
+                         reg_name(quad->arg2->reg_arg));
+
+        astack_push_text(stack, asblock, "j _instr%d", jmp_count - 1);
+
+        astack_push_text(stack, asblock, "\n_instr%d:", jmp_count);
+        jmp_count++;
+
+        free_reg(reg1);
+        free_reg(reg2);
+        free_reg(reg3);
+
+        // store the result in the quad->result->reg_arg
+        quad->arg3->reg_arg = find_free_reg();
+        quad->arg3->type = str_arg;
+
+        astack_push_text(stack, asblock, "la %s, msg%d",
+                         reg_name(quad->arg3->reg_arg), msg_count);
+
+        msg_count++;
+        msg_print++;
+      }
 
       break;
 
@@ -572,7 +1044,13 @@ void generate_asm(FILE *out) {
     case ops_add_op:
 
       // add the value to the ops array
-      if (quad->arg1 != ALL_ARG && quad->arg1->type != str_arg) {
+      if (quad->arg1 != ALL_ARG && quad->arg1 != ALL &&
+          (quad->arg1->type == int_arg ||
+           (quad->arg1->type == id_arg &&
+            quad->arg1->value.id_value->var_type == inttype) ||
+           (quad->arg1->type == id_arg &&
+            quad->arg1->value.id_value->var_type == arrayinttype) ||
+           quad->arg1->type == int_array_arg)) {
         astack_push_text(stack, asblock, "sw %s, %d(%s)",
                          reg_name(quad->arg1->reg_arg), ops_count * 4,
                          reg_name(reg_ops));
@@ -619,8 +1097,10 @@ void generate_asm(FILE *out) {
 
       // initialize the index
       astack_push_text(stack, asblock, "li %s, 0",
-                       reg_name(reg_index_for + index_alloc_count));
-      index_alloc_count++;
+                       reg_name(reg_index_for + index_for_count));
+      index_for_count++;
+
+      if (index_for_count >= 8) panic("index_for_count >= 4");
 
       quad->arg1->value.id_value->var_type = inttype;
       quad->arg1->value.id_value->var_addr = 1;
@@ -633,7 +1113,9 @@ void generate_asm(FILE *out) {
       for (j = 0; j < vec_size(quad->subarray); j++) {
         quadarg1 = vec_get(quad->subarray, j);
         if (quadarg1 != ALL && quadarg1 != ALL_ARG &&
-            quadarg1->type == str_arg) {
+            (quadarg1->type == str_arg ||
+             (quadarg1->type == id_arg &&
+              quadarg1->value.id_value->var_type == strtype))) {
           j = 0;
           break;
         }
@@ -648,12 +1130,14 @@ void generate_asm(FILE *out) {
         error_count++;
       }
 
-      // block for each "for" instruction
-      jmp_name_next = malloc(BUFSIZ);
-      snprintf_s(jmp_name_next, BUFSIZ, "_for%d", index_alloc_count - 1);
-      jmp_count++;
+      for_count++;
+      astack_push_text(stack, asblock, "# for loop %d", for_count);
 
-      vec_push(blocks, jmp_name_next);
+      jmp_name_if = malloc(BUFSIZ);
+      snprintf_s(jmp_name_if, BUFSIZ, "_for%d", jmp_count);
+      jmp_count++;
+      astack_push_text(stack, asblock, "\n%s:", jmp_name_if);
+      vec_push(stack_for, jmp_name_if);
 
       // assign the value of reg_ops first element to the variable
       quadarg1 = vec_get(quad->subarray, vec_size(quad->subarray) - 1);
@@ -672,8 +1156,8 @@ void generate_asm(FILE *out) {
                        quadarg1->value.id_value->name);
 
       astack_push_text(stack, asblock, "addi %s, %s, 1",
-                       reg_name(reg_index_for + index_alloc_count - 1),
-                       reg_name(reg_index_for + index_alloc_count - 1));
+                       reg_name(reg_index_for + index_for_count - 1),
+                       reg_name(reg_index_for + index_for_count - 1));
 
       free_reg(reg1);
 
@@ -702,48 +1186,174 @@ void generate_asm(FILE *out) {
       }
 
       // go back to the good "for" block
-      buf = malloc(BUFSIZ);
-      snprintf_s(buf, BUFSIZ, "_for%d", index_alloc_count - 1);
-
+      jmp_name_if = vec_last(stack_for);
+      vec_pop(stack_for);
       astack_push_text(stack, asblock, "ble %s, %d, %s",
-                       reg_name(reg_index_for + index_alloc_count - 1),
-                       ops_size - 1, buf);
-      index_alloc_count--;
+                       reg_name(reg_index_for + index_for_count - 1),
+                       ops_size - 1, jmp_name_if);
+      index_for_count--;
 
       astack_push_text(stack, asblock, "\n_instr%d:", jmp_count);
       jmp_count++;
 
       break;
 
-    case while_init_op:
+    case case_init_op:
 
-      /// put the instruction name to define the while condition section
-      jmp_name_next = malloc(BUFSIZ);
-      snprintf_s(jmp_name_next, BUFSIZ, "_instr%d", jmp_count);
-      jmp_count++;
+      // create the string result in data section
+      astack_push_data(stack, "default%d: .word 0",
+                       switch_count + switch_in_case_count);
 
-      vec_push(blocks, jmp_name_next);
+      if ((quad->arg1->type == id_arg &&
+           quad->arg1->value.id_value->var_type == strtype) ||
+          quad->arg1->type == str_arg) {
+        switch_type = 0;
+
+        reg1 = find_free_reg();
+        reg2 = find_free_reg();
+        reg3 = find_free_reg();
+
+        astack_push_data(stack, "swtch%d: .space 256",
+                         switch_count + switch_in_case_count);
+        astack_push_text(stack, asblock, "la %s, swtch%d", reg_name(reg3),
+                         switch_count + switch_in_case_count);
+
+        astack_push_text(stack, asblock, "\n_instr%d:", jmp_count);
+        jmp_count++;
+
+        astack_push_text(stack, asblock, "lb %s, 0(%s)", reg_name(reg1),
+                         reg_name(quad->arg1->reg_arg));
+        astack_push_text(stack, asblock, "sb %s, 0(%s)", reg_name(reg1),
+                         reg_name(reg3));
+
+        astack_push_text(stack, asblock, "beq %s, 0, _instr%d", reg_name(reg1),
+                         jmp_count);
+
+        astack_push_text(stack, asblock, "addi %s, %s, 1",
+                         reg_name(quad->arg1->reg_arg),
+                         reg_name(quad->arg1->reg_arg));
+        astack_push_text(stack, asblock, "addi %s, %s, 1", reg_name(reg3),
+                         reg_name(reg3));
+
+        astack_push_text(stack, asblock, "j _instr%d", jmp_count - 1);
+
+        free_reg(reg1);
+        free_reg(reg2);
+        free_reg(reg3);
+        free_reg(quad->arg1->reg_arg);
+
+        msg_print++;
+
+      } else if ((quad->arg1->type == id_arg &&
+                  quad->arg1->value.id_value->var_type == inttype) ||
+                 quad->arg1->type == int_arg) {
+        switch_type = 1;
+
+        reg1 = find_free_reg();
+
+        astack_push_data(stack, "swtch%d: .word 0",
+                         switch_count + switch_in_case_count);
+        astack_push_text(stack, asblock, "la %s, swtch%d", reg_name(reg1),
+                         switch_count + switch_in_case_count);
+
+        astack_push_text(stack, asblock, "sw %s, 0(%s)",
+                         reg_name(quad->arg1->reg_arg), reg_name(reg1));
+      }
+
+      switch_count++;
+      switch_in_case_count++;
+      index_case_count++;
 
       break;
 
-    case while_instr_op:
+    case case_set_name:
 
-      // go back to the previous while condition
-      jmp_name_next = vec_last(blocks);
-      vec_pop(blocks);
-      jmp_name_else = vec_last(blocks);
-      vec_pop(blocks);
-      jmp_name_if = vec_last(blocks);
-      vec_pop(blocks);
-      jmp_name_previous = vec_last(blocks);
+      reg1 = find_free_reg();
+      reg2 = find_free_reg();
+      reg3 = find_free_reg();
+      reg4 = find_free_reg();
 
-      vec_push(blocks, jmp_name_if);
-      vec_push(blocks, jmp_name_else);
-      vec_push(blocks, jmp_name_next);
+      for (j = 0; j < (size_t)quad->arg1->value.filters->size; j++) {
+        astack_push_text(stack, asblock, "\n_instr%d:", jmp_count);
+        jmp_count++;
 
-      astack_push_text(stack, asblock, "j %s", jmp_name_previous);
+        if (strcmp(quad->arg1->value.filters->array_string[j], "*") == 0) {
+          astack_push_text(stack, asblock, "lw %s, default%d", reg_name(reg1),
+                           switch_count + switch_in_case_count - 2);
+          astack_push_text(stack, asblock, "beq %s, 0, _case%d", reg_name(reg1),
+                           case_count);
+          astack_push_text(stack, asblock, "j _instr%d", jmp_count);
+          break;
+        }
 
-      vec_pop(blocks);
+        if (switch_type == 0) {
+
+          astack_push_data(stack, "msg%d: .asciiz \"%s\"", msg_count,
+                           quad->arg1->value.filters->array_string[j]);
+          msg_count++;
+          astack_push_text(stack, asblock, "la %s, msg%d", reg_name(reg1),
+                           msg_print);
+          msg_print++;
+
+          astack_push_text(stack, asblock, "la %s, swtch%d", reg_name(reg2),
+                           switch_count + switch_in_case_count - 2);
+
+          astack_push_text(stack, asblock, "\n_instr%d:", jmp_count);
+          jmp_count++;
+
+          astack_push_text(stack, asblock, "lb %s, 0(%s)", reg_name(reg3),
+                           reg_name(reg2));
+          astack_push_text(stack, asblock, "lb %s, 0(%s)", reg_name(reg4),
+                           reg_name(reg1));
+          // if caracters different, go to next string in the array
+          astack_push_text(stack, asblock, "bne %s, %s, _instr%d",
+                           reg_name(reg3), reg_name(reg4), jmp_count);
+          // if caracters equal, go to the good case
+          astack_push_text(stack, asblock, "beq %s, $zero, _case%d",
+                           reg_name(reg3), case_count);
+
+          astack_push_text(stack, asblock, "addi %s, %s, 1", reg_name(reg2),
+                           reg_name(reg2));
+          astack_push_text(stack, asblock, "addi %s, %s, 1", reg_name(reg1),
+                           reg_name(reg1));
+
+          astack_push_text(stack, asblock, "j _instr%d", jmp_count - 1);
+
+        } else if (switch_type == 1) {
+
+          astack_push_text(stack, asblock, "lw %s, swtch%d", reg_name(reg1),
+                           switch_count + switch_in_case_count - 2);
+
+          astack_push_text(stack, asblock, "li %s, %d", reg_name(reg2),
+                           atoi(quad->arg1->value.filters->array_string[j]));
+
+          astack_push_text(stack, asblock, "beq %s, %s, _case%d",
+                           reg_name(reg1), reg_name(reg2), case_count);
+
+          astack_push_text(stack, asblock, "j _instr%d", jmp_count);
+        }
+      }
+
+      astack_push_text(stack, asblock, "\n_case%d:", case_count);
+      astack_push_text(stack, asblock, "li %s, 1", reg_name(reg3));
+      astack_push_text(stack, asblock, "la %s, default%d", reg_name(reg4),
+                       switch_count + switch_in_case_count - 2);
+      astack_push_text(stack, asblock, "sw %s, 0(%s)", reg_name(reg3),
+                       reg_name(reg4));
+      case_count++;
+
+      free_reg(reg1);
+      free_reg(reg2);
+      free_reg(reg3);
+      free_reg(reg4);
+
+      break;
+
+    case case_instr_op:
+
+      switch_in_case_count--;
+      astack_push_text(stack, asblock, "\n_instr%d:", jmp_count);
+      jmp_count++;
 
       break;
 
@@ -753,7 +1363,6 @@ void generate_asm(FILE *out) {
 
       // make echo instruction according to the type of the arguments
       for (j = 0; j < vec_size(quad->subarray); j++) {
-
         if ((quadarg1 = vec_get(quad->subarray, j)) == NULL)
           panic("quadarg1 is NULL");
         if (j != vec_size(quad->subarray) - 1) {
@@ -764,11 +1373,16 @@ void generate_asm(FILE *out) {
 
         // int value
         if (quadarg1 != ALL_ARG && quadarg1 != ALL && quadarg2 != ALL &&
-            (quadarg1->type == int_arg || quadarg1->type == id_arg ||
-             quadarg1->type == int_array_arg)) {
+            (quadarg1->type == int_arg || quadarg1->type == int_array_arg ||
+             (quadarg1->type == id_arg &&
+              quadarg1->value.id_value->var_type == inttype))) {
+
+          // save the return value for function
+          astack_push_text(stack, asblock, "lw $t9, %d(%s)", (ops_print)*4,
+                           reg_name(reg_ops));
 
           // print the value store in sbrk
-          astack_push_text(stack, asblock, "lw $a0, %d(%s)", (ops_print)*4,
+          astack_push_text(stack, asblock, "lw $a0 %d(%s)", (ops_print)*4,
                            reg_name(reg_ops));
           astack_push_text(stack, asblock, "li $v0, %d", sc_print_int);
           astack_push_text(stack, asblock, "syscall");
@@ -781,14 +1395,24 @@ void generate_asm(FILE *out) {
             astack_push_text(stack, asblock, "li $v0, %d", sc_print_string);
             astack_push_text(stack, asblock, "syscall");
           }
+
           // string value
         } else if (quadarg1 != ALL_ARG && quadarg1 != ALL && quadarg2 != ALL &&
-                   quadarg1->type == str_arg) {
+                   (quadarg1->type == str_arg ||
+                    (quadarg1->type == id_arg &&
+                     quadarg1->value.id_value->var_type == strtype))) {
 
-          astack_push_text(stack, asblock, "la $a0, msg%d", msg_print);
+          if (quadarg1->type == str_arg)
+            astack_push_text(stack, asblock, "la $a0, msg%d", msg_print);
+
+          else if (quadarg1->type == id_arg)
+            astack_push_text(stack, asblock, "la $a0, %s",
+                             quadarg1->value.id_value->name);
+
+          msg_print++;
+
           astack_push_text(stack, asblock, "li $v0, %d", sc_print_string);
           astack_push_text(stack, asblock, "syscall");
-          msg_print++;
 
           // display
           if (j != vec_size(quad->subarray) - 1) {
@@ -942,15 +1566,78 @@ void generate_asm(FILE *out) {
       // declare id value
       node = quad->arg1->value.id_value;
       if (node->var_addr == 0) {
-        astack_push_data(stack, "%s: .word 0", node->name);
-        node->var_type = inttype;
-        node->var_addr = 1;
+        if (quad->arg2->type == int_arg) {
+
+          astack_push_data(stack, "%s: .word 0", node->name);
+          node->var_type = inttype;
+          node->var_addr = 1;
+
+        } else if (quad->arg2->type == str_arg) {
+
+          astack_push_data(stack, "%s: .space 256", node->name);
+          node->var_type = strtype;
+          node->var_addr = 1;
+
+        } else {
+          panic("Cannot assign to undeclared variable");
+        }
       }
 
       // assign value
-      astack_push_text(stack, asblock, "sw %s, %s",
-                       reg_name(quad->arg2->reg_arg), node->name);
-      free_reg(quad->arg2->reg_arg);
+      if (quad->arg2->type == int_arg) {
+        astack_push_text(stack, asblock, "sw %s, %s",
+                         reg_name(quad->arg2->reg_arg), node->name);
+        free_reg(quad->arg2->reg_arg);
+
+      } else if (quad->arg2->type == str_arg) {
+        reg1 = find_free_reg();
+        reg2 = find_free_reg();
+        reg3 = find_free_reg();
+
+        astack_push_text(stack, asblock, "la %s, %s", reg_name(reg3),
+                         quad->arg1->value.id_value->name);
+
+        astack_push_text(stack, asblock, "li %s, 0", reg_name(reg1));
+
+        astack_push_text(stack, asblock, "\n_instr%d:", jmp_count);
+        jmp_count++;
+
+        astack_push_text(stack, asblock, "lb %s, 0(%s)", reg_name(reg2),
+                         reg_name(quad->arg2->reg_arg));
+        astack_push_text(stack, asblock, "sb %s, 0(%s)", reg_name(reg2),
+                         reg_name(reg3));
+
+        astack_push_text(stack, asblock, "addi %s, %s, 1",
+                         reg_name(quad->arg2->reg_arg),
+                         reg_name(quad->arg2->reg_arg));
+        astack_push_text(stack, asblock, "addi %s, %s, 1", reg_name(reg3),
+                         reg_name(reg3));
+        astack_push_text(stack, asblock, "addi %s, %s, 1", reg_name(reg1),
+                         reg_name(reg1));
+
+        astack_push_text(stack, asblock, "beq %s, 0, _instr%d", reg_name(reg2),
+                         jmp_count);
+        astack_push_text(stack, asblock, "j _instr%d", jmp_count - 1);
+
+        astack_push_text(stack, asblock, "\n_instr%d:", jmp_count);
+        jmp_count++;
+
+        free_reg(reg1);
+        free_reg(reg2);
+        free_reg(reg3);
+        free_reg(quad->arg2->reg_arg);
+
+      } else if (quad->arg2->type == id_arg) {
+        astack_push_text(stack, asblock, "lw %s, %s",
+                         reg_name(quad->arg2->reg_arg),
+                         quad->arg2->value.id_value->name);
+        astack_push_text(stack, asblock, "sw %s, %s",
+                         reg_name(quad->arg2->reg_arg), node->name);
+        free_reg(quad->arg2->reg_arg);
+
+      } else {
+        panic("Cannot assign to undeclared variable");
+      }
 
       break;
 
@@ -1040,6 +1727,8 @@ void generate_asm(FILE *out) {
                        quad->arg1->value.id_value->name);
       astack_push_text(stack, asblock, "%s:", quad->arg1->value.id_value->name);
 
+      astack_push_text(stack, asblock, "addi $sp, $sp, -4");
+
       // write the prologue
       astack_push_text(stack, asblock, "sw $ra, 0($sp)");
 
@@ -1047,48 +1736,39 @@ void generate_asm(FILE *out) {
 
     case dfun_op:
 
-      // write the epilogue
-      astack_push_text(stack, asblock, "lw $ra, 0($sp)");
-      astack_push_text(stack, asblock, "jr $ra");
-
       // write the left part of the program in a new instruction
       astack_push_text(stack, asblock, "\nend_fct%d:", fct_count);
       fct_count++;
 
       break;
 
-    case decl_op:
-
-      break;
-
     case return_void_op:
 
-      // astack_push_text(stack, asblock, "beqz $t9, _error");
-      // astack_push_data(stack,
-      //                  "error_msg%d: .asciiz \"$i used outside of a function
-      //                  "
-      //                  "(sos:%d)\\n\"",
-      //                  error_count, quad->lineno);
-      // error_count++;
+      // save the return value in $t9 into $v1
+      astack_push_text(stack, asblock, "move $v1, $t9");
 
-      // set $v1 to 0
-      astack_push_text(stack, asblock, "li $v1, 0");
+      // set the status to 0 in $t8
+      astack_push_text(stack, asblock, "li $t8, 0");
+
+      // jmp to the end of the function
+      astack_push_text(stack, asblock, "lw $ra, 0($sp)");
+      astack_push_text(stack, asblock, "addi $sp, $sp, 4");
+      astack_push_text(stack, asblock, "jr $ra");
 
       break;
 
     case return_int_op:
 
-      // astack_push_text(stack, asblock, "beqz $t9, _error");
-      // astack_push_data(stack,
-      //                  "error_msg%d: .asciiz \"$i used outside of a function
-      //                  "
-      //                  "(sos:%d)\\n\"",
-      //                  error_count, quad->lineno);
-      // error_count++;
+      // save the return value in $t9 into $v1
+      astack_push_text(stack, asblock, "move $v1, $t9");
 
-      // set $v1 to the return value
-      astack_push_text(stack, asblock, "move $v1, %s",
+      // set the status to the return argument in $t8
+      astack_push_text(stack, asblock, "move $t8, %s",
                        reg_name(quad->arg1->reg_arg));
+
+      astack_push_text(stack, asblock, "lw $ra, 0($sp)");
+      astack_push_text(stack, asblock, "addi $sp, $sp, 4");
+      astack_push_text(stack, asblock, "jr $ra");
 
       break;
 
@@ -1098,27 +1778,21 @@ void generate_asm(FILE *out) {
       reg1 = find_free_reg();
       astack_push_text(stack, asblock, "li %s, %zu", reg_name(reg1),
                        vec_size(quad->subarray) - 1);
-      astack_push_text(stack, asblock, "sw %s, 4($sp)", reg_name(reg1));
+      astack_push_text(stack, asblock, "sw %s, 0($sp)", reg_name(reg1));
       // load the arguments in the stack
-      for (j = 0; j < vec_size(quad->subarray); j++) {
+      for (j = 0; j < vec_size(quad->subarray) - 1; j++) {
         astack_push_text(stack, asblock, "lw %s, %zu(%s)", reg_name(reg1),
                          j * 4, reg_name(reg_ops));
         astack_push_text(stack, asblock, "sw %s, %zu($sp)", reg_name(reg1),
-                         (j + 2) * 4);
+                         (j + 1) * 4);
       }
       free_reg(reg1);
-
-      // set the $t9 to true to know that we are in a function
-      astack_push_text(stack, asblock, "li $t9, 1");
 
       // jump to the function code
       astack_push_text(stack, asblock, "jal %s",
                        ((struct quadarg *)vec_get(quad->subarray,
                                                   vec_size(quad->subarray) - 1))
                            ->value.id_value->name);
-
-      // set the flag to false to know that we are not in a function
-      astack_push_text(stack, asblock, "li $t9, 0");
 
       break;
 
@@ -1130,15 +1804,9 @@ void generate_asm(FILE *out) {
       astack_push_text(stack, asblock, "sw %s, 4($sp)", reg_name(reg1));
       free_reg(reg1);
 
-      // set the flag to false to know that we are in a function
-      astack_push_text(stack, asblock, "li $t9, 1");
-
       // jump to the function code
       astack_push_text(stack, asblock, "jal %s",
                        quad->arg1->value.id_value->name);
-
-      // set the flag to false to know that we are not in a function
-      astack_push_text(stack, asblock, "li $t9, 0");
 
       break;
 
@@ -1160,8 +1828,6 @@ void generate_asm(FILE *out) {
       break;
     }
   }
-
-  astack_push_text(stack, asblock, "\n# End of program");
 
   // default exit
   buf = malloc(BUFSIZ);
