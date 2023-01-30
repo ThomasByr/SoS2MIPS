@@ -14,7 +14,6 @@
 [![Author](https://img.shields.io/badge/author-@ThomasByr-blue)](https://github.com/ThomasByr)
 [![Author](https://img.shields.io/badge/author-@ThomasD-blue)](https://github.com/LosKeeper)
 [![Author](https://img.shields.io/badge/author-@EthanH-blue)](https://github.com/EthanAndreas)
-[![Author](https://img.shields.io/badge/author-@MathieuM-blue)](https://github.com/MMARTIN77178)
 
 1. [✏️ Setup](#️-setup)
 2. [💁 More infos and Usage](#-more-infos-and-usage)
