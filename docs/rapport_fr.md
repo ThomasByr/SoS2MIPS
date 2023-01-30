@@ -755,16 +755,14 @@ syscall
 
 ### ce qu'il reste à faire (et qu'on sait comment faire)
 
-- nombres négatifs
-- nombres à double précision
-- `concat` (les id sont que des entiers, on n'a pas encore fait l'assignation de tableaux)
-- until ... do
-- elif
+- tableau de string
+- le type de résultat de fonction (pour l'instant que des entiers)
+- mettre des `string` dans les boucles `for`
 
 ### ce qu'il reste à faire (et qui est pour l'instant obscure)
 
-- typage (s'occuper des chaînes de caractères, stocker l'adresse de retour de sbrk dans la table des symboles)
-- case esac
+- gérer proprement les appels de fonctions dans d'autres fonctions (problème au niveau du registre `$ra`)
+- le point précédent inclut aussi les fonctions récursives
 
 ---
 
